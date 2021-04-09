@@ -60,6 +60,20 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  freemework:
+    dependency: "direct main"
+    description:
+      name: freemework
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.1"
+  freemework_cancellation:
+    dependency: "direct main"
+    description:
+      name: freemework_cancellation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.0.2"
   matcher:
     dependency: transitive
     description:

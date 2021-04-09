@@ -12,17 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "package:flutter/widgets.dart" show runApp;
-import "package:freemework/freemework.dart" show ExecutionContext;
-import "widget/business/unlock.dart" show UnlockContext, UnlockWidget;
-import "widget/toolchain/dialog_widget.dart" show DialogWidget;
-
-void main() {
-  runApp(DialogWidget<UnlockContext>(
-    child: UnlockWidget(),
-    onComplete: (ExecutionContext executionContext, UnlockContext unlockContext) async {
-      print("Dialog completed with password: ${unlockContext.password}");
-      await Future<void>.delayed(Duration(seconds: 3));
-    },
-  ));
-}
+abstract class WalletService {}
