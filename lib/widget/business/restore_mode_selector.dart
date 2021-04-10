@@ -12,7 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "package:flutter/material.dart" show Colors, Icons;
+import "package:flutter/material.dart"
+    show CircularProgressIndicator, Colors, Icons, Scaffold;
 import "package:flutter/widgets.dart"
     show
         BorderRadius,
@@ -22,8 +23,11 @@ import "package:flutter/widgets.dart"
         Column,
         Container,
         EdgeInsets,
+        Expanded,
         FontWeight,
         Icon,
+        IconData,
+        MainAxisAlignment,
         Padding,
         Radius,
         Text,
@@ -32,12 +36,15 @@ import "package:flutter/widgets.dart"
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
 
-import "../reusable/button_widget.dart" show FWButton;
+import "../reusable/button_widget.dart"
+    show FWButton, FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
     show DialogActionContentWidget, DialogCallback;
 
 class RestoreModeSelectorContext {
-  RestoreModeSelectorContext();
+  final String action;
+
+  RestoreModeSelectorContext(this.action);
 }
 
 class RestoreModeSelectorWidget
@@ -48,50 +55,19 @@ class RestoreModeSelectorWidget
     DialogCallback<RestoreModeSelectorContext> onComplete,
   }) {
     return Container(
-      color: Colors.grey,
       child: Column(
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(
-                  const Radius.circular(3.0),
-                ),
-              ),
-              // color: Colors.white,
-              child: Padding(
-                padding: const EdgeInsets.all(32.0),
-                child: Center(
-                  child: Column(
-                    children: <Widget>[
-                      Icon(Icons.access_alarms_outlined),
-                      FWButton(
-                        "Active111",
-                        onPressed: () {
-                          onComplete(RestoreModeSelectorContext());
-                        },
-                      ),
-                      Text(
-                        "Recommend new users to use",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 24,
-                          color: Colors.blueGrey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+          this._buildItem(
+            Icons.add_rounded,
+            "Create",
+            "Recommend new users to use",
+            onComplete,
           ),
-          FWButton(
-            "Active222",
-            onPressed: () {
-              onComplete(RestoreModeSelectorContext());
-            },
+          this._buildItem(
+            Icons.archive_outlined,
+            "Restore",
+            "Recommend for users with existing accounts",
+            onComplete,
           ),
         ],
       ),
@@ -104,7 +80,80 @@ class RestoreModeSelectorWidget
     CancellationTokenSource cancellationTokenSource,
     Widget feedbackInfoWidget,
   }) {
-    // TODO: implement buildBusy
-    return Text("Active102");
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            CircularProgressIndicator(
+              semanticsLabel: "Circular progress indicator",
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text("Please wait..."),
+            )
+          ],
+        ),
+      ),
+      floatingActionButton: FWCancelFloatingActionButton(
+        onPressed: cancellationTokenSource.cancel,
+      ),
+    );
+  }
+
+  Widget _buildItem(
+    IconData icon,
+    String buttonText,
+    String description,
+    DialogCallback<RestoreModeSelectorContext> onComplete,
+  ) {
+    return Expanded(
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.all(
+              const Radius.circular(5.0),
+            ),
+          ),
+          // color: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Icon(icon, size: 64),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: FWButton(
+                      buttonText,
+                      onPressed: () {
+                        onComplete(RestoreModeSelectorContext(buttonText));
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      description,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                        color: Colors.blueGrey,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

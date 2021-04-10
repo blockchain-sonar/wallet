@@ -14,7 +14,8 @@
 
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
-import "widget/business/restore_mode_selector.dart" show RestoreModeSelectorContext, RestoreModeSelectorWidget;
+import "widget/business/restore_mode_selector.dart"
+    show RestoreModeSelectorContext, RestoreModeSelectorWidget;
 import "widget/business/unlock.dart" show UnlockContext, UnlockWidget;
 import "widget/toolchain/dialog_widget.dart" show DialogWidget;
 
@@ -26,8 +27,10 @@ void main() {
 void mainTestUnlockWidget() {
   runApp(DialogWidget<UnlockContext>(
     child: UnlockWidget(),
-    onComplete:
-        (ExecutionContext executionContext, UnlockContext ctx) async {
+    onComplete: (
+      ExecutionContext executionContext,
+      UnlockContext ctx,
+    ) async {
       print("Dialog completed with password: ${ctx.password}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
@@ -37,9 +40,11 @@ void mainTestUnlockWidget() {
 void mainTestRestoreModeSelectorWidget() {
   runApp(DialogWidget<RestoreModeSelectorContext>(
     child: RestoreModeSelectorWidget(),
-    onComplete:
-        (ExecutionContext executionContext, RestoreModeSelectorContext ctx) async {
-      print("Dialog completed");
+    onComplete: (
+      ExecutionContext executionContext,
+      RestoreModeSelectorContext ctx,
+    ) async {
+      print("Dialog completed with action: ${ctx.action}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
   ));
