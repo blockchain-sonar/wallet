@@ -14,7 +14,6 @@
 
 import "package:flutter/material.dart"
     show
-        Colors,
         FloatingActionButton,
         Icons,
         InputDecoration,
@@ -22,6 +21,7 @@ import "package:flutter/material.dart"
         OutlineInputBorder,
         Scaffold,
         TextField;
+
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -29,15 +29,14 @@ import "package:flutter/widgets.dart"
         Column,
         EdgeInsets,
         Expanded,
-        FontWeight,
         Icon,
         Key,
+        MainAxisAlignment,
         Padding,
         State,
         StatefulWidget,
         Text,
         TextEditingController,
-        TextStyle,
         Widget;
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
@@ -48,46 +47,52 @@ import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
     show DialogCallback, DialogWidget, DialogActionContentWidget;
 
-class UnlockContext {
-  final String password;
+class EnterWalletNameContext {
+  final String walletName;
 
-  UnlockContext(this.password);
+  EnterWalletNameContext(this.walletName);
 }
 
-class UnlockWidget extends DialogActionContentWidget<UnlockContext> {
+class EnterWalletNameWidget
+    extends DialogActionContentWidget<EnterWalletNameContext> {
   @override
-  Widget buildActive(BuildContext context,
-          {DialogCallback<UnlockContext> onComplete}) =>
-      _UnlockWidget(onComplete);
+  Widget buildActive(
+    BuildContext context, {
+    required DialogCallback<EnterWalletNameContext> onComplete,
+  }) =>
+      _EnterWalletNameWidget(onComplete);
 
   @override
   Widget buildBusy(
     BuildContext context, {
-    CancellationTokenSource cancellationTokenSource,
-    Widget feedbackInfoWidget,
+    required CancellationTokenSource cancellationTokenSource,
+    Widget? feedbackInfoWidget,
   }) {
-    return _buildContainer(
-        Column(
-          children: [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 16),
-              child: CircularProgressIndicator(
-                semanticsLabel: 'Circular progress indicator',
-              ),
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            CircularProgressIndicator(
+              semanticsLabel: "Circular progress indicator",
             ),
-            if (feedbackInfoWidget != null)
-              Expanded(
-                child: feedbackInfoWidget,
-              )
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text("Please wait..."),
+            )
           ],
         ),
-        floatingActionButton: FWCancelFloatingActionButton(
-          onPressed: cancellationTokenSource.cancel,
-        ));
+      ),
+      floatingActionButton: FWCancelFloatingActionButton(
+        onPressed: cancellationTokenSource.cancel,
+      ),
+    );
   }
 
-  static Widget _buildContainer(Widget body,
-      {FloatingActionButton floatingActionButton}) {
+  static Widget _buildContainer(
+    Widget body, {
+    required FloatingActionButton floatingActionButton,
+  }) {
     return Scaffold(
       body: Center(
         child: Column(
@@ -95,17 +100,6 @@ class UnlockWidget extends DialogActionContentWidget<UnlockContext> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: FWLogo128Widget(),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text(
-                "Welcome back",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: Colors.blueGrey,
-                ),
-              ),
             ),
             Expanded(
               child: body,
@@ -118,80 +112,67 @@ class UnlockWidget extends DialogActionContentWidget<UnlockContext> {
   }
 }
 
-class _UnlockWidget extends StatefulWidget {
-  final DialogCallback<UnlockContext> onComplete;
-  _UnlockWidget(
+class _EnterWalletNameWidget extends StatefulWidget {
+  final DialogCallback<EnterWalletNameContext> onComplete;
+  _EnterWalletNameWidget(
     this.onComplete, {
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
-  _UnlockWidgetState createState() => _UnlockWidgetState();
+  _EnterWalletNameWidgetState createState() => _EnterWalletNameWidgetState();
 }
 
-class _UnlockWidgetState extends State<_UnlockWidget> {
-  final TextEditingController _passwordTextEditingController =
+class _EnterWalletNameWidgetState extends State<_EnterWalletNameWidget> {
+  final TextEditingController _actionTextEditingController =
       TextEditingController();
 
   @override
   void initState() {
-    final UnlockContext dataContextInit =
-        DialogWidget.of<UnlockContext>(this.context).dataContextInit;
+    final EnterWalletNameContext? dataContextInit =
+        DialogWidget.of<EnterWalletNameContext>(this.context).dataContextInit;
     if (dataContextInit != null) {
-      this._passwordTextEditingController.text = dataContextInit.password;
+      this._actionTextEditingController.text = dataContextInit.walletName;
     }
     super.initState();
   }
 
   @override
   void dispose() {
-    this._passwordTextEditingController.dispose();
+    this._actionTextEditingController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final UnlockContext dataContextInit =
-        DialogWidget.of<UnlockContext>(this.context).dataContextInit;
+    final EnterWalletNameContext? dataContextInit =
+        DialogWidget.of<EnterWalletNameContext>(this.context).dataContextInit;
     if (dataContextInit != null) {
-      this._passwordTextEditingController.text = dataContextInit.password;
+      this._actionTextEditingController.text = dataContextInit.walletName;
     }
 
-    return UnlockWidget._buildContainer(
+    return EnterWalletNameWidget._buildContainer(
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
-            children: [
+            children: <Widget>[
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: TextField(
-                  controller: _passwordTextEditingController,
+                  controller: _actionTextEditingController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    hintText: "Master Password",
+                    hintText: "Enter wallet name",
                   ),
                 ),
               ),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-              //   child: SizedBox(
-              //     width: double.infinity,
-              //     child: FWButton(
-              //       "Continue",
-              //       onPressed: () {
-              //         widget.onComplete(UnlockContext(
-              //             this._passwordTextEditingController.text));
-              //       },
-              //     ),
-              //   ),
-              // ),
             ],
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             widget.onComplete(
-                UnlockContext(this._passwordTextEditingController.text));
+                EnterWalletNameContext(this._actionTextEditingController.text));
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

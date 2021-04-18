@@ -65,15 +65,17 @@ class RestoreByPrivateKeyContext {
 class RestoreByPrivateKeyWidget
     extends DialogActionContentWidget<RestoreByPrivateKeyContext> {
   @override
-  Widget buildActive(BuildContext context,
-          {DialogCallback<RestoreByPrivateKeyContext> onComplete}) =>
+  Widget buildActive(
+    BuildContext context, {
+    required DialogCallback<RestoreByPrivateKeyContext> onComplete,
+  }) =>
       _RestoreByPrivateKeyWidget(onComplete);
 
   @override
   Widget buildBusy(
     BuildContext context, {
-    CancellationTokenSource cancellationTokenSource,
-    Widget feedbackInfoWidget,
+    required CancellationTokenSource cancellationTokenSource,
+    Widget? feedbackInfoWidget,
   }) {
     return Scaffold(
       body: Center(
@@ -96,8 +98,10 @@ class RestoreByPrivateKeyWidget
     );
   }
 
-  static Widget _buildContainer(Widget body,
-      {FloatingActionButton floatingActionButton}) {
+  static Widget _buildContainer(
+    Widget body, {
+    required FloatingActionButton floatingActionButton,
+  }) {
     return Scaffold(
       body: Column(
         children: <Widget>[
@@ -128,7 +132,7 @@ class _RestoreByPrivateKeyWidget extends StatefulWidget {
   final DialogCallback<RestoreByPrivateKeyContext> onComplete;
   _RestoreByPrivateKeyWidget(
     this.onComplete, {
-    Key key,
+    Key? key,
   }) : super(key: key);
 
   @override
@@ -143,7 +147,7 @@ class _RestoreByPrivateKeyWidgetState
 
   @override
   void initState() {
-    final RestoreByPrivateKeyContext dataContextInit =
+    final RestoreByPrivateKeyContext? dataContextInit =
         DialogWidget.of<RestoreByPrivateKeyContext>(this.context)
             .dataContextInit;
     if (dataContextInit != null) {
@@ -160,7 +164,7 @@ class _RestoreByPrivateKeyWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final RestoreByPrivateKeyContext dataContextInit =
+    final RestoreByPrivateKeyContext? dataContextInit =
         DialogWidget.of<RestoreByPrivateKeyContext>(this.context)
             .dataContextInit;
     if (dataContextInit != null) {

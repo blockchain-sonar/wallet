@@ -12,47 +12,53 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:async' show FutureOr;
+import "dart:async" show FutureOr;
 
-import 'package:meta/meta.dart' show nonVirtual, protected, required;
-import 'package:flutter/material.dart';
+import "package:meta/meta.dart" show nonVirtual, protected, required;
+import "package:flutter/material.dart" show Colors, MaterialApp, ThemeData;
 import "package:flutter/widgets.dart"
-    show BuildContext, State, StatefulWidget, Widget;
-import 'package:freemework/freemework.dart' show ExecutionContext, InvalidOperationException;
-import 'package:freemework_cancellation/freemework_cancellation.dart'
+    show
+        BuildContext,
+        ComponentElement,
+        Key,
+        State,
+        StatefulWidget,
+        StatelessWidget,
+        ValueKey,
+        Widget;
+import "package:freemework/freemework.dart"
+    show ExecutionContext, InvalidOperationException;
+import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource, ManualCancellationTokenSource;
 
-typedef DialogHostCallback<T> = FutureOr Function(
+typedef DialogHostCallback<T> = FutureOr<void> Function(
     ExecutionContext executionContext, T);
 typedef DialogCallback<T> = void Function(T);
 typedef DialogFeedbackInfoWidgetBuilder = Widget Function(BuildContext context);
 
 class DialogWidget<T> extends StatefulWidget {
   /// Initial record
-  final T dataContextInit;
+  final T? dataContextInit;
 
   /// Data record history from newest(recordHistory.first) to oldest(recordHistory.last)
-  final List<T> dataContextsHistory;
+  final List<T>? dataContextsHistory;
 
   final DialogContentWidget<T> _child;
   final DialogHostCallback<T> _onCallback;
-  final DialogFeedbackInfoWidgetBuilder _feedbackInfoWidgetBuilder;
+  final DialogFeedbackInfoWidgetBuilder? _feedbackInfoWidgetBuilder;
 
   DialogWidget({
-    @required DialogContentWidget<T> child,
-    @required DialogHostCallback<T> onComplete,
-    DialogFeedbackInfoWidgetBuilder feedbackInfoWidgetBuilder,
+    required DialogContentWidget<T> child,
+    required DialogHostCallback<T> onComplete,
+    DialogFeedbackInfoWidgetBuilder? feedbackInfoWidgetBuilder,
     this.dataContextInit,
     this.dataContextsHistory,
   })  : this._child = child,
         this._onCallback = onComplete,
-        this._feedbackInfoWidgetBuilder = feedbackInfoWidgetBuilder {
-    assert(child != null);
-    assert(onComplete != null);
-  }
+        this._feedbackInfoWidgetBuilder = feedbackInfoWidgetBuilder {}
 
   static DialogWidget<T> of<T>(BuildContext context) {
-    final DialogWidget<T> dialogWidget =
+    final DialogWidget<T>? dialogWidget =
         context.findAncestorWidgetOfExactType<DialogWidget<T>>();
     if (dialogWidget == null) {
       throw InvalidOperationException(
@@ -71,7 +77,7 @@ class DialogFeedbackActive<T> extends DialogFeedback {
   final DialogCallback<T> _onCallback;
 
   DialogFeedbackActive({
-    @required DialogCallback<T> onComplete,
+    required DialogCallback<T> onComplete,
   }) : this._onCallback = onComplete;
 
   void onCallback(T dialogCompleteValue) =>
@@ -91,7 +97,8 @@ class DialogFeedbackBusy extends DialogFeedback {
 abstract class DialogContentWidget<T> extends Widget {
   @nonVirtual
   @override
-  _DialogStatelessElement createElement() => _DialogStatelessElement(this);
+  _DialogStatelessElement<T> createElement() =>
+      _DialogStatelessElement<T>(this);
 
   @protected
   Widget build(
@@ -114,9 +121,10 @@ abstract class DialogActionContentWidget<T> extends DialogContentWidget<T> {
       );
     } else if (feedback is DialogFeedbackBusy) {
       final DialogWidget<T> host = DialogWidget.of<T>(context);
-
-      final Widget feedbackInfoWidget = host._feedbackInfoWidgetBuilder != null
-          ? host._feedbackInfoWidgetBuilder(context)
+      final DialogFeedbackInfoWidgetBuilder? feedbackInfoWidgetBuilder =
+          host._feedbackInfoWidgetBuilder;
+      final Widget? feedbackInfoWidget = feedbackInfoWidgetBuilder != null
+          ? feedbackInfoWidgetBuilder(context)
           : null;
 
       return this.buildBusy(
@@ -133,35 +141,38 @@ abstract class DialogActionContentWidget<T> extends DialogContentWidget<T> {
   @protected
   Widget buildActive(
     BuildContext context, {
-    DialogCallback<T> onComplete,
+    required DialogCallback<T> onComplete,
   });
 
   @protected
   Widget buildBusy(
     BuildContext context, {
-    @required CancellationTokenSource cancellationTokenSource,
-    Widget feedbackInfoWidget,
+    required CancellationTokenSource cancellationTokenSource,
+    Widget? feedbackInfoWidget,
   });
 }
 
-
-class _DialogStatelessElement extends ComponentElement {
+class _DialogStatelessElement<T> extends ComponentElement {
   /// Creates an element that uses the given widget as its configuration.
-  _DialogStatelessElement(DialogContentWidget widget) : super(widget);
+  _DialogStatelessElement(DialogContentWidget<T> widget) : super(widget);
 
   @override
-  DialogContentWidget get widget => super.widget as DialogContentWidget;
+  DialogContentWidget<T> get widget => super.widget as DialogContentWidget<T>;
 
   @override
   Widget build() {
-    final _DialogFeedbackWidget feedbackWidget =
+    final _DialogFeedbackWidget? feedbackWidget =
         this.findAncestorWidgetOfExactType<_DialogFeedbackWidget>();
+    if (feedbackWidget == null) {
+      throw InvalidOperationException(
+          "There not found _DialogFeedbackWidget ancestor.");
+    }
     final DialogFeedback feedback = feedbackWidget.feedback;
     return this.widget.build(this, feedback);
   }
 
   @override
-  void update(DialogContentWidget newWidget) {
+  void update(DialogContentWidget<T> newWidget) {
     super.update(newWidget);
     assert(this.widget == newWidget);
     rebuild();
@@ -169,19 +180,27 @@ class _DialogStatelessElement extends ComponentElement {
 }
 
 class _DialogState<T> extends State<DialogWidget<T>> {
-  DialogFeedback _feedback;
+  DialogFeedback? __feedback;
+  DialogFeedback get _feedback {
+    final DialogFeedback? feedback = this.__feedback;
+    if (feedback == null) {
+      throw InvalidOperationException(
+          "Wrong operation at current state. Cannot build _DialogState without DialogFeedback.");
+    }
+    return feedback;
+  }
 
+  @override
   void initState() {
     super.initState();
-    this._feedback = DialogFeedbackActive(
+    this.__feedback = DialogFeedbackActive<T>(
       onComplete: this._onCallbackProxy,
     );
   }
 
   void setDialogFeedback(DialogFeedback feedback) {
-    assert(feedback != null);
     setState(() {
-      this._feedback = feedback;
+      this.__feedback = feedback;
     });
   }
 
@@ -189,24 +208,26 @@ class _DialogState<T> extends State<DialogWidget<T>> {
   Widget build(BuildContext context) {
     Widget homeWidget;
 
-    if (this._feedback is DialogFeedbackBusy) {
+    final DialogFeedback feedback = this._feedback;
+
+    if (feedback is DialogFeedbackBusy) {
       homeWidget = _DialogFeedbackWidget(
-        key: ValueKey(DialogFeedbackBusy),
-        feedback: this._feedback,
+        key: ValueKey<Object>(DialogFeedbackBusy),
+        feedback: feedback,
         child: this.widget._child,
       );
-    } else if (this._feedback is DialogFeedbackActive) {
+    } else if (feedback is DialogFeedbackActive) {
       homeWidget = _DialogFeedbackWidget(
-          key: ValueKey(DialogFeedbackActive),
-          feedback: this._feedback,
+          key: ValueKey<Object>(DialogFeedbackActive),
+          feedback: feedback,
           child: this.widget._child);
     } else {
       throw UnsupportedError(
-          "Unsupported feedback runtimeType: ${this._feedback.runtimeType}");
+          "Unsupported feedback runtimeType: ${feedback.runtimeType}");
     }
 
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: "Flutter Demo",
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -223,9 +244,10 @@ class _DialogState<T> extends State<DialogWidget<T>> {
     );
   }
 
-  FutureOr _onCallbackProxy(T dialogCompleteValue) async {
-    assert(this._feedback is DialogFeedbackActive);
-    final DialogFeedbackActive backupActiveFeedback = this._feedback;
+  FutureOr<void> _onCallbackProxy(T dialogCompleteValue) async {
+    final DialogFeedback feedback = this._feedback;
+    assert(feedback is DialogFeedbackActive<T>);
+    final DialogFeedbackActive<T> backupActiveFeedback = feedback as DialogFeedbackActive<T>;
     final DialogFeedbackBusy busyFeedback = DialogFeedbackBusy();
     this.setDialogFeedback(busyFeedback);
     try {
@@ -246,10 +268,10 @@ class _DialogFeedbackWidget extends StatelessWidget {
   final Widget _child;
 
   _DialogFeedbackWidget({
-    Key key,
-    @required this.feedback,
-    @required Widget child,
-  })  : this._child = child,
+    Key? key,
+    required this.feedback,
+    required Widget child,
+  })   : this._child = child,
         super(key: key);
 
   @override

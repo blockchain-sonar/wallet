@@ -12,4 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-abstract class WalletService {}
+abstract class WalletService {
+  List<String> generateMnemonic();
+}

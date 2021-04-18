@@ -52,7 +52,7 @@ class RestoreModeSelectorWidget
   @override
   Widget buildActive(
     BuildContext context, {
-    DialogCallback<RestoreModeSelectorContext> onComplete,
+    required DialogCallback<RestoreModeSelectorContext> onComplete,
   }) {
     return Container(
       child: Column(
@@ -77,8 +77,8 @@ class RestoreModeSelectorWidget
   @override
   Widget buildBusy(
     BuildContext context, {
-    CancellationTokenSource cancellationTokenSource,
-    Widget feedbackInfoWidget,
+    required CancellationTokenSource cancellationTokenSource,
+    Widget? feedbackInfoWidget,
   }) {
     return Scaffold(
       body: Center(

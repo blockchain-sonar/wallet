@@ -13,69 +13,15 @@
 // limitations under the License.
 
 import "package:flutter/widgets.dart" show runApp;
-import "package:freemework/freemework.dart" show ExecutionContext;
-import "widget/business/enter_wallet_name.dart";
-import "widget/business/restore_by_private_key_widget.dart";
-import "widget/business/restore_mode_selector.dart"
-    show RestoreModeSelectorContext, RestoreModeSelectorWidget;
-import "widget/business/unlock.dart" show UnlockContext, UnlockWidget;
-import "widget/toolchain/dialog_widget.dart" show DialogWidget;
+
+import "services/service_factory.dart"
+    show ServiceFactory, ServiceFactoryProductive;
+import "app.dart" show App;
+import "tesMains.dart";
 
 void main() {
-  // mainTestUnlockWidget();
-  // mainTestRestoreModeSelectorWidget();
-  // mainTestEnterWalletNameWidget();
+  // final ServiceFactory serviceFactory = ServiceFactoryProductive();
+  // runApp(App(serviceFactory));
+
   mainTestRestoreByPrivateKeyWidget();
-}
-
-void mainTestUnlockWidget() {
-  runApp(DialogWidget<UnlockContext>(
-    child: UnlockWidget(),
-    onComplete: (
-      ExecutionContext executionContext,
-      UnlockContext ctx,
-    ) async {
-      print("Dialog completed with password: ${ctx.password}");
-      await Future<void>.delayed(Duration(seconds: 3));
-    },
-  ));
-}
-
-void mainTestRestoreModeSelectorWidget() {
-  runApp(DialogWidget<RestoreModeSelectorContext>(
-    child: RestoreModeSelectorWidget(),
-    onComplete: (
-      ExecutionContext executionContext,
-      RestoreModeSelectorContext ctx,
-    ) async {
-      print("Dialog completed with action: ${ctx.action}");
-      await Future<void>.delayed(Duration(seconds: 3));
-    },
-  ));
-}
-
-void mainTestEnterWalletNameWidget() {
-  runApp(DialogWidget<EnterWalletNameContext>(
-    child: EnterWalletNameWidget(),
-    onComplete: (
-      ExecutionContext executionContext,
-      EnterWalletNameContext ctx,
-    ) async {
-      print("Dialog completed with wallet name: ${ctx.walletName}");
-      await Future<void>.delayed(Duration(seconds: 3));
-    },
-  ));
-}
-
-void mainTestRestoreByPrivateKeyWidget() {
-  runApp(DialogWidget<RestoreByPrivateKeyContext>(
-    child: RestoreByPrivateKeyWidget(),
-    onComplete: (
-      ExecutionContext executionContext,
-      RestoreByPrivateKeyContext ctx,
-    ) async {
-      print("Dialog completed with private name: ${ctx.privateKey}");
-      await Future<void>.delayed(Duration(seconds: 3));
-    },
-  ));
 }

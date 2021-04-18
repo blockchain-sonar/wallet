@@ -1,0 +1,1 @@
+../../tonclient-js-tester/dist/tonclient.js

@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart" show Center, Colors, FloatingActionButton, FontWeight, Icon, Icons, Key, SizedBox, Text, TextButton, TextStyle, VoidCallback, required;
 
 class FWButton extends TextButton {
   FWButton(
     String text, {
-    Key key,
-    @required VoidCallback onPressed,
-    VoidCallback onLongPress,
+    Key? key,
+    required VoidCallback onPressed,
+    VoidCallback? onLongPress,
   }) : super(
           key: key,
           onPressed: onPressed,
@@ -46,7 +46,7 @@ class FWButton extends TextButton {
 
 class FWCancelFloatingActionButton extends FloatingActionButton {
   FWCancelFloatingActionButton({
-    @required VoidCallback onPressed,
+    required VoidCallback onPressed,
   }) : super(
           onPressed: onPressed,
           tooltip: "Cancel",
