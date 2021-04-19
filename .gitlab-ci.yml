@@ -1,4 +1,6 @@
-image: docker.registry.zxteam.net/pub/docker/devel/flutter/snapshot:master
+image:
+  name: docker.registry.zxteam.net/pub/docker/devel/flutter/snapshot:master
+  entrypoint: [""]
 
 stages:
   - build
