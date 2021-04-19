@@ -8,6 +8,8 @@ binweb:snapshot:
   stage: build
   only:
     - branches
+  tags:
+    - docker
   script:
     - rm web/extension_loader.js
     - rm web/extenstion.html
@@ -23,6 +25,10 @@ pages:
   stage: deploy
   dependencies:
     - binweb:snapshot
+  only:
+    - master
+  tags:
+    - docker
   script:
     - mv build public
     - sed -i "s~<base href=\"/\" />~<base href=\"/wallet/\" />~g" public/index.html
@@ -32,5 +38,3 @@ pages:
   artifacts:
     paths:
       - public
-  only:
-    - master
