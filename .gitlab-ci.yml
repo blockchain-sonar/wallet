@@ -32,7 +32,7 @@ pages:
   tags:
     - docker
   script:
-    - mv build public
+    - mv build/web public
     - sed -i "s~<base href=\"/\" />~<base href=\"/wallet/\" />~g" public/index.html
     - sed -i "s~var pathSegmentsToKeep = 0~var pathSegmentsToKeep = 1~g" public/404.html
     - echo "See $CI_PAGES_URL/"
