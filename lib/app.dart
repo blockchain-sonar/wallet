@@ -1,8 +1,18 @@
 import "package:flutter/material.dart" show Colors, MaterialApp, ThemeData;
 import "package:flutter/widgets.dart"
-    show BuildContext, Key, StatelessWidget, Text, Widget;
+    show
+        Alignment,
+        BoxConstraints,
+        BuildContext,
+        Container,
+        Key,
+        MainAxisAlignment,
+        MainAxisSize,
+        Row,
+        StatelessWidget,
+        Text,
+        Widget;
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'package:freeton_wallet/wizzard_key.dart';
 import "package:provider/provider.dart"
     show ChangeNotifierProvider, Consumer, MultiProvider, Provider;
 import "package:provider/single_child_widget.dart" show SingleChildWidget;
@@ -14,7 +24,7 @@ import "services/wallet_service.dart" show WalletService;
 import "widgets/business/setup_master_password_widget.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
-import "widgets/toolchain/dialog_widget.dart" show DialogWidget;
+import "wizzard_key.dart" show WizzardKeyWidget;
 
 class App extends StatelessWidget {
   const App(this.serviceFactory, {Key? key}) : super(key: key);
@@ -50,7 +60,17 @@ class App extends StatelessWidget {
           theme: ThemeData(
             primarySwatch: Colors.blue,
           ),
-          home: _buildAuthenticationWidget(),
+          home: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Container(
+                alignment: Alignment.center,
+                constraints: BoxConstraints(minWidth: 196, maxWidth: 480),
+                child: _buildAuthenticationWidget(),
+              ),
+            ],
+          ),
         ),
       ),
     );
