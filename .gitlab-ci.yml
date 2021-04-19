@@ -5,7 +5,7 @@ stages:
   - deploy
 
 binweb:snapshot:
-  stable: build
+  stage: build
   only:
     - branches
   script:
