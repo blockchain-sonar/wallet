@@ -35,10 +35,12 @@ import "package:flutter/widgets.dart"
         Padding,
         State,
         StatefulWidget,
+        StatelessWidget,
         Text,
         TextEditingController,
         TextStyle,
         Widget;
+import 'package:freemework/freemework.dart';
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
@@ -46,7 +48,7 @@ import "package:freemework_cancellation/freemework_cancellation.dart"
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
-    show DialogCallback, DialogWidget, DialogActionContentWidget;
+    show DialogActionContentWidget, DialogCallback, DialogHostCallback, DialogWidget;
 
 class UnlockContext {
   final String password;
@@ -54,13 +56,29 @@ class UnlockContext {
   UnlockContext(this.password);
 }
 
-class UnlockWidget extends DialogActionContentWidget<UnlockContext> {
+class UnlockWidget extends StatelessWidget {
+  final DialogHostCallback<UnlockContext> _onComplete;
+
+  UnlockWidget({
+    required DialogHostCallback<UnlockContext> onComplete,
+  }) : this._onComplete = onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogWidget<UnlockContext>(
+      onComplete: this._onComplete,
+      child: _UnlockWidget(),
+    );
+  }
+}
+
+class _UnlockWidget extends DialogActionContentWidget<UnlockContext> {
   @override
   Widget buildActive(
     BuildContext context, {
     required DialogCallback<UnlockContext> onComplete,
   }) =>
-      _UnlockWidget(onComplete);
+      _UnlockActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -122,20 +140,21 @@ class UnlockWidget extends DialogActionContentWidget<UnlockContext> {
   }
 }
 
-class _UnlockWidget extends StatefulWidget {
+class _UnlockActiveWidget extends StatefulWidget {
   final DialogCallback<UnlockContext> onComplete;
-  _UnlockWidget(
+  _UnlockActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _UnlockWidgetState createState() => _UnlockWidgetState();
+  _UnlockActiveWidgetState createState() => _UnlockActiveWidgetState();
 }
 
-class _UnlockWidgetState extends State<_UnlockWidget> {
+class _UnlockActiveWidgetState extends State<_UnlockActiveWidget> {
   final TextEditingController _passwordTextEditingController =
       TextEditingController();
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -144,6 +163,7 @@ class _UnlockWidgetState extends State<_UnlockWidget> {
     if (dataContextInit != null) {
       this._passwordTextEditingController.text = dataContextInit.password;
     }
+    this._errorMessage = null;
     super.initState();
   }
 
@@ -161,11 +181,12 @@ class _UnlockWidgetState extends State<_UnlockWidget> {
       this._passwordTextEditingController.text = dataContextInit.password;
     }
 
-    return UnlockWidget._buildContainer(
+    return _UnlockWidget._buildContainer(
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: <Widget>[
+              if (this._errorMessage != null) Text(this._errorMessage!),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: TextField(
@@ -194,8 +215,20 @@ class _UnlockWidgetState extends State<_UnlockWidget> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            widget.onComplete(
-                UnlockContext(this._passwordTextEditingController.text));
+            try {
+              widget.onComplete(
+                  UnlockContext(this._passwordTextEditingController.text));
+            } catch (e) {
+              String msg;
+              if (e is FreemeworkException) {
+                msg = e.message ?? "Unknown error";
+              } else {
+                msg = "Unknown error";
+              }
+              setState(() {
+                this._errorMessage = msg;
+              });
+            }
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

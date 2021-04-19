@@ -1,0 +1,36 @@
+image: docker.registry.zxteam.net/pub/docker/devel/flutter/snapshot:master
+
+stages:
+  - build
+  - deploy
+
+binweb:snapshot:
+  stable: build
+  only:
+    - branches
+  script:
+    - rm web/extension_loader.js
+    - rm web/extenstion.html
+    - rm web/index-extenstion.html
+    - rm web/index.html
+    - mv web/index-webapp.html web/index.html
+    - flutter build web --web-renderer html
+  artifacts:
+    paths:
+      - build
+
+pages:
+  stage: deploy
+  dependencies:
+    - binweb:snapshot
+  script:
+    - mv build public
+    - sed -i "s~<base href=\"/\" />~<base href=\"/wallet/\" />~g" public/index.html
+    - sed -i "s~var pathSegmentsToKeep = 0~var pathSegmentsToKeep = 1~g" public/404.html
+    - echo "See $CI_PAGES_URL/"
+    - ls -l public/
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

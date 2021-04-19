@@ -37,61 +37,61 @@ import "package:flutter/widgets.dart"
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
 
-import "../reusable/button_widget.dart"
+import '../reusable/button_widget.dart'
     show FWButton, FWCancelFloatingActionButton;
-import "../toolchain/dialog_widget.dart"
+import '../toolchain/dialog_widget.dart'
     show
         DialogActionContentWidget,
         DialogCallback,
         DialogHostCallback,
         DialogWidget;
 
-enum RestoreMode { MNEMONIC, PRIVATE_KEY }
+enum ImportMode { CREATE, RESTORE }
 
-class RestoreModeSelectorContext {
-  final RestoreMode mode;
+class ImportModeSelectorContext {
+  final ImportMode mode;
 
-  RestoreModeSelectorContext(this.mode);
+  ImportModeSelectorContext(this.mode);
 }
 
-class RestoreModeSelectorWidget extends StatelessWidget {
-  final DialogHostCallback<RestoreModeSelectorContext> _onComplete;
+class ImportModeSelectorWidget extends StatelessWidget {
+  final DialogHostCallback<ImportModeSelectorContext> _onComplete;
 
-  RestoreModeSelectorWidget({
-    required DialogHostCallback<RestoreModeSelectorContext> onComplete,
+  ImportModeSelectorWidget({
+    required DialogHostCallback<ImportModeSelectorContext> onComplete,
   }) : this._onComplete = onComplete;
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<RestoreModeSelectorContext>(
+    return DialogWidget<ImportModeSelectorContext>(
       onComplete: this._onComplete,
-      child: _RestoreModeSelectorWidget(),
+      child: _ImportModeSelectorWidget(),
     );
   }
 }
 
-class _RestoreModeSelectorWidget
-    extends DialogActionContentWidget<RestoreModeSelectorContext> {
+class _ImportModeSelectorWidget
+    extends DialogActionContentWidget<ImportModeSelectorContext> {
   @override
   Widget buildActive(
     BuildContext context, {
-    required DialogCallback<RestoreModeSelectorContext> onComplete,
+    required DialogCallback<ImportModeSelectorContext> onComplete,
   }) {
     return Container(
       child: Column(
         children: <Widget>[
           this._buildItem(
             Icons.add_rounded,
-            "Restore By Mnemonic Passphrase",
-            "Restore By Mnemonic Passphrase",
-            RestoreMode.MNEMONIC,
+            "Create",
+            "Recommend new users to use",
+            ImportMode.CREATE,
             onComplete,
           ),
           this._buildItem(
             Icons.archive_outlined,
-            "Restore By Private Key",
-            "Restore By Private Key",
-            RestoreMode.PRIVATE_KEY,
+            "Restore",
+            "Recommend for users with existing accounts",
+            ImportMode.RESTORE,
             onComplete,
           ),
         ],
@@ -130,8 +130,8 @@ class _RestoreModeSelectorWidget
     IconData icon,
     String buttonText,
     String description,
-    RestoreMode mode,
-    DialogCallback<RestoreModeSelectorContext> onComplete,
+    ImportMode mode,
+    DialogCallback<ImportModeSelectorContext> onComplete,
   ) {
     return Expanded(
       child: Padding(
@@ -159,7 +159,7 @@ class _RestoreModeSelectorWidget
                     child: FWButton(
                       buttonText,
                       onPressed: () {
-                        onComplete(RestoreModeSelectorContext(mode));
+                        onComplete(ImportModeSelectorContext(mode));
                       },
                     ),
                   ),

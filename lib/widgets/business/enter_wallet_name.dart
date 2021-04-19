@@ -35,6 +35,7 @@ import "package:flutter/widgets.dart"
         Padding,
         State,
         StatefulWidget,
+        StatelessWidget,
         Text,
         TextEditingController,
         Widget;
@@ -45,7 +46,11 @@ import "package:freemework_cancellation/freemework_cancellation.dart"
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
-    show DialogCallback, DialogWidget, DialogActionContentWidget;
+    show
+        DialogActionContentWidget,
+        DialogCallback,
+        DialogHostCallback,
+        DialogWidget;
 
 class EnterWalletNameContext {
   final String walletName;
@@ -53,14 +58,30 @@ class EnterWalletNameContext {
   EnterWalletNameContext(this.walletName);
 }
 
-class EnterWalletNameWidget
+class EnterWalletNameWidget extends StatelessWidget {
+  final DialogHostCallback<EnterWalletNameContext> _onComplete;
+
+  EnterWalletNameWidget({
+    required DialogHostCallback<EnterWalletNameContext> onComplete,
+  }) : this._onComplete = onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogWidget<EnterWalletNameContext>(
+      onComplete: this._onComplete,
+      child: _EnterWalletNameWidget(),
+    );
+  }
+}
+
+class _EnterWalletNameWidget
     extends DialogActionContentWidget<EnterWalletNameContext> {
   @override
   Widget buildActive(
     BuildContext context, {
     required DialogCallback<EnterWalletNameContext> onComplete,
   }) =>
-      _EnterWalletNameWidget(onComplete);
+      _EnterWalletNameActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -112,18 +133,20 @@ class EnterWalletNameWidget
   }
 }
 
-class _EnterWalletNameWidget extends StatefulWidget {
+class _EnterWalletNameActiveWidget extends StatefulWidget {
   final DialogCallback<EnterWalletNameContext> onComplete;
-  _EnterWalletNameWidget(
+  _EnterWalletNameActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _EnterWalletNameWidgetState createState() => _EnterWalletNameWidgetState();
+  _EnterWalletNameActiveWidgetState createState() =>
+      _EnterWalletNameActiveWidgetState();
 }
 
-class _EnterWalletNameWidgetState extends State<_EnterWalletNameWidget> {
+class _EnterWalletNameActiveWidgetState
+    extends State<_EnterWalletNameActiveWidget> {
   final TextEditingController _actionTextEditingController =
       TextEditingController();
 
@@ -151,7 +174,7 @@ class _EnterWalletNameWidgetState extends State<_EnterWalletNameWidget> {
       this._actionTextEditingController.text = dataContextInit.walletName;
     }
 
-    return EnterWalletNameWidget._buildContainer(
+    return _EnterWalletNameWidget._buildContainer(
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(

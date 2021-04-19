@@ -17,11 +17,11 @@ import "package:flutter/widgets.dart" show runApp;
 import "services/service_factory.dart"
     show ServiceFactory, ServiceFactoryProductive;
 import "app.dart" show App;
-import "tesMains.dart";
+import "test_widgets.dart";
 
 void main() {
-  // final ServiceFactory serviceFactory = ServiceFactoryProductive();
-  // runApp(App(serviceFactory));
+  final ServiceFactory serviceFactory = ServiceFactoryProductive();
+  runApp(App(serviceFactory));
 
-  mainTestRestoreByPrivateKeyWidget();
+  // mainTestImportModeSelector();
 }

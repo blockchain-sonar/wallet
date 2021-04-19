@@ -44,6 +44,7 @@ import "package:flutter/widgets.dart"
         Radius,
         State,
         StatefulWidget,
+        StatelessWidget,
         Text,
         TextEditingController,
         TextStyle,
@@ -54,7 +55,11 @@ import "package:freemework_cancellation/freemework_cancellation.dart"
 
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
-    show DialogCallback, DialogWidget, DialogActionContentWidget;
+    show
+        DialogActionContentWidget,
+        DialogCallback,
+        DialogHostCallback,
+        DialogWidget;
 
 class RestoreByPrivateKeyContext {
   final String privateKey;
@@ -62,14 +67,34 @@ class RestoreByPrivateKeyContext {
   RestoreByPrivateKeyContext(this.privateKey);
 }
 
-class RestoreByPrivateKeyWidget
+class RestoreByPrivateKeyWidget extends StatelessWidget {
+  final RestoreByPrivateKeyContext? _dataContextInit;
+  final DialogHostCallback<RestoreByPrivateKeyContext> _onComplete;
+
+  RestoreByPrivateKeyWidget({
+    required DialogHostCallback<RestoreByPrivateKeyContext> onComplete,
+    RestoreByPrivateKeyContext? dataContextInit,
+  })  : this._onComplete = onComplete,
+        this._dataContextInit = dataContextInit;
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogWidget<RestoreByPrivateKeyContext>(
+      onComplete: this._onComplete,
+      dataContextInit: this._dataContextInit,
+      child: _RestoreByPrivateKeyWidget(),
+    );
+  }
+}
+
+class _RestoreByPrivateKeyWidget
     extends DialogActionContentWidget<RestoreByPrivateKeyContext> {
   @override
   Widget buildActive(
     BuildContext context, {
     required DialogCallback<RestoreByPrivateKeyContext> onComplete,
   }) =>
-      _RestoreByPrivateKeyWidget(onComplete);
+      _RestoreByPrivateKeyActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -128,20 +153,20 @@ class RestoreByPrivateKeyWidget
   }
 }
 
-class _RestoreByPrivateKeyWidget extends StatefulWidget {
+class _RestoreByPrivateKeyActiveWidget extends StatefulWidget {
   final DialogCallback<RestoreByPrivateKeyContext> onComplete;
-  _RestoreByPrivateKeyWidget(
+  _RestoreByPrivateKeyActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _RestoreByPrivateKeyWidgetState createState() =>
-      _RestoreByPrivateKeyWidgetState();
+  _RestoreByPrivateKeyActiveWidgetState createState() =>
+      _RestoreByPrivateKeyActiveWidgetState();
 }
 
-class _RestoreByPrivateKeyWidgetState
-    extends State<_RestoreByPrivateKeyWidget> {
+class _RestoreByPrivateKeyActiveWidgetState
+    extends State<_RestoreByPrivateKeyActiveWidget> {
   final TextEditingController _actionTextEditingController =
       TextEditingController();
 
@@ -171,7 +196,7 @@ class _RestoreByPrivateKeyWidgetState
       this._actionTextEditingController.text = dataContextInit.privateKey;
     }
 
-    return RestoreByPrivateKeyWidget._buildContainer(
+    return _RestoreByPrivateKeyWidget._buildContainer(
         Column(
           children: <Widget>[
             Padding(

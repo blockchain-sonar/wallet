@@ -12,20 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
-import "widgets/business/enter_wallet_name.dart" show EnterWalletNameContext, EnterWalletNameWidget;
-import "widgets/business/restore_by_private_key_widget.dart" show RestoreByPrivateKeyContext, RestoreByPrivateKeyWidget;
-import "widgets/business/restore_mode_selector.dart"
+import 'widgets/business/import_mode_selector.dart'
+    show ImportModeSelectorContext, ImportModeSelectorWidget;
+import 'widgets/business/enter_wallet_name.dart'
+    show EnterWalletNameContext, EnterWalletNameWidget;
+import 'widgets/business/restore_by_private_key_widget.dart'
+    show RestoreByPrivateKeyContext, RestoreByPrivateKeyWidget;
+import 'widgets/business/restore_mode_selector.dart'
     show RestoreModeSelectorContext, RestoreModeSelectorWidget;
-import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
-import "widgets/toolchain/dialog_widget.dart" show DialogWidget;
+import 'widgets/business/unlock.dart' show UnlockContext, UnlockWidget;
+import 'widgets/toolchain/dialog_widget.dart' show DialogWidget;
 
-import "clients/tonclient/tonclient.dart" show TonClient;
+import 'clients/tonclient/tonclient.dart' show TonClient;
 
 void mainTestUnlockWidget() async {
-  runApp(DialogWidget<UnlockContext>(
-    child: UnlockWidget(),
+  runApp(UnlockWidget(
     onComplete: (
       ExecutionContext executionContext,
       UnlockContext ctx,
@@ -36,22 +40,32 @@ void mainTestUnlockWidget() async {
   ));
 }
 
+void mainTestImportModeSelector() async {
+  runApp(_buildRootWidget(ImportModeSelectorWidget(
+    onComplete: (
+      ExecutionContext executionContext,
+      ImportModeSelectorContext ctx,
+    ) async {
+      print("Dialog completed with action: ${ctx.mode}");
+      await Future<void>.delayed(Duration(seconds: 3));
+    },
+  )));
+}
+
 void mainTestRestoreModeSelectorWidget() {
-  runApp(DialogWidget<RestoreModeSelectorContext>(
-    child: RestoreModeSelectorWidget(),
+  runApp(_buildRootWidget(RestoreModeSelectorWidget(
     onComplete: (
       ExecutionContext executionContext,
       RestoreModeSelectorContext ctx,
     ) async {
-      print("Dialog completed with action: ${ctx.action}");
+      print("Dialog completed with action: ${ctx.mode}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
-  ));
+  )));
 }
 
 void mainTestEnterWalletNameWidget() {
-  runApp(DialogWidget<EnterWalletNameContext>(
-    child: EnterWalletNameWidget(),
+  runApp(_buildRootWidget(EnterWalletNameWidget(
     onComplete: (
       ExecutionContext executionContext,
       EnterWalletNameContext ctx,
@@ -59,7 +73,7 @@ void mainTestEnterWalletNameWidget() {
       print("Dialog completed with wallet name: ${ctx.walletName}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
-  ));
+  )));
 }
 
 void mainTestRestoreByPrivateKeyWidget() async {
@@ -68,8 +82,7 @@ void mainTestRestoreByPrivateKeyWidget() async {
 
   final String privateKey = await tonClient.generateMnemonicPhrase();
 
-  runApp(DialogWidget<RestoreByPrivateKeyContext>(
-    child: RestoreByPrivateKeyWidget(),
+  runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
     onComplete: (
       ExecutionContext executionContext,
       RestoreByPrivateKeyContext ctx,
@@ -78,5 +91,15 @@ void mainTestRestoreByPrivateKeyWidget() async {
       await Future<void>.delayed(Duration(seconds: 3));
     },
     dataContextInit: RestoreByPrivateKeyContext(privateKey),
-  ));
+  )));
+}
+
+Widget _buildRootWidget(Widget home) {
+  return MaterialApp(
+    title: "Free TON Wallet (Alpha)",
+    theme: ThemeData(
+      primarySwatch: Colors.blue,
+    ),
+    home: home,
+  );
 }

@@ -35,6 +35,7 @@ import "package:flutter/widgets.dart"
         Padding,
         State,
         StatefulWidget,
+        StatelessWidget,
         Text,
         TextEditingController,
         TextStyle,
@@ -46,7 +47,11 @@ import "package:freemework_cancellation/freemework_cancellation.dart"
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
-    show DialogCallback, DialogWidget, DialogActionContentWidget;
+    show
+        DialogActionContentWidget,
+        DialogCallback,
+        DialogHostCallback,
+        DialogWidget;
 
 class SetupMasterPasswordContext {
   final String password;
@@ -54,14 +59,30 @@ class SetupMasterPasswordContext {
   SetupMasterPasswordContext(this.password);
 }
 
-class SetupMasterPasswordWidget
+class SetupMasterPasswordWidget extends StatelessWidget {
+  final DialogHostCallback<SetupMasterPasswordContext> _onComplete;
+
+  SetupMasterPasswordWidget({
+    required DialogHostCallback<SetupMasterPasswordContext> onComplete,
+  }): this._onComplete = onComplete;
+
+  @override
+  Widget build(BuildContext context) {
+    return DialogWidget<SetupMasterPasswordContext>(
+      onComplete: this._onComplete,
+      child: _SetupMasterPasswordWidget(),
+    );
+  }
+}
+
+class _SetupMasterPasswordWidget
     extends DialogActionContentWidget<SetupMasterPasswordContext> {
   @override
   Widget buildActive(
     BuildContext context, {
     required DialogCallback<SetupMasterPasswordContext> onComplete,
   }) =>
-      _SetupMasterPasswordWidget(onComplete);
+      _SetupMasterPasswordActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -123,20 +144,20 @@ class SetupMasterPasswordWidget
   }
 }
 
-class _SetupMasterPasswordWidget extends StatefulWidget {
+class _SetupMasterPasswordActiveWidget extends StatefulWidget {
   final DialogCallback<SetupMasterPasswordContext> onComplete;
-  _SetupMasterPasswordWidget(
+  _SetupMasterPasswordActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _SetupMasterPasswordWidgetState createState() =>
-      _SetupMasterPasswordWidgetState();
+  _SetupMasterPasswordActiveWidgetState createState() =>
+      _SetupMasterPasswordActiveWidgetState();
 }
 
-class _SetupMasterPasswordWidgetState
-    extends State<_SetupMasterPasswordWidget> {
+class _SetupMasterPasswordActiveWidgetState
+    extends State<_SetupMasterPasswordActiveWidget> {
   final TextEditingController _passwordTextEditingController =
       TextEditingController();
   final TextEditingController _retryPasswordTextEditingController =
@@ -168,7 +189,7 @@ class _SetupMasterPasswordWidgetState
       this._passwordTextEditingController.text = dataContextInit.password;
     }
 
-    return SetupMasterPasswordWidget._buildContainer(
+    return _SetupMasterPasswordWidget._buildContainer(
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(

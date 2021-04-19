@@ -14,8 +14,7 @@
 
 import "dart:async" show FutureOr;
 
-import "package:meta/meta.dart" show nonVirtual, protected, required;
-import "package:flutter/material.dart" show Colors, MaterialApp, ThemeData;
+import "package:meta/meta.dart" show nonVirtual, protected;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -206,18 +205,18 @@ class _DialogState<T> extends State<DialogWidget<T>> {
 
   @override
   Widget build(BuildContext context) {
-    Widget homeWidget;
+    _DialogFeedbackWidget dialogFeedbackWidget;
 
     final DialogFeedback feedback = this._feedback;
 
     if (feedback is DialogFeedbackBusy) {
-      homeWidget = _DialogFeedbackWidget(
+      dialogFeedbackWidget = _DialogFeedbackWidget(
         key: ValueKey<Object>(DialogFeedbackBusy),
         feedback: feedback,
         child: this.widget._child,
       );
     } else if (feedback is DialogFeedbackActive) {
-      homeWidget = _DialogFeedbackWidget(
+      dialogFeedbackWidget = _DialogFeedbackWidget(
           key: ValueKey<Object>(DialogFeedbackActive),
           feedback: feedback,
           child: this.widget._child);
@@ -226,22 +225,7 @@ class _DialogState<T> extends State<DialogWidget<T>> {
           "Unsupported feedback runtimeType: ${feedback.runtimeType}");
     }
 
-    return MaterialApp(
-      title: "Flutter Demo",
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: homeWidget,
-    );
+    return dialogFeedbackWidget;
   }
 
   FutureOr<void> _onCallbackProxy(T dialogCompleteValue) async {
