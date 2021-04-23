@@ -23,6 +23,7 @@ import 'widgets/business/restore_by_private_key_widget.dart'
     show RestoreByPrivateKeyContext, RestoreByPrivateKeyWidget;
 import 'widgets/business/restore_mode_selector.dart'
     show RestoreModeSelectorContext, RestoreModeSelectorWidget;
+import 'widgets/business/setup_master_password_widget.dart';
 import 'widgets/business/unlock.dart' show UnlockContext, UnlockWidget;
 import 'widgets/toolchain/dialog_widget.dart' show DialogWidget;
 
@@ -102,4 +103,16 @@ Widget _buildRootWidget(Widget home) {
     ),
     home: home,
   );
+}
+
+void mainTestSetupMasterPasswordWidget() async {
+  runApp(_buildRootWidget(SetupMasterPasswordWidget(
+    onComplete: (
+      ExecutionContext executionContext,
+      SetupMasterPasswordContext ctx,
+    ) async {
+      print("Dialog completed with password: ${ctx.password}");
+      await Future<void>.delayed(Duration(seconds: 3));
+    },
+  )));
 }

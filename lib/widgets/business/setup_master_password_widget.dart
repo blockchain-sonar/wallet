@@ -14,14 +14,15 @@
 
 import "package:flutter/material.dart"
     show
+        CircularProgressIndicator,
         Colors,
         FloatingActionButton,
         Icons,
         InputDecoration,
-        CircularProgressIndicator,
         OutlineInputBorder,
         Scaffold,
-        TextField;
+        TextField,
+        TextFormField;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -30,6 +31,9 @@ import "package:flutter/widgets.dart"
         EdgeInsets,
         Expanded,
         FontWeight,
+        Form,
+        FormState,
+        GlobalKey,
         Icon,
         Key,
         Padding,
@@ -64,7 +68,7 @@ class SetupMasterPasswordWidget extends StatelessWidget {
 
   SetupMasterPasswordWidget({
     required DialogHostCallback<SetupMasterPasswordContext> onComplete,
-  }): this._onComplete = onComplete;
+  }) : this._onComplete = onComplete;
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +166,7 @@ class _SetupMasterPasswordActiveWidgetState
       TextEditingController();
   final TextEditingController _retryPasswordTextEditingController =
       TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -192,53 +197,74 @@ class _SetupMasterPasswordActiveWidgetState
     return _SetupMasterPasswordWidget._buildContainer(
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: TextField(
-                  controller: _passwordTextEditingController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: "Create Master Password",
+          child: Form(
+            key: this._formKey,
+            child: Column(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: "Create Master Password",
+                    ),
+                    obscureText: true,
+                    validator: (String? value) {
+                      final String password =
+                          this._passwordTextEditingController.text;
+                      final String retrypassword =
+                          this._retryPasswordTextEditingController.text;
+                      if (password == retrypassword) {
+                        return null;
+                      }
+                      return "Password mismatch";
+                    },
+                    controller: _passwordTextEditingController,
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: TextField(
-                  controller: _retryPasswordTextEditingController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(),
-                    hintText: "Retry Master Password",
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: TextFormField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      hintText: "Retry Master Password",
+                    ),
+                    obscureText: true,
+                    validator: (String? value) {
+                      final String password =
+                          this._passwordTextEditingController.text;
+                      final String retrypassword =
+                          this._retryPasswordTextEditingController.text;
+                      if (password == retrypassword) {
+                        return null;
+                      }
+                      return "Password mismatch";
+                    },
+                    controller: _retryPasswordTextEditingController,
                   ),
                 ),
-              ),
-
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-              //   child: SizedBox(
-              //     width: double.infinity,
-              //     child: FWButton(
-              //       "Continue",
-              //       onPressed: () {
-              //         widget.onComplete(SetupMasterPasswordContext(
-              //             this._passwordTextEditingController.text));
-              //       },
-              //     ),
-              //   ),
-              // ),
-            ],
+                // Padding(
+                //   padding: const EdgeInsets.symmetric(vertical: 8.0),
+                //   child: SizedBox(
+                //     width: double.infinity,
+                //     child: FWButton(
+                //       "Continue",
+                //       onPressed: () {
+                //         widget.onComplete(SetupMasterPasswordContext(
+                //             this._passwordTextEditingController.text));
+                //       },
+                //     ),
+                //   ),
+                // ),
+              ],
+            ),
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            final String password = this._passwordTextEditingController.text;
-            final String retrypassword =
-                this._retryPasswordTextEditingController.text;
-            if (password == retrypassword) {
+            if (_formKey.currentState!.validate()) {
               widget.onComplete(SetupMasterPasswordContext(
-                  this._passwordTextEditingController.text));
+                  this._retryPasswordTextEditingController.text));
             }
           },
           tooltip: "Continue",

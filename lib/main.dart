@@ -20,8 +20,8 @@ import "app.dart" show App;
 import "test_widgets.dart";
 
 void main() {
-  final ServiceFactory serviceFactory = ServiceFactoryProductive();
-  runApp(App(serviceFactory));
+  // final ServiceFactory serviceFactory = ServiceFactoryProductive();
+  // runApp(App(serviceFactory));
 
-  // mainTestImportModeSelector();
+  mainTestSetupMasterPasswordWidget();
 }
