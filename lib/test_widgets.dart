@@ -19,11 +19,13 @@ import 'widgets/business/import_mode_selector.dart'
     show ImportModeSelectorContext, ImportModeSelectorWidget;
 import 'widgets/business/enter_wallet_name.dart'
     show EnterWalletNameContext, EnterWalletNameWidget;
+import 'widgets/business/restore_by_mnemonic_phrase_widget.dart';
 import 'widgets/business/restore_by_private_key_widget.dart'
     show RestoreByPrivateKeyContext, RestoreByPrivateKeyWidget;
 import 'widgets/business/restore_mode_selector.dart'
     show RestoreModeSelectorContext, RestoreModeSelectorWidget;
 import 'widgets/business/setup_master_password_widget.dart';
+import 'widgets/business/show_mnemonic_widget.dart';
 import 'widgets/business/unlock.dart' show UnlockContext, UnlockWidget;
 import 'widgets/toolchain/dialog_widget.dart' show DialogWidget;
 
@@ -114,5 +116,41 @@ void mainTestSetupMasterPasswordWidget() async {
       print("Dialog completed with password: ${ctx.password}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
+  )));
+}
+
+void mainTestRestoreByMnemonicPhraseWidget() async {
+  final TonClient tonClient = TonClient();
+  await tonClient.init(ExecutionContext.EMPTY);
+
+  final String mnemonicPhrase = await tonClient.generateMnemonicPhrase();
+
+  runApp(_buildRootWidget(RestoreByMnemonicPhraseWidget(
+    onComplete: (
+      ExecutionContext executionContext,
+      RestoreByMnemonicPhraseContext ctx,
+    ) async {
+      print("Dialog completed with private name: ${ctx.mnemonicPhrase}");
+      await Future<void>.delayed(Duration(seconds: 3));
+    },
+    dataContextInit: RestoreByMnemonicPhraseContext(mnemonicPhrase),
+  )));
+}
+
+void mainTestShowMnemonicWidget() async {
+  final TonClient tonClient = TonClient();
+  await tonClient.init(ExecutionContext.EMPTY);
+
+  final String mnemonicPhrase = await tonClient.generateMnemonicPhrase();
+
+  runApp(_buildRootWidget(ShowMnemonicWidget(
+    onComplete: (
+      ExecutionContext executionContext,
+      ShowMnemonicContext ctx,
+    ) async {
+      print("Dialog completed with private name: ${ctx.mnemonicPhrase}");
+      await Future<void>.delayed(Duration(seconds: 3));
+    },
+    dataContextInit: ShowMnemonicContext(mnemonicPhrase),
   )));
 }

@@ -24,31 +24,7 @@ import "package:flutter/material.dart"
         TextField;
 
 import "package:flutter/widgets.dart"
-    show
-        Alignment,
-        BorderRadius,
-        BoxDecoration,
-        BuildContext,
-        Center,
-        Column,
-        Container,
-        EdgeInsets,
-        Expanded,
-        Flexible,
-        FontWeight,
-        Icon,
-        IconData,
-        Key,
-        MainAxisAlignment,
-        Padding,
-        Radius,
-        State,
-        StatefulWidget,
-        StatelessWidget,
-        Text,
-        TextEditingController,
-        TextStyle,
-        Widget;
+    show Alignment, BorderRadius, BoxDecoration, BuildContext, Center, Column, Container, EdgeInsets, Expanded, Flexible, FontWeight, Icon, IconData, Key, ListView, MainAxisAlignment, NeverScrollableScrollPhysics, Padding, Radius, ScrollPhysics, SingleChildScrollView, State, StatefulWidget, StatelessWidget, Text, TextEditingController, TextStyle, Widget;
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
@@ -61,40 +37,40 @@ import "../toolchain/dialog_widget.dart"
         DialogHostCallback,
         DialogWidget;
 
-class RestoreByPrivateKeyContext {
-  final String privateKey;
+class ShowMnemonicContext {
+  final String mnemonicPhrase;
 
-  RestoreByPrivateKeyContext(this.privateKey);
+  ShowMnemonicContext(this.mnemonicPhrase);
 }
 
-class RestoreByPrivateKeyWidget extends StatelessWidget {
-  final RestoreByPrivateKeyContext? _dataContextInit;
-  final DialogHostCallback<RestoreByPrivateKeyContext> _onComplete;
+class ShowMnemonicWidget extends StatelessWidget {
+  final ShowMnemonicContext? _dataContextInit;
+  final DialogHostCallback<ShowMnemonicContext> _onComplete;
 
-  RestoreByPrivateKeyWidget({
-    required DialogHostCallback<RestoreByPrivateKeyContext> onComplete,
-    RestoreByPrivateKeyContext? dataContextInit,
+  ShowMnemonicWidget({
+    required DialogHostCallback<ShowMnemonicContext> onComplete,
+    ShowMnemonicContext? dataContextInit,
   })  : this._onComplete = onComplete,
         this._dataContextInit = dataContextInit;
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<RestoreByPrivateKeyContext>(
+    return DialogWidget<ShowMnemonicContext>(
       onComplete: this._onComplete,
       dataContextInit: this._dataContextInit,
-      child: _RestoreByPrivateKeyWidget(),
+      child: _ShowMnemonicWidget(),
     );
   }
 }
 
-class _RestoreByPrivateKeyWidget
-    extends DialogActionContentWidget<RestoreByPrivateKeyContext> {
+class _ShowMnemonicWidget
+    extends DialogActionContentWidget<ShowMnemonicContext> {
   @override
   Widget buildActive(
     BuildContext context, {
-    required DialogCallback<RestoreByPrivateKeyContext> onComplete,
+    required DialogCallback<ShowMnemonicContext> onComplete,
   }) =>
-      _RestoreByPrivateKeyActiveWidget(onComplete);
+      _ShowMnemonicActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -134,7 +110,7 @@ class _RestoreByPrivateKeyWidget
             padding: const EdgeInsets.all(5.0),
           ),
           Text(
-            "Restore by private key",
+            "Create",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
@@ -153,30 +129,28 @@ class _RestoreByPrivateKeyWidget
   }
 }
 
-class _RestoreByPrivateKeyActiveWidget extends StatefulWidget {
-  final DialogCallback<RestoreByPrivateKeyContext> onComplete;
-  _RestoreByPrivateKeyActiveWidget(
+class _ShowMnemonicActiveWidget extends StatefulWidget {
+  final DialogCallback<ShowMnemonicContext> onComplete;
+  _ShowMnemonicActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _RestoreByPrivateKeyActiveWidgetState createState() =>
-      _RestoreByPrivateKeyActiveWidgetState();
+  _ShowMnemonicActiveWidgetState createState() =>
+      _ShowMnemonicActiveWidgetState();
 }
 
-class _RestoreByPrivateKeyActiveWidgetState
-    extends State<_RestoreByPrivateKeyActiveWidget> {
+class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
   final TextEditingController _actionTextEditingController =
       TextEditingController();
 
   @override
   void initState() {
-    final RestoreByPrivateKeyContext? dataContextInit =
-        DialogWidget.of<RestoreByPrivateKeyContext>(this.context)
-            .dataContextInit;
+    final ShowMnemonicContext? dataContextInit =
+        DialogWidget.of<ShowMnemonicContext>(this.context).dataContextInit;
     if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.privateKey;
+      this._actionTextEditingController.text = dataContextInit.mnemonicPhrase;
     }
     super.initState();
   }
@@ -189,20 +163,19 @@ class _RestoreByPrivateKeyActiveWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final RestoreByPrivateKeyContext? dataContextInit =
-        DialogWidget.of<RestoreByPrivateKeyContext>(this.context)
-            .dataContextInit;
+    final ShowMnemonicContext? dataContextInit =
+        DialogWidget.of<ShowMnemonicContext>(this.context).dataContextInit;
     if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.privateKey;
+      this._actionTextEditingController.text = dataContextInit.mnemonicPhrase;
     }
 
-    return _RestoreByPrivateKeyWidget._buildContainer(
+    return _ShowMnemonicWidget._buildContainer(
         Column(
           children: <Widget>[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                  "Please enter your private key below. This can only contain hexadecimal characters."),
+                  "Please copy down the mnemonic for your new account below. You will have to confirm the mnemonic on the next screen"),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -216,13 +189,28 @@ class _RestoreByPrivateKeyActiveWidgetState
                       const Radius.circular(5.0),
                     ),
                   ),
+      //             SingleChildScrollView(
+      //   physics: ScrollPhysics(),
+      //   child: Column(
+      //     children: <Widget>[
+      //        Text('Hey'),
+      //        ListView.builder(
+      //           physics: NeverScrollableScrollPhysics(),
+      //           shrinkWrap: true,
+      //           itemCount:18,
+      //           itemBuilder: (context,index){
+      //             return  Text('Some text');
+      //           })
+      //     ],
+      //   ),
+      // ),
                   child: TextField(
+                    readOnly: true,
                     maxLines: 10,
                     minLines: 5,
                     controller: this._actionTextEditingController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: "Private Key",
                     ),
                   ),
                 ),
@@ -232,8 +220,8 @@ class _RestoreByPrivateKeyActiveWidgetState
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            widget.onComplete(RestoreByPrivateKeyContext(
-                this._actionTextEditingController.text));
+            widget.onComplete(
+                ShowMnemonicContext(this._actionTextEditingController.text));
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

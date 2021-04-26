@@ -61,40 +61,40 @@ import "../toolchain/dialog_widget.dart"
         DialogHostCallback,
         DialogWidget;
 
-class RestoreByPrivateKeyContext {
-  final String privateKey;
+class RestoreByMnemonicPhraseContext {
+  final String mnemonicPhrase;
 
-  RestoreByPrivateKeyContext(this.privateKey);
+  RestoreByMnemonicPhraseContext(this.mnemonicPhrase);
 }
 
-class RestoreByPrivateKeyWidget extends StatelessWidget {
-  final RestoreByPrivateKeyContext? _dataContextInit;
-  final DialogHostCallback<RestoreByPrivateKeyContext> _onComplete;
+class RestoreByMnemonicPhraseWidget extends StatelessWidget {
+  final RestoreByMnemonicPhraseContext? _dataContextInit;
+  final DialogHostCallback<RestoreByMnemonicPhraseContext> _onComplete;
 
-  RestoreByPrivateKeyWidget({
-    required DialogHostCallback<RestoreByPrivateKeyContext> onComplete,
-    RestoreByPrivateKeyContext? dataContextInit,
+  RestoreByMnemonicPhraseWidget({
+    required DialogHostCallback<RestoreByMnemonicPhraseContext> onComplete,
+    RestoreByMnemonicPhraseContext? dataContextInit,
   })  : this._onComplete = onComplete,
         this._dataContextInit = dataContextInit;
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<RestoreByPrivateKeyContext>(
+    return DialogWidget<RestoreByMnemonicPhraseContext>(
       onComplete: this._onComplete,
       dataContextInit: this._dataContextInit,
-      child: _RestoreByPrivateKeyWidget(),
+      child: _RestoreByMnemonicPhraseWidget(),
     );
   }
 }
 
-class _RestoreByPrivateKeyWidget
-    extends DialogActionContentWidget<RestoreByPrivateKeyContext> {
+class _RestoreByMnemonicPhraseWidget
+    extends DialogActionContentWidget<RestoreByMnemonicPhraseContext> {
   @override
   Widget buildActive(
     BuildContext context, {
-    required DialogCallback<RestoreByPrivateKeyContext> onComplete,
+    required DialogCallback<RestoreByMnemonicPhraseContext> onComplete,
   }) =>
-      _RestoreByPrivateKeyActiveWidget(onComplete);
+      _RestoreByMnemonicPhraseActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -134,7 +134,7 @@ class _RestoreByPrivateKeyWidget
             padding: const EdgeInsets.all(5.0),
           ),
           Text(
-            "Restore by private key",
+            "Restore by mnemonic phrase",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
@@ -153,30 +153,30 @@ class _RestoreByPrivateKeyWidget
   }
 }
 
-class _RestoreByPrivateKeyActiveWidget extends StatefulWidget {
-  final DialogCallback<RestoreByPrivateKeyContext> onComplete;
-  _RestoreByPrivateKeyActiveWidget(
+class _RestoreByMnemonicPhraseActiveWidget extends StatefulWidget {
+  final DialogCallback<RestoreByMnemonicPhraseContext> onComplete;
+  _RestoreByMnemonicPhraseActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _RestoreByPrivateKeyActiveWidgetState createState() =>
-      _RestoreByPrivateKeyActiveWidgetState();
+  _RestoreByMnemonicPhraseActiveWidgetState createState() =>
+      _RestoreByMnemonicPhraseActiveWidgetState();
 }
 
-class _RestoreByPrivateKeyActiveWidgetState
-    extends State<_RestoreByPrivateKeyActiveWidget> {
+class _RestoreByMnemonicPhraseActiveWidgetState
+    extends State<_RestoreByMnemonicPhraseActiveWidget> {
   final TextEditingController _actionTextEditingController =
       TextEditingController();
 
   @override
   void initState() {
-    final RestoreByPrivateKeyContext? dataContextInit =
-        DialogWidget.of<RestoreByPrivateKeyContext>(this.context)
+    final RestoreByMnemonicPhraseContext? dataContextInit =
+        DialogWidget.of<RestoreByMnemonicPhraseContext>(this.context)
             .dataContextInit;
     if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.privateKey;
+      this._actionTextEditingController.text = dataContextInit.mnemonicPhrase;
     }
     super.initState();
   }
@@ -189,20 +189,20 @@ class _RestoreByPrivateKeyActiveWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final RestoreByPrivateKeyContext? dataContextInit =
-        DialogWidget.of<RestoreByPrivateKeyContext>(this.context)
+    final RestoreByMnemonicPhraseContext? dataContextInit =
+        DialogWidget.of<RestoreByMnemonicPhraseContext>(this.context)
             .dataContextInit;
     if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.privateKey;
+      this._actionTextEditingController.text = dataContextInit.mnemonicPhrase;
     }
 
-    return _RestoreByPrivateKeyWidget._buildContainer(
+    return _RestoreByMnemonicPhraseWidget._buildContainer(
         Column(
           children: <Widget>[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                  "Please enter your private key below. This can only contain hexadecimal characters."),
+                  "Please enter your mnemonic phrase below. This will either be 12 or 24 words in length (separated by spaces)"),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -232,7 +232,7 @@ class _RestoreByPrivateKeyActiveWidgetState
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            widget.onComplete(RestoreByPrivateKeyContext(
+            widget.onComplete(RestoreByMnemonicPhraseContext(
                 this._actionTextEditingController.text));
           },
           tooltip: "Continue",
