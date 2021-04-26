@@ -83,7 +83,9 @@ void mainTestRestoreByPrivateKeyWidget() async {
   final TonClient tonClient = TonClient();
   await tonClient.init(ExecutionContext.EMPTY);
 
-  final String privateKey = await tonClient.generateMnemonicPhrase();
+  final String seed = await tonClient.generateMnemonicPhrase();
+  // final dynamic keypair = await tonClient.deriveKeys(seed);
+  // print(keypair);
 
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
     onComplete: (
@@ -93,7 +95,7 @@ void mainTestRestoreByPrivateKeyWidget() async {
       print("Dialog completed with private name: ${ctx.privateKey}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
-    dataContextInit: RestoreByPrivateKeyContext(privateKey),
+    dataContextInit: RestoreByPrivateKeyContext(seed),
   )));
 }
 
