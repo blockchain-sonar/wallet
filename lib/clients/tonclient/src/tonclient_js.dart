@@ -3,9 +3,11 @@ library tonclient;
 
 import "dart:js_util" show promiseToFuture;
 
+import 'package:flutter/cupertino.dart';
 import "package:freemework/freemework.dart" show ExecutionContext;
 import "package:js/js.dart";
 
+import 'models/keyPair.dart';
 import "tonclient_contract.dart" show AbstractTonClient;
 
 // The `TONClientFacade` constructor invokes JavaScript `new window.TONClientFacade()`
@@ -14,6 +16,7 @@ class _TONClientFacadeInterop {
   external _TONClientFacadeInterop();
   external dynamic init();
   external dynamic generateMnemonicPhrase();
+  external dynamic generateMnemonicKeys(String seed);
 }
 
 class TonClient extends AbstractTonClient {
@@ -30,5 +33,16 @@ class TonClient extends AbstractTonClient {
   @override
   Future<String> generateMnemonicPhrase() {
     return promiseToFuture(this._wrap.generateMnemonicPhrase());
+  }
+
+  @override
+  Future<KeyPair> deriveKeys(String seed) {
+    return promiseToFuture(this._wrap.generateMnemonicKeys(seed));
+  }
+
+  @override
+  Future<String> getDeployData(KeyPair keys) {
+    // TODO: implement getDeployData
+    throw UnimplementedError();
   }
 }
