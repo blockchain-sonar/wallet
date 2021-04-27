@@ -1,11 +1,26 @@
-image: zxteamorg/devel.flutter
-
 stages:
   - build
   - deploy
 
+binweb:snapshot:deps:
+  stage: build
+  image: node:14-alpine
+  only:
+    - branches
+  tags:
+    - docker
+  script:
+    - git submodule update --init
+    - cd submodule/ton-client-web-js-umd-facade && npm install && npm run build
+  artifacts:
+    paths:
+      - submodule/ton-client-web-js-umd-facade/.dist
+
 binweb:snapshot:
   stage: build
+  image: zxteamorg/devel.flutter
+  dependencies:
+    - binweb:snapshot:deps
   only:
     - branches
   tags:
@@ -14,6 +29,7 @@ binweb:snapshot:
     - rm web/extension_loader.js
     - rm web/extenstion.html
     - rm web/index-extenstion.html
+    - rm web/index-webapp-devel.html
     - rm web/index.html
     - mv web/index-webapp.html web/index.html
     - flutter build web --web-renderer html
