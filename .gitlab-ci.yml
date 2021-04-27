@@ -1,9 +1,10 @@
 stages:
+  - build-deps
   - build
   - deploy
 
-binweb:snapshot:deps:
-  stage: build
+ton-client-web-js-umd-facade:
+  stage: build-deps
   image: node:14-alpine
   only:
     - branches
@@ -20,7 +21,7 @@ binweb:snapshot:
   stage: build
   image: zxteamorg/devel.flutter
   dependencies:
-    - binweb:snapshot:deps
+    - ton-client-web-js-umd-facade
   only:
     - branches
   tags:
