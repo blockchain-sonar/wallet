@@ -10,9 +10,12 @@ ton-client-web-js-umd-facade:
     - branches
   tags:
     - docker
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - git submodule update --init
-    - cd submodule/ton-client-web-js-umd-facade && npm install && npm run build
+    - cd submodule/ton-client-web-js-umd-facade
+    - npm install
+    - npm run build
   artifacts:
     paths:
       - submodule/ton-client-web-js-umd-facade/.dist
