@@ -15,6 +15,8 @@
 import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
+import 'package:freeton_wallet/clients/tonclient/src/models/deployData.dart';
+import 'clients/tonclient/src/models/keyPair.dart';
 import 'widgets/business/import_mode_selector.dart'
     show ImportModeSelectorContext, ImportModeSelectorWidget;
 import 'widgets/business/enter_wallet_name.dart'
@@ -84,9 +86,8 @@ void mainTestRestoreByPrivateKeyWidget() async {
   await tonClient.init(ExecutionContext.EMPTY);
 
   final String seed = await tonClient.generateMnemonicPhrase();
-  // final dynamic keypair = await tonClient.deriveKeys(seed);
-  // print(keypair);
-
+  final KeyPair keypair = await tonClient.deriveKeys(seed);
+  final dynamic test = await tonClient.getAccountData(keypair.public);
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
     onComplete: (
       ExecutionContext executionContext,
