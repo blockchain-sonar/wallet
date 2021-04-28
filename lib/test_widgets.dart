@@ -145,15 +145,15 @@ void mainTestShowMnemonicWidget() async {
   await tonClient.init(ExecutionContext.EMPTY);
 
   final String mnemonicPhrase = await tonClient.generateMnemonicPhrase();
+  final List<String> words = mnemonicPhrase.split(" ");
 
   runApp(_buildRootWidget(ShowMnemonicWidget(
     onComplete: (
       ExecutionContext executionContext,
       ShowMnemonicContext ctx,
     ) async {
-      print("Dialog completed with private name: ${ctx.mnemonicPhrase}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
-    dataContextInit: ShowMnemonicContext(mnemonicPhrase),
+    dataContextInit: ShowMnemonicContext(words),
   )));
 }

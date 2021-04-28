@@ -24,7 +24,35 @@ import "package:flutter/material.dart"
         TextField;
 
 import "package:flutter/widgets.dart"
-    show Alignment, BorderRadius, BoxDecoration, BuildContext, Center, Column, Container, EdgeInsets, Expanded, Flexible, FontWeight, Icon, IconData, Key, ListView, MainAxisAlignment, NeverScrollableScrollPhysics, Padding, Radius, ScrollPhysics, SingleChildScrollView, State, StatefulWidget, StatelessWidget, Text, TextEditingController, TextStyle, Widget;
+    show
+        Alignment,
+        BorderRadius,
+        BoxDecoration,
+        BuildContext,
+        Center,
+        Column,
+        Container,
+        EdgeInsets,
+        Expanded,
+        Flexible,
+        FontWeight,
+        Icon,
+        IconData,
+        Key,
+        ListView,
+        MainAxisAlignment,
+        NeverScrollableScrollPhysics,
+        Padding,
+        Radius,
+        ScrollPhysics,
+        SingleChildScrollView,
+        State,
+        StatefulWidget,
+        StatelessWidget,
+        Text,
+        TextEditingController,
+        TextStyle,
+        Widget;
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
@@ -38,9 +66,9 @@ import "../toolchain/dialog_widget.dart"
         DialogWidget;
 
 class ShowMnemonicContext {
-  final String mnemonicPhrase;
+  final List<String> mnemonicPhrases;
 
-  ShowMnemonicContext(this.mnemonicPhrase);
+  ShowMnemonicContext(this.mnemonicPhrases);
 }
 
 class ShowMnemonicWidget extends StatelessWidget {
@@ -142,31 +170,13 @@ class _ShowMnemonicActiveWidget extends StatefulWidget {
 }
 
 class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
-  final TextEditingController _actionTextEditingController =
-      TextEditingController();
-
-  @override
-  void initState() {
-    final ShowMnemonicContext? dataContextInit =
-        DialogWidget.of<ShowMnemonicContext>(this.context).dataContextInit;
-    if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.mnemonicPhrase;
-    }
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    this._actionTextEditingController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final ShowMnemonicContext? dataContextInit =
         DialogWidget.of<ShowMnemonicContext>(this.context).dataContextInit;
-    if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.mnemonicPhrase;
+
+    if (dataContextInit == null) {
+      throw StateError("Bad usage. To use this please pass correct context.");
     }
 
     return _ShowMnemonicWidget._buildContainer(
@@ -182,6 +192,7 @@ class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
                 child: Container(
+                  height: 235,
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: Colors.grey,
@@ -189,28 +200,15 @@ class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
                       const Radius.circular(5.0),
                     ),
                   ),
-      //             SingleChildScrollView(
-      //   physics: ScrollPhysics(),
-      //   child: Column(
-      //     children: <Widget>[
-      //        Text('Hey'),
-      //        ListView.builder(
-      //           physics: NeverScrollableScrollPhysics(),
-      //           shrinkWrap: true,
-      //           itemCount:18,
-      //           itemBuilder: (context,index){
-      //             return  Text('Some text');
-      //           })
-      //     ],
-      //   ),
-      // ),
-                  child: TextField(
-                    readOnly: true,
-                    maxLines: 10,
-                    minLines: 5,
-                    controller: this._actionTextEditingController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                    child: ListView.builder(
+                      itemBuilder: (BuildContext context, int index) {
+                        final String word =
+                            dataContextInit.mnemonicPhrases[index];
+                        return Text(word);
+                      },
+                      itemCount: dataContextInit.mnemonicPhrases.length,
                     ),
                   ),
                 ),
@@ -221,7 +219,8 @@ class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             widget.onComplete(
-                ShowMnemonicContext(this._actionTextEditingController.text));
+              dataContextInit,
+            );
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

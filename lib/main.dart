@@ -23,5 +23,5 @@ void main() {
   // final ServiceFactory serviceFactory = ServiceFactoryProductive();
   // runApp(App(serviceFactory));
 
-  mainTestRestoreByPrivateKeyWidget();
+  mainTestShowMnemonicWidget();
 }
