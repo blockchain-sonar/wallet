@@ -1,9 +1,22 @@
-import 'dart:convert';
-import 'dart:math';
-import 'dart:typed_data';
+// Copyright 2021 Free TON Wallet Team
 
-import 'package:convert/convert.dart';
-import 'package:freemework/freemework.dart';
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+// 	http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+import "dart:convert" show base64Decode, base64Encode, utf8;
+import "dart:math" show Random;
+import "dart:typed_data" show Uint8List;
+
+import "package:freemework/freemework.dart" show FreemeworkException;
 import "package:pointycastle/export.dart"
     show
         AESFastEngine,
@@ -42,17 +55,17 @@ abstract class CryptoService {
     Uint8List? salt,
     int? iterations,
     int? keylen,
-    String? digestAlgo,
+    String? digest,
   });
 }
 
 class DerivateResult {
   final Uint8List salt;
   final int iterations;
-  final String digestAlgo;
+  final String digest;
   final Uint8List derivatedKey;
   DerivateResult(
-      this.salt, this.iterations, this.digestAlgo, this.derivatedKey);
+      this.salt, this.iterations, this.digest, this.derivatedKey);
 }
 
 abstract class Encypter {
@@ -84,7 +97,7 @@ class PointyCastleCryptoService extends CryptoService {
     Uint8List? salt,
     int? iterations,
     int? keylen,
-    String? digestAlgo,
+    String? digest,
   }) {
     if (salt == null) {
       salt = Uint8List.fromList(
@@ -104,15 +117,15 @@ class PointyCastleCryptoService extends CryptoService {
       keylen = _DEFAULT_KEY_LEN;
     }
 
-    if (digestAlgo == null) {
-      digestAlgo = "sha512";
+    if (digest == null) {
+      digest = "sha512";
     }
 
     return _derivate(password,
         salt: salt,
         iterations: iterations,
         keylen: keylen,
-        digestAlgo: digestAlgo);
+        digest: digest);
   }
 
   Future<DerivateResult> _derivate(
@@ -120,7 +133,7 @@ class PointyCastleCryptoService extends CryptoService {
     required Uint8List salt,
     required int iterations,
     required int keylen,
-    required String digestAlgo,
+    required String digest,
   }) async {
     //final Pbkdf2Parameters para = Pbkdf2Parameters();
     //final KeyDerivator derivator = KeyDerivator("SHA-256/HMAC/PBKDF2");
@@ -144,7 +157,7 @@ class PointyCastleCryptoService extends CryptoService {
     final DerivateResult result = DerivateResult(
       salt,
       iterations,
-      digestAlgo,
+      digest,
       derivatedKey,
     );
 

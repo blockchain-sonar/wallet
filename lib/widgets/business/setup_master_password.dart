@@ -48,9 +48,9 @@ import "package:flutter/widgets.dart"
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
 
-import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
-import "../reusable/logo_widget.dart" show FWLogo128Widget;
-import "../toolchain/dialog_widget.dart"
+import '../reusable/button_widget.dart' show FWCancelFloatingActionButton;
+import '../reusable/logo_widget.dart' show FWLogo128Widget;
+import '../toolchain/dialog_widget.dart'
     show
         DialogActionContentWidget,
         DialogCallback,

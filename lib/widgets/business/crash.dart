@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "package:flutter/widgets.dart" show runApp;
+import "package:flutter/material.dart" show MaterialApp;
+import "package:flutter/widgets.dart"
+    show BuildContext, Center, StatelessWidget, Text, Widget;
 
-import "services/service_factory.dart"
-    show ServiceFactory, ServiceFactoryProductive;
-import "app.dart" show App;
-import "test_widgets.dart";
+class CrashWidget extends StatelessWidget {
+  final String? _crashMessage;
 
-import 'dart:html' as html;
+  CrashWidget([this._crashMessage]);
 
-void main() {
-  html.window.onBeforeUnload.listen((event) async {
-    print("onBeforeUnload");
-  });
-  html.window.onUnload.listen((event) async {
-    print("onUnload");
-  });
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(this._crashMessage ?? "Crash"),
+    );
+  }
+}
 
-  final ServiceFactory serviceFactory = ServiceFactoryProductive();
-  runApp(App(serviceFactory));
-
-  // mainTestShowMnemonicWidget();
+class CrashStandalone extends MaterialApp {
+  CrashStandalone(String? crashMessage)
+      : super(
+          home: CrashWidget(crashMessage),
+        );
 }

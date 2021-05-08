@@ -4,20 +4,22 @@ library tonclient;
 import 'dart:html';
 import "dart:js_util" show getProperty, hasProperty, newObject, promiseToFuture;
 import "package:freemework/freemework.dart"
-    show ExecutionContext, FreemeworkException;
+    show ExecutionContext, FreemeworkException, InvalidOperationException;
 import 'package:freeton_wallet/clients/tonclient/src/models/deployData.dart';
 import "package:js/js.dart";
 import "package:js/js_util.dart"
     show getProperty, hasProperty, newObject, promiseToFuture, setProperty;
+import '../contract.dart';
 import "models/keyPair.dart" show KeyPair;
-import "tonclient_contract.dart" show AbstractTonClient;
+import '../contract.dart'
+    show AbstractTonClient, InteropContractException, TonClientException;
 
 // The `TONClientFacade` constructor invokes JavaScript `new window.TONClientFacade()`
 @JS("TONClientFacade")
 class _TONClientFacadeInterop {
   external _TONClientFacadeInterop();
   external dynamic init();
-  external dynamic generateMnemonicPhrase();
+  external dynamic generateMnemonicPhraseSeed(int wordsCount);
   external dynamic deriveKeyPair(String seedMnemonicPhrase);
   external dynamic getDeployData(dynamic keys);
   external dynamic calcDeployFees(dynamic keys);
@@ -27,6 +29,9 @@ class _TONClientFacadeInterop {
 
 class TonClient extends AbstractTonClient {
   final _TONClientFacadeInterop _wrap;
+
+  static const int SEED_LONG_PHRASE_WORDS_COUNT = 24;
+  static const int SEED_SHORT_PHRASE_WORDS_COUNT = 12;
 
   static const String _KEYPAIR_PUBLIC_PROPERTY_NAME = "public";
   static const String _KEYPAIR_SECRET_PROPERTY_NAME = "secret";
@@ -47,14 +52,25 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<String> generateMnemonicPhrase() {
-    return promiseToFuture(this._wrap.generateMnemonicPhrase());
+  Future<String> generateMnemonicPhraseSeed(SeedType seedType) {
+    int wordsCount;
+    switch (seedType) {
+      case SeedType.LONG:
+        wordsCount = SEED_LONG_PHRASE_WORDS_COUNT;
+        break;
+      case SeedType.SHORT:
+        wordsCount = SEED_SHORT_PHRASE_WORDS_COUNT;
+        break;
+      default:
+        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
+    }
+    return promiseToFuture(this._wrap.generateMnemonicPhraseSeed(wordsCount));
   }
 
   @override
-  Future<KeyPair> deriveKeys(String seedMnemonicPhrase) async {
+  Future<KeyPair> deriveKeys(String seedMnemonicPhraseSeed) async {
     final dynamic jsData =
-        await promiseToFuture(this._wrap.deriveKeyPair(seedMnemonicPhrase));
+        await promiseToFuture(this._wrap.deriveKeyPair(seedMnemonicPhraseSeed));
     if (!hasProperty(jsData, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME)) {
       throw InteropContractException(TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME);
     }
@@ -105,7 +121,7 @@ class TonClient extends AbstractTonClient {
 
       return deployData;
     } catch (e) {
-      throw TonException(
+      throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
     }
   }
@@ -122,7 +138,7 @@ class TonClient extends AbstractTonClient {
           await promiseToFuture(this._wrap.calcDeployFees(nativeJsObject));
       return jsData;
     } catch (e) {
-      throw TonException(
+      throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
     }
   }
@@ -139,7 +155,7 @@ class TonClient extends AbstractTonClient {
           await promiseToFuture(this._wrap.deployContract(nativeJsObject));
       return jsData;
     } catch (e) {
-      throw TonException(
+      throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
     }
   }
@@ -151,22 +167,8 @@ class TonClient extends AbstractTonClient {
           await promiseToFuture(this._wrap.getAccountData(address));
       return jsData;
     } catch (e) {
-      throw TonException(
+      throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
     }
   }
-}
-
-class TonException extends FreemeworkException {
-  TonException([String? message, FreemeworkException? innerException])
-      : super(message, innerException);
-}
-
-class InteropContractException extends TonException {
-  final String property;
-  InteropContractException(
-    this.property, [
-    String? message,
-    FreemeworkException? innerException,
-  ]) : super(message, innerException);
 }

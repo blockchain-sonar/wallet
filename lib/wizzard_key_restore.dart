@@ -1,7 +1,7 @@
 import "package:flutter/widgets.dart";
 import "package:freemework/freemework.dart" show ExecutionContext;
 import 'package:freeton_wallet/widgets/business/enter_wallet_name.dart';
-import 'package:freeton_wallet/widgets/business/restore_by_private_key_widget.dart';
+import 'package:freeton_wallet/widgets/business/restore_by_private_key.dart';
 import 'package:freeton_wallet/widgets/business/restore_mode_selector.dart';
 import 'widgets/business/import_mode_selector.dart'
     show ImportMode, ImportModeSelectorContext, ImportModeSelectorWidget;

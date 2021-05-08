@@ -17,16 +17,17 @@ import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
 import 'package:freeton_wallet/clients/tonclient/src/models/deployData.dart';
 import 'clients/tonclient/src/models/keyPair.dart';
+import 'clients/tonclient/tonclient.dart';
 import 'widgets/business/import_mode_selector.dart'
     show ImportModeSelectorContext, ImportModeSelectorWidget;
 import 'widgets/business/enter_wallet_name.dart'
     show EnterWalletNameContext, EnterWalletNameWidget;
-import 'widgets/business/restore_by_mnemonic_phrase_widget.dart';
-import 'widgets/business/restore_by_private_key_widget.dart'
+import 'widgets/business/restore_by_mnemonic_phrase.dart';
+import 'widgets/business/restore_by_private_key.dart'
     show RestoreByPrivateKeyContext, RestoreByPrivateKeyWidget;
 import 'widgets/business/restore_mode_selector.dart'
     show RestoreModeSelectorContext, RestoreModeSelectorWidget;
-import 'widgets/business/setup_master_password_widget.dart';
+import 'widgets/business/setup_master_password.dart';
 import 'widgets/business/show_mnemonic_widget.dart';
 import 'widgets/business/unlock.dart' show UnlockContext, UnlockWidget;
 import 'widgets/toolchain/dialog_widget.dart' show DialogWidget;
@@ -85,7 +86,7 @@ void mainTestRestoreByPrivateKeyWidget() async {
   final TonClient tonClient = TonClient();
   await tonClient.init(ExecutionContext.EMPTY);
 
-  final String seed = await tonClient.generateMnemonicPhrase();
+  final String seed = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
   final KeyPair keypair = await tonClient.deriveKeys(seed);
   final dynamic test = await tonClient.getAccountData(keypair.public);
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
@@ -126,7 +127,7 @@ void mainTestRestoreByMnemonicPhraseWidget() async {
   final TonClient tonClient = TonClient();
   await tonClient.init(ExecutionContext.EMPTY);
 
-  final String mnemonicPhrase = await tonClient.generateMnemonicPhrase();
+  final String mnemonicPhrase = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
 
   runApp(_buildRootWidget(RestoreByMnemonicPhraseWidget(
     onComplete: (
@@ -141,10 +142,16 @@ void mainTestRestoreByMnemonicPhraseWidget() async {
 }
 
 void mainTestShowMnemonicWidget() async {
-  final TonClient tonClient = TonClient();
-  await tonClient.init(ExecutionContext.EMPTY);
+  String mnemonicPhrase;
 
-  final String mnemonicPhrase = await tonClient.generateMnemonicPhrase();
+  try {
+    final TonClient tonClient = TonClient();
+    await tonClient.init(ExecutionContext.EMPTY);
+    mnemonicPhrase = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
+  } catch (e) {
+    mnemonicPhrase = e.toString();
+  }
+
   final List<String> words = mnemonicPhrase.split(" ");
 
   runApp(_buildRootWidget(ShowMnemonicWidget(

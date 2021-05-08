@@ -1,48 +1,91 @@
+import "package:flutter/foundation.dart" show listEquals;
 import "package:flutter/widgets.dart";
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'widgets/business/enter_wallet_name.dart';
-import 'widgets/business/import_mode_selector.dart'
-    show ImportMode, ImportModeSelectorContext, ImportModeSelectorWidget;
 
-class WizzardKeyNewWidget extends StatefulWidget {
+import "data/mnemonic_phrase.dart" show MnemonicPhrase;
+import 'data/mnemonic_phrase.dart';
+import "services/wallet_service.dart" show WalletService;
+import "widgets/business/show_mnemonic_widget.dart"
+    show ShowMnemonicContext, ShowMnemonicWidget;
+import "widgets/business/confirm_mnemonic.dart"
+    show ConfirmMnemonicContext, ConfirmMnemonicWidget;
+import "widgets/business/enter_wallet_name.dart"
+    show EnterWalletNameContext, EnterWalletNameWidget;
+
+class WizzardWalletNewWidget extends StatefulWidget {
+  final Future<void> Function(String walletName, MnemonicPhrase mnemonicPhrase)
+      onComplete;
+  final WalletService _walletService;
+
+  WizzardWalletNewWidget(
+    this._walletService, {
+    required this.onComplete,
+  });
+
   @override
-  _WizzardKeyNewWidgetState createState() => _WizzardKeyNewWidgetState();
+  _WizzardWalletNewState createState() => _WizzardWalletNewState();
 }
 
-class _WizzardKeyNewWidgetState extends State<WizzardKeyNewWidget> {
-  String? _keyName;
-  ImportMode? _importMode;
+class _WizzardWalletNewState extends State<WizzardWalletNewWidget> {
+  String? _walletName;
+  MnemonicPhrase? _mnemonicPhrase;
+  bool _isMnemonicPhraseSeen;
 
-  _WizzardKeyNewWidgetState()
-      : this._importMode = null,
-        this._keyName = null;
-
-  void _setImportMode(ImportMode mode) {
-    this.setState(() {
-      this._importMode = mode;
-    });
-  }
-
-  void _setKeyName(String keyName) {
-    this.setState(() {
-      this._keyName = keyName;
-    });
-  }
+  _WizzardWalletNewState()
+      : this._walletName = null,
+        _mnemonicPhrase = null,
+        _isMnemonicPhraseSeen = false;
 
   @override
   Widget build(BuildContext context) {
-    final String? keyName = this._keyName;
-    if (keyName == null) {
+    final String? walletName = this._walletName;
+    final MnemonicPhrase? mnemonicPhrase = this._mnemonicPhrase;
+
+    if (walletName == null || mnemonicPhrase == null) {
       return EnterWalletNameWidget(
         onComplete: (
           ExecutionContext executionContext,
           EnterWalletNameContext actionContext,
+        ) async {
+          final MnemonicPhrase mnemonicPhrase = await this
+              .widget
+              ._walletService
+              .generateMnemonicPhrase(MnemonicPhraseLength.SHORT);
+          this.setState(() {
+            this._walletName = actionContext.walletName;
+            this._mnemonicPhrase = mnemonicPhrase;
+          });
+        },
+      );
+    } else if (!this._isMnemonicPhraseSeen) {
+      return ShowMnemonicWidget(
+        dataContextInit:
+            ShowMnemonicContext(mnemonicPhrase.words.toList(growable: false)),
+        onComplete: (
+          ExecutionContext executionContext,
+          ShowMnemonicContext actionContext,
         ) {
-          this._setKeyName(actionContext.walletName);
+          this.setState(() {
+            this._isMnemonicPhraseSeen = true;
+          });
         },
       );
     } else {
-      return Text("Creating key '${keyName}'...");
+      return ConfirmMnemonicWidget(
+        dataContextInit: ConfirmMnemonicContext(
+            mnemonicPhrase.words.toList(growable: false)),
+        onComplete: (
+          ExecutionContext executionContext,
+          ConfirmMnemonicContext actionContext,
+        ) async {
+          if (listEquals(
+            mnemonicPhrase.words,
+            actionContext.mnemonicPhraseWords,
+          )) {
+            await this.widget.onComplete(walletName, mnemonicPhrase);
+          }
+        },
+      );
     }
   }
 }

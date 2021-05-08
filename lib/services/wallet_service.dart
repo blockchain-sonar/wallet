@@ -12,6 +12,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import "package:freemework/errors/InvalidOperationException.dart"
+    show InvalidOperationException;
+import "../clients/tonclient/tonclient.dart" as TON;
+
+import "../data/key_pair.dart" show KeyPair;
+import "../data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
+
 abstract class WalletService {
-  List<String> generateMnemonic();
+  Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
+  Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
+}
+
+class TonWalletService extends WalletService {
+  final TON.AbstractTonClient _tonClient;
+
+  TonWalletService(this._tonClient);
+
+  @override
+  Future<MnemonicPhrase> generateMnemonicPhrase(
+      MnemonicPhraseLength length) async {
+    TON.SeedType seedType;
+    switch (length) {
+      case MnemonicPhraseLength.LONG:
+        seedType = TON.SeedType.LONG;
+        break;
+      case MnemonicPhraseLength.SHORT:
+        seedType = TON.SeedType.SHORT;
+        break;
+      default:
+        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
+    }
+    final String mnemonicSentence =
+        await this._tonClient.generateMnemonicPhraseSeed(seedType);
+    return MnemonicPhrase(mnemonicSentence.split(" "), length);
+  }
+
+  @override
+  Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase) async {
+    final String seed = mnemonicPhrase.words.join(" ");
+    final TON.KeyPair keyPair = await this._tonClient.deriveKeys(seed);
+    return KeyPair(public: keyPair.public, secret: keyPair.secret);
+  }
 }

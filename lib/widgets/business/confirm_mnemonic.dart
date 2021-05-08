@@ -57,48 +57,48 @@ import "package:flutter/widgets.dart"
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
 
-import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
-import "../toolchain/dialog_widget.dart"
+import '../reusable/button_widget.dart' show FWCancelFloatingActionButton;
+import '../toolchain/dialog_widget.dart'
     show
         DialogActionContentWidget,
         DialogCallback,
         DialogHostCallback,
         DialogWidget;
 
-class ShowMnemonicContext {
+class ConfirmMnemonicContext {
   final List<String> mnemonicPhraseWords;
 
-  ShowMnemonicContext(this.mnemonicPhraseWords);
+  ConfirmMnemonicContext(this.mnemonicPhraseWords);
 }
 
-class ShowMnemonicWidget extends StatelessWidget {
-  final ShowMnemonicContext _dataContextInit;
-  final DialogHostCallback<ShowMnemonicContext> _onComplete;
+class ConfirmMnemonicWidget extends StatelessWidget {
+  final ConfirmMnemonicContext _dataContextInit;
+  final DialogHostCallback<ConfirmMnemonicContext> _onComplete;
 
-  ShowMnemonicWidget({
-    required DialogHostCallback<ShowMnemonicContext> onComplete,
-    required ShowMnemonicContext dataContextInit,
+  ConfirmMnemonicWidget({
+    required DialogHostCallback<ConfirmMnemonicContext> onComplete,
+    required ConfirmMnemonicContext dataContextInit,
   })  : this._onComplete = onComplete,
         this._dataContextInit = dataContextInit;
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<ShowMnemonicContext>(
+    return DialogWidget<ConfirmMnemonicContext>(
       onComplete: this._onComplete,
       dataContextInit: this._dataContextInit,
-      child: _ShowMnemonicWidget(),
+      child: _ConfirmMnemonicWidget(),
     );
   }
 }
 
-class _ShowMnemonicWidget
-    extends DialogActionContentWidget<ShowMnemonicContext> {
+class _ConfirmMnemonicWidget
+    extends DialogActionContentWidget<ConfirmMnemonicContext> {
   @override
   Widget buildActive(
     BuildContext context, {
-    required DialogCallback<ShowMnemonicContext> onComplete,
+    required DialogCallback<ConfirmMnemonicContext> onComplete,
   }) =>
-      _ShowMnemonicActiveWidget(onComplete);
+      _ConfirmMnemonicActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -138,7 +138,7 @@ class _ShowMnemonicWidget
             padding: const EdgeInsets.all(5.0),
           ),
           Text(
-            "Create",
+            "Confirm",
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20,
@@ -157,29 +157,29 @@ class _ShowMnemonicWidget
   }
 }
 
-class _ShowMnemonicActiveWidget extends StatefulWidget {
-  final DialogCallback<ShowMnemonicContext> onComplete;
-  _ShowMnemonicActiveWidget(
+class _ConfirmMnemonicActiveWidget extends StatefulWidget {
+  final DialogCallback<ConfirmMnemonicContext> onComplete;
+  _ConfirmMnemonicActiveWidget(
     this.onComplete, {
     Key? key,
   }) : super(key: key);
 
   @override
-  _ShowMnemonicActiveWidgetState createState() =>
-      _ShowMnemonicActiveWidgetState();
+  _ConfirmMnemonicActiveWidgetState createState() =>
+      _ConfirmMnemonicActiveWidgetState();
 }
 
-class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
+class _ConfirmMnemonicActiveWidgetState extends State<_ConfirmMnemonicActiveWidget> {
   @override
   Widget build(BuildContext context) {
-    final ShowMnemonicContext? dataContextInit =
-        DialogWidget.of<ShowMnemonicContext>(this.context).dataContextInit;
+    final ConfirmMnemonicContext? dataContextInit =
+        DialogWidget.of<ConfirmMnemonicContext>(this.context).dataContextInit;
 
     if (dataContextInit == null) {
       throw StateError("Bad usage. To use this please pass correct context.");
     }
 
-    return _ShowMnemonicWidget._buildContainer(
+    return _ConfirmMnemonicWidget._buildContainer(
         Column(
           children: <Widget>[
             Padding(
