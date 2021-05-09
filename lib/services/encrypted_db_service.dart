@@ -62,10 +62,14 @@ abstract class DataSet {
 
 abstract class WalletData {
   final int id;
+  final String walletName;
+  final String keyPublic;
 
   factory WalletData.fromJson(final Map<String, dynamic> rawJson) {
     final int? id = rawJson[WalletData._ID__PROPERTY];
     final String? kind = rawJson[_KIND__PROPERTY];
+    final String? keyPublic = rawJson[_KEY_PUBLIC__PROPERTY];
+    final String? walletName = rawJson[_WALLET_NAME__PROPERTY];
 
     if (id == null) {
       throw SerializationException(
@@ -74,10 +78,16 @@ abstract class WalletData {
     if (kind == null) {
       throw SerializationException("A field '$_KIND__PROPERTY' is null");
     }
+    if (keyPublic == null) {
+      throw SerializationException("A field '$_KEY_PUBLIC__PROPERTY' is null");
+    }
+    if (walletName == null) {
+      throw SerializationException("A field '$_WALLET_NAME__PROPERTY' is null");
+    }
 
     switch (kind) {
       case "plain":
-        return WalletDataPlain.fromJson(id, rawJson);
+        return WalletDataPlain.fromJson(id, walletName, keyPublic, rawJson);
       default:
         throw SerializationException(
             "A field '$_KIND__PROPERTY' has unsupported value '$kind'.");
@@ -95,7 +105,9 @@ abstract class WalletData {
 
     final Map<String, dynamic> rawJson = <String, dynamic>{
       _ID__PROPERTY: this.id,
-      _KIND__PROPERTY: kind
+      _KIND__PROPERTY: kind,
+      _WALLET_NAME__PROPERTY: this.walletName,
+      _KEY_PUBLIC__PROPERTY: this.keyPublic,
     };
 
     return rawJson;
@@ -103,33 +115,27 @@ abstract class WalletData {
 
   static const String _ID__PROPERTY = "id";
   static const String _KIND__PROPERTY = "kind";
+  static const String _KEY_PUBLIC__PROPERTY = "keypub";
+  static const String _WALLET_NAME__PROPERTY = "name";
 
-  WalletData._(this.id);
+  WalletData._(this.id, this.walletName, this.keyPublic);
 }
 
 class WalletDataPlain extends WalletData {
-  final String walletName;
-  final String keyPublic;
   final String keySecret;
   final MnemonicPhrase? mnemonicPhrase;
 
   factory WalletDataPlain.fromJson(
     final int id,
+    final String walletName,
+    final String keyPublic,
     final Map<String, dynamic> rawJson,
   ) {
-    final String? keyPublic = rawJson[_KEY_PUBLIC__PROPERTY];
     final String? keySecret = rawJson[_KEY_SECRET__PROPERTY];
     final String? mnemonicPhraseSentence = rawJson[_MNEMONIC_PHRASE__PROPERTY];
-    final String? walletName = rawJson[_WALLET_NAME__PROPERTY];
 
-    if (keyPublic == null) {
-      throw SerializationException("A field '$_KEY_PUBLIC__PROPERTY' is null");
-    }
     if (keySecret == null) {
       throw SerializationException("A field '$_KEY_SECRET__PROPERTY' is null");
-    }
-    if (walletName == null) {
-      throw SerializationException("A field '$_WALLET_NAME__PROPERTY' is null");
     }
 
     MnemonicPhrase? mnemonicPhrase = null;
@@ -157,9 +163,7 @@ class WalletDataPlain extends WalletData {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> rawJson = super.toJson()
       ..addAll(<String, dynamic>{
-        _KEY_PUBLIC__PROPERTY: this.keyPublic,
         _KEY_SECRET__PROPERTY: this.keySecret,
-        _WALLET_NAME__PROPERTY: this.walletName,
       });
 
     final MnemonicPhrase? mnemonicPhrase = this.mnemonicPhrase;
@@ -170,14 +174,16 @@ class WalletDataPlain extends WalletData {
     return rawJson;
   }
 
-  static const String _KEY_PUBLIC__PROPERTY = "keypub";
   static const String _KEY_SECRET__PROPERTY = "keysecret";
   static const String _MNEMONIC_PHRASE__PROPERTY = "mnemonic";
-  static const String _WALLET_NAME__PROPERTY = "name";
 
-  WalletDataPlain._(int id, this.walletName, this.keyPublic, this.keySecret,
-      this.mnemonicPhrase)
-      : super._(id);
+  WalletDataPlain._(
+    int id,
+    String walletName,
+    String keyPublic,
+    this.keySecret,
+    this.mnemonicPhrase,
+  ) : super._(id, walletName, keyPublic);
 }
 
 // class WalletDataEncrypted extends WalletData {

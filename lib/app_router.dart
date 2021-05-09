@@ -47,8 +47,10 @@ import "package:flutter/widgets.dart"
 import 'package:flutter/widgets.dart';
 import "package:freemework/freemework.dart";
 import 'package:freemework_cancellation/freemework_cancellation.dart';
+import 'package:freeton_wallet/router/main_page.dart';
 import 'package:freeton_wallet/router/redirect_page.dart';
 import 'package:freeton_wallet/services/crypto_service.dart';
+import 'package:freeton_wallet/widgets/business/main_tab.dart';
 import 'data/key_pair.dart';
 import 'data/mnemonic_phrase.dart';
 import 'router/app_route_data.dart';
@@ -98,20 +100,13 @@ class _AppRouteInformationParser extends RouteInformationParser<AppRouteData> {
   @override
   Future<AppRouteData> parseRouteInformation(
       RouteInformation routeInformation) async {
-    print("_AppRouteInformationParser#parseRouteInformation");
     final Uri routeUri = _parseLocation(routeInformation.location);
     final AppRouteData configuration = AppRouteData.fromUrl(routeUri);
-
-    print(
-        "_AppRouteInformationParser#parseRouteInformation returns: ${configuration}");
-
     return configuration;
   }
 
   @override
   RouteInformation restoreRouteInformation(AppRouteData data) {
-    print("_AppRouteInformationParser#restoreRouteInformation");
-
     final String location = data.location;
     final String? state = data.state;
 
@@ -163,8 +158,8 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           this._encryptedDbService,
           this._walletService,
         );
-      else if (currentConfiguration is AppRouteDataSplash)
-        pagesStack = _splashPagesStack(
+      else if (currentConfiguration is AppRouteDataMain)
+        pagesStack = _mainPagesStack(
           currentConfiguration,
           consumerContext,
           appState,
@@ -192,7 +187,10 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           if (!route.didPop(result)) {
             return false;
           }
-          this._currentConfiguration = null;
+          if (pagesStack.length > 1) {
+          } else {
+            this._currentConfiguration = null;
+          }
           notifyListeners();
           return true;
         },
@@ -229,22 +227,56 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
   List<Page<dynamic>> _crashPagesStack(AppRouteDataCrash configuration) =>
       <Page<dynamic>>[CrashPage()];
 
-  List<Page<dynamic>> _splashPagesStack(
-    AppRouteDataSplash configuration,
+  List<Page<dynamic>> _mainPagesStack(
+    AppRouteDataMain configuration,
     BuildContext context,
     AppState appState,
     EncryptedDbService encryptedDbService,
   ) {
+    if (!encryptedDbService.isInitialized) {
+      return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
+    }
+
+    if (!appState.isLogged) {
+      return this._redirectPagesStack(AppRouterDataSignin.PATH);
+    } else {
+      if (appState.wallets.length == 0) {
+        return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
+      }
+    }
+
+    final void Function() onSelectHome = () {
+      this._currentConfiguration = AppRouteDataMain.home();
+      this.notifyListeners();
+    };
+    final void Function() onSelectWallets = () {
+      this._currentConfiguration = AppRouteDataMain.wallets();
+      this.notifyListeners();
+    };
+    final void Function() onSelectSetting = () {
+      this._currentConfiguration = AppRouteDataMain.settings();
+      this.notifyListeners();
+    };
+
+    // final MainTab selectedTab = configuration.selectedTab;
+
     return <Page<dynamic>>[
-      _SplashScreenPage(
+      // if (selectedTab != MainTab.HOME)
+      //   MainPage(
+      //     AppRouteDataMain.home(),
+      //     appState,
+      //     encryptedDbService,
+      //     onSelectHome: onSelectHome,
+      //     onSelectWallets: onSelectWallets,
+      //     onSelectSetting: onSelectSetting,
+      //   ),
+      MainPage(
+        configuration,
         appState,
         encryptedDbService,
-        onChangeRoute: (String routePath) {
-          //
-          this._currentConfiguration =
-              AppRouteData.fromUrl(Uri.parse(routePath));
-          this.notifyListeners();
-        },
+        onSelectHome: onSelectHome,
+        onSelectWallets: onSelectWallets,
+        onSelectSetting: onSelectSetting,
       ),
     ];
   }
@@ -264,7 +296,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
       }
 
-      return this._redirectPagesStack(AppRouterDataUnknown.PATH);
+      return this._redirectPagesStack(AppRouteDataMain.PATH);
     }
 
     return <Page<dynamic>>[
@@ -324,7 +356,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       if (!appState.isLogged) {
         return this._redirectPagesStack(AppRouterDataSignin.PATH);
       } else if (appState.wallets.length > 0) {
-        return this._redirectPagesStack(AppRouterDataMain.PATH);
+        return this._redirectPagesStack(AppRouteDataMain.PATH);
       }
     } else {
       return <Page<dynamic>>[
@@ -375,7 +407,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                 dataSet.addPlainWallet(walletName, keyPair, mnemonicPhrase);
             await this._encryptedDbService.write(dataSet);
             appState.addWallet(walletData);
-            this._currentConfiguration = AppRouterDataMain();
+            this._currentConfiguration = AppRouteDataMain.wallets();
             this.notifyListeners();
           },
         ),
@@ -410,104 +442,104 @@ class _UnknownScreen extends StatelessWidget {
   }
 }
 
-class _SplashScreenPage extends Page<AppRouteDataSplash> {
-  final void Function(String routePath) onChangeRoute;
-  final EncryptedDbService _encryptedDbService;
-  final AppState _appState;
+// class _SplashScreenPage extends Page<AppRouteDataMain> {
+//   final void Function(String routePath) onChangeRoute;
+//   final EncryptedDbService _encryptedDbService;
+//   final AppState _appState;
 
-  _SplashScreenPage(
-    this._appState,
-    this._encryptedDbService, {
-    required this.onChangeRoute,
-  });
+//   _SplashScreenPage(
+//     this._appState,
+//     this._encryptedDbService, {
+//     required this.onChangeRoute,
+//   });
 
-  @override
-  Route<AppRouteDataSplash> createRoute(BuildContext context) {
-    return PageRouteBuilder<AppRouteDataSplash>(
-      settings: this,
-      pageBuilder: (context, animation, animation2) {
-        // final tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero);
-        // final curveTween = CurveTween(curve: Curves.easeInOut);
-        // return SlideTransition(
-        //   position: animation.drive(curveTween).drive(tween),
-        //   child: BookDetailsScreen(
-        //     key: ValueKey(book),
-        //     book: book,
-        //   ),
-        // );
-        return _SplashScreen(
-          appState: _appState,
-          encryptedDbService: _encryptedDbService,
-          onChangeRoute: onChangeRoute,
-        );
-      },
-    );
-  }
-}
+//   @override
+//   Route<AppRouteDataMain> createRoute(BuildContext context) {
+//     return PageRouteBuilder<AppRouteDataMain>(
+//       settings: this,
+//       pageBuilder: (context, animation, animation2) {
+//         // final tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero);
+//         // final curveTween = CurveTween(curve: Curves.easeInOut);
+//         // return SlideTransition(
+//         //   position: animation.drive(curveTween).drive(tween),
+//         //   child: BookDetailsScreen(
+//         //     key: ValueKey(book),
+//         //     book: book,
+//         //   ),
+//         // );
+//         return _SplashScreen(
+//           appState: _appState,
+//           encryptedDbService: _encryptedDbService,
+//           onChangeRoute: onChangeRoute,
+//         );
+//       },
+//     );
+//   }
+// }
 
-class _SplashScreen extends StatefulWidget {
-  final EncryptedDbService encryptedDbService;
-  final AppState appState;
-  final void Function(String routePath) onChangeRoute;
+// class _SplashScreen extends StatefulWidget {
+//   final EncryptedDbService encryptedDbService;
+//   final AppState appState;
+//   final void Function(String routePath) onChangeRoute;
 
-  _SplashScreen({
-    required this.appState,
-    required this.encryptedDbService,
-    required this.onChangeRoute,
-  });
+//   _SplashScreen({
+//     required this.appState,
+//     required this.encryptedDbService,
+//     required this.onChangeRoute,
+//   });
 
-  @override
-  State<StatefulWidget> createState() => _SplashScreenState();
-}
+//   @override
+//   State<StatefulWidget> createState() => _SplashScreenState();
+// }
 
-class _SplashScreenState extends State<_SplashScreen> {
-  ManualCancellationTokenSource? _cts;
+// class _SplashScreenState extends State<_SplashScreen> {
+//   ManualCancellationTokenSource? _cts;
 
-  _SplashScreenState() : this._cts = null;
+//   _SplashScreenState() : this._cts = null;
 
-  @override
-  void initState() {
-    super.initState();
+//   @override
+//   void initState() {
+//     super.initState();
 
-    final ManualCancellationTokenSource cts = ManualCancellationTokenSource();
-    this._cts = cts;
+//     final ManualCancellationTokenSource cts = ManualCancellationTokenSource();
+//     this._cts = cts;
 
-    this._loadRoutePath().then((String routePath) {
-      this.widget.onChangeRoute(routePath);
-    }).catchError((dynamic error, dynamic stackTrace) {
-      this.widget.onChangeRoute(AppRouteDataCrash.PATH);
-    }).whenComplete(() => cts.cancel());
-  }
+//     this._loadRoutePath().then((String routePath) {
+//       this.widget.onChangeRoute(routePath);
+//     }).catchError((dynamic error, dynamic stackTrace) {
+//       this.widget.onChangeRoute(AppRouteDataCrash.PATH);
+//     }).whenComplete(() => cts.cancel());
+//   }
 
-  @override
-  void dispose() {
-    ManualCancellationTokenSource? cts = this._cts;
-    this._cts = null;
-    if (cts != null) {
-      cts.cancel();
-    }
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     ManualCancellationTokenSource? cts = this._cts;
+//     this._cts = null;
+//     if (cts != null) {
+//       cts.cancel();
+//     }
+//     super.dispose();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text("Loading"),
-    );
-  }
+//   @override
+//   Widget build(BuildContext context) {
+//     return Center(
+//       child: Text("Loading"),
+//     );
+//   }
 
-  Future<String> _loadRoutePath() async {
-    await Future<void>.delayed(Duration(seconds: 1));
-    final bool isInitialized = this.widget.encryptedDbService.isInitialized;
-    if (!isInitialized) {
-      return AppRouteDataNewbeWizzard.PATH;
-    } else {
-      final bool isLogged = this.widget.appState.isLogged;
-      if (isLogged) {
-        return AppRouterDataUnknown.PATH;
-      } else {
-        return AppRouterDataSignin.PATH;
-      }
-    }
-  }
-}
+//   Future<String> _loadRoutePath() async {
+//     await Future<void>.delayed(Duration(seconds: 1));
+//     final bool isInitialized = this.widget.encryptedDbService.isInitialized;
+//     if (!isInitialized) {
+//       return AppRouteDataNewbeWizzard.PATH;
+//     } else {
+//       final bool isLogged = this.widget.appState.isLogged;
+//       if (isLogged) {
+//         return AppRouterDataUnknown.PATH;
+//       } else {
+//         return AppRouterDataSignin.PATH;
+//       }
+//     }
+//   }
+// }

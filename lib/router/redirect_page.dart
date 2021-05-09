@@ -28,9 +28,9 @@ import "package:flutter/widgets.dart"
         WidgetsBinding,
         WidgetsFlutterBinding;
 
-import "app_route_data.dart" show AppRouteDataSplash;
+import "app_route_data.dart" show AppRouteDataMain;
 
-class RedirectPage extends Page<AppRouteDataSplash> {
+class RedirectPage extends Page<AppRouteDataMain> {
   final void Function(String location, String? state) onChangeRoute;
   final String location;
   final String? state;
@@ -42,8 +42,8 @@ class RedirectPage extends Page<AppRouteDataSplash> {
   ]) : super(key: ValueKey<Object>(RedirectPage));
 
   @override
-  Route<AppRouteDataSplash> createRoute(BuildContext context) {
-    return PageRouteBuilder<AppRouteDataSplash>(
+  Route<AppRouteDataMain> createRoute(BuildContext context) {
+    return PageRouteBuilder<AppRouteDataMain>(
       settings: this,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> animation2) {
