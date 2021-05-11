@@ -87,7 +87,7 @@ void mainTestRestoreByPrivateKeyWidget() async {
   await tonClient.init(ExecutionContext.EMPTY);
 
   final String seed = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
-  final KeyPair keypair = await tonClient.deriveKeys(seed);
+  final KeyPair keypair = await tonClient.deriveKeys(seed, SeedType.SHORT);
   final dynamic test = await tonClient.getAccountData(keypair.public);
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
     onComplete: (

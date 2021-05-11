@@ -1,10 +1,10 @@
-class TonDeployData {
+class DeployData {
   final String accountId;
   final String address;
   final String dataBase64;
   final String imageBase64;
 
-  TonDeployData({
+  DeployData({
     required this.accountId,
     required this.address,
     required this.dataBase64,

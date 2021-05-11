@@ -79,7 +79,7 @@ class _RedirectScreenState extends State<_RedirectScreen> {
     super.initState();
 
     WidgetsFlutterBinding.ensureInitialized();
-    WidgetsBinding.instance!.addPostFrameCallback((Duration timeStamp) {
+    Future<void>.delayed(Duration(seconds: 0), () {
       this.widget.onChangeRoute(this.widget.location, this.widget.state);
     });
   }

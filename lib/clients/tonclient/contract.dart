@@ -1,6 +1,6 @@
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
-import "src/models/deployData.dart" show TonDeployData;
+import "src/models/deployData.dart" show DeployData;
 import "src/models/keyPair.dart" show KeyPair;
 
 enum SeedType {
@@ -13,9 +13,9 @@ abstract class AbstractTonClient {
 
   Future<String> generateMnemonicPhraseSeed(SeedType seedType);
 
-  Future<KeyPair> deriveKeys(String mnemonicPhraseSeed);
+  Future<KeyPair> deriveKeys(String mnemonicPhraseSeed, SeedType seedType);
 
-  Future<TonDeployData> getDeployData(KeyPair keys);
+  Future<DeployData> getDeployData(KeyPair keys);
 
   Future<dynamic> calcDeployFees(KeyPair keys);
 

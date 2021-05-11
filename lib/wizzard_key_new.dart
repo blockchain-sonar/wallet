@@ -2,8 +2,8 @@ import "package:flutter/foundation.dart" show listEquals;
 import "package:flutter/widgets.dart";
 import "package:freemework/freemework.dart" show ExecutionContext;
 
-import "data/mnemonic_phrase.dart" show MnemonicPhrase;
-import 'data/mnemonic_phrase.dart';
+import "data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
+
 import "services/wallet_service.dart" show WalletService;
 import "widgets/business/show_mnemonic_widget.dart"
     show ShowMnemonicContext, ShowMnemonicWidget;

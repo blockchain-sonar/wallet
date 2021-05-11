@@ -37,7 +37,7 @@ import 'states/app_state.dart';
 import 'widgets/business/setup_master_password.dart'
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
-import "wizzard_key.dart" show WizzardKeyWidget;
+import "wizzard_key.dart" show WizzardWalletWidget;
 
 class App extends StatelessWidget {
   const App(this.serviceFactory, {Key? key}) : super(key: key);

@@ -18,7 +18,7 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<KeyPair> deriveKeys(String mnemonicPhraseSeed) async {
+  Future<KeyPair> deriveKeys(String mnemonicPhraseSeed, SeedType seedType) async {
     return KeyPair(
         public:
             "public public public public public public public public public",
@@ -27,8 +27,8 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<TonDeployData> getDeployData(KeyPair keys) async {
-    TonDeployData deployData = TonDeployData(
+  Future<DeployData> getDeployData(KeyPair keys) async {
+    DeployData deployData = DeployData(
       accountId: "accountId",
       address: "address",
       dataBase64: "dataBase64",

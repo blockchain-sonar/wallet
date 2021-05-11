@@ -120,11 +120,11 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
   final EncryptedDbService _encryptedDbService;
   final WalletService _walletService;
 
-  AppRouteData? _currentConfiguration;
+  AppRouteData _currentConfiguration;
 
   _AppRouterDelegate(this._encryptedDbService, this._walletService)
       : this._navigatorKey = GlobalKey<NavigatorState>(),
-        this._currentConfiguration = null;
+        this._currentConfiguration = AppRouteDataMain.home();
 
   @override
   GlobalKey<NavigatorState> get navigatorKey => this._navigatorKey;
@@ -141,8 +141,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       AppState appState,
       Widget? child,
     ) {
-      final AppRouteData currentConfiguration =
-          this._currentConfiguration ?? AppRouterDataUnknown();
+      final AppRouteData currentConfiguration = this._currentConfiguration;
 
       List<Page<dynamic>> pagesStack;
 
@@ -189,7 +188,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           }
           if (pagesStack.length > 1) {
           } else {
-            this._currentConfiguration = null;
+            this._currentConfiguration = AppRouterDataUnknown();
           }
           notifyListeners();
           return true;
@@ -224,6 +223,29 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     // ),
   }
 
+  MaterialPage<WizzardWalletWidget> _buildWizzardWalletPage(AppState appState) {
+    return MaterialPage<WizzardWalletWidget>(
+      key: ValueKey<Object>(WizzardWalletWidget),
+      child: WizzardWalletWidget(
+        this._walletService,
+        onComplete: (
+          String walletName,
+          KeyPair keyPair,
+          MnemonicPhrase? mnemonicPhrase,
+        ) async {
+          final DataSet dataSet =
+              await this._encryptedDbService.read(appState.encryptionKey);
+          final WalletDataPlain walletData =
+              dataSet.addPlainWallet(walletName, keyPair, mnemonicPhrase);
+          await this._encryptedDbService.write(dataSet);
+          appState.addWallet(walletData);
+          this._currentConfiguration = AppRouteDataMainWallets();
+          this.notifyListeners();
+        },
+      ),
+    );
+  }
+
   List<Page<dynamic>> _crashPagesStack(AppRouteDataCrash configuration) =>
       <Page<dynamic>>[CrashPage()];
 
@@ -250,34 +272,42 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this.notifyListeners();
     };
     final void Function() onSelectWallets = () {
-      this._currentConfiguration = AppRouteDataMain.wallets();
+      this._currentConfiguration = AppRouteDataMainWallets();
       this.notifyListeners();
     };
     final void Function() onSelectSetting = () {
       this._currentConfiguration = AppRouteDataMain.settings();
       this.notifyListeners();
     };
+    final void Function() onWalletNew = () {
+      this._currentConfiguration = AppRouteDataMainWalletsNew();
+      this.notifyListeners();
+    };
 
-    // final MainTab selectedTab = configuration.selectedTab;
+    final MainTab selectedTab = configuration.selectedTab;
 
     return <Page<dynamic>>[
-      // if (selectedTab != MainTab.HOME)
-      //   MainPage(
-      //     AppRouteDataMain.home(),
-      //     appState,
-      //     encryptedDbService,
-      //     onSelectHome: onSelectHome,
-      //     onSelectWallets: onSelectWallets,
-      //     onSelectSetting: onSelectSetting,
-      //   ),
+      if (selectedTab != MainTab.HOME)
+        MainPage(
+          AppRouteDataMain.home(),
+          //appState,
+          encryptedDbService,
+          onSelectHome: onSelectHome,
+          onSelectWallets: onSelectWallets,
+          onSelectSetting: onSelectSetting,
+          onWalletNew: onWalletNew,
+        ),
       MainPage(
         configuration,
-        appState,
+        //appState,
         encryptedDbService,
         onSelectHome: onSelectHome,
         onSelectWallets: onSelectWallets,
         onSelectSetting: onSelectSetting,
+        onWalletNew: onWalletNew,
       ),
+      if (this._currentConfiguration is AppRouteDataMainWalletsNew)
+        _buildWizzardWalletPage(appState)
     ];
   }
 
@@ -355,7 +385,8 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     if (encryptedDbService.isInitialized) {
       if (!appState.isLogged) {
         return this._redirectPagesStack(AppRouterDataSignin.PATH);
-      } else if (appState.wallets.length > 0) {
+      }
+      if (appState.wallets.length > 0) {
         return this._redirectPagesStack(AppRouteDataMain.PATH);
       }
     } else {
@@ -370,11 +401,9 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
               final String masterPassword = ctx.password;
               if (!encryptedDbService.isInitialized && !appState.isLogged) {
                 try {
-                  //final DerivateResult derivatedMasterPassword = await cryptoService.derivate(masterPassword);
                   final Uint8List encryptionKey =
                       await encryptedDbService.wipe(masterPassword);
                   appState.setLoginEncryptionKey(encryptionKey);
-                  //this._currentConfiguration = _AppRouteData.authenticated();
                 } catch (e) {
                   final FreemeworkException err =
                       FreemeworkException.wrapIfNeeded(e);
@@ -392,26 +421,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     }
 
     return <Page<dynamic>>[
-      MaterialPage<WizzardKeyWidget>(
-        key: ValueKey<Object>(WizzardKeyWidget),
-        child: WizzardKeyWidget(
-          walletService,
-          onComplete: (
-            String walletName,
-            KeyPair keyPair,
-            MnemonicPhrase? mnemonicPhrase,
-          ) async {
-            final DataSet dataSet =
-                await this._encryptedDbService.read(appState.encryptionKey);
-            final WalletDataPlain walletData =
-                dataSet.addPlainWallet(walletName, keyPair, mnemonicPhrase);
-            await this._encryptedDbService.write(dataSet);
-            appState.addWallet(walletData);
-            this._currentConfiguration = AppRouteDataMain.wallets();
-            this.notifyListeners();
-          },
-        ),
-      )
+      _buildWizzardWalletPage(appState),
     ];
   }
 

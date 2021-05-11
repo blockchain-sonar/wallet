@@ -51,14 +51,18 @@ class AppRouteDataCrash extends AppRouteData {
 
 class AppRouteDataMain extends AppRouteData {
   static const String PATH = "/";
+  static const String _PATH_WALLETS = "/wallets";
+  static const String _PATH_WALLETS_NEW = "/wallets/new";
 
   static AppRouteDataMain? test(Uri routeUri) {
     print("testing: ${routeUri.path}");
     print("testing: ${routeUri.toString()}");
-    if (routeUri.path == "/") {
+    if (routeUri.path == PATH) {
       return AppRouteDataMain._(MainTab.HOME);
-    } else if (routeUri.path == "/wallets") {
-      return AppRouteDataMain._(MainTab.WALLETS);
+    } else if (routeUri.path == _PATH_WALLETS) {
+      return AppRouteDataMainWallets();
+    } else if (routeUri.path == _PATH_WALLETS_NEW) {
+      return AppRouteDataMainWalletsNew();
     } else if (routeUri.path == "/settings") {
       return AppRouteDataMain._(MainTab.SETTINGS);
     }
@@ -68,7 +72,6 @@ class AppRouteDataMain extends AppRouteData {
   final MainTab selectedTab;
 
   factory AppRouteDataMain.home() => AppRouteDataMain._(MainTab.HOME);
-  factory AppRouteDataMain.wallets() => AppRouteDataMain._(MainTab.WALLETS);
   factory AppRouteDataMain.settings() => AppRouteDataMain._(MainTab.SETTINGS);
 
   AppRouteDataMain._(this.selectedTab);
@@ -86,6 +89,20 @@ class AppRouteDataMain extends AppRouteData {
         throw UnsupportedError("Cannot resolve location.");
     }
   }
+}
+
+class AppRouteDataMainWallets extends AppRouteDataMain {
+  AppRouteDataMainWallets() : super._(MainTab.WALLETS);
+
+  @override
+  String get location => AppRouteDataMain._PATH_WALLETS;
+}
+
+class AppRouteDataMainWalletsNew extends AppRouteDataMainWallets {
+  AppRouteDataMainWalletsNew() : super();
+
+  @override
+  String get location => AppRouteDataMain._PATH_WALLETS_NEW;
 }
 
 class AppRouteDataNewbeWizzard extends AppRouteData {

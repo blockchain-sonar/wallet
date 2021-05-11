@@ -15,23 +15,23 @@ typedef _CompleteCallback = Future<void> Function(
   MnemonicPhrase? mnemonicPhrase,
 );
 
-class WizzardKeyWidget extends StatefulWidget {
+class WizzardWalletWidget extends StatefulWidget {
   final WalletService _walletService;
   final _CompleteCallback _onComplete;
 
-  WizzardKeyWidget(
+  WizzardWalletWidget(
     this._walletService, {
     required _CompleteCallback onComplete,
   }) : this._onComplete = onComplete;
 
   @override
-  _WizzardKeyWidgetState createState() => _WizzardKeyWidgetState();
+  _WizzardWalletWidgetState createState() => _WizzardWalletWidgetState();
 }
 
-class _WizzardKeyWidgetState extends State<WizzardKeyWidget> {
+class _WizzardWalletWidgetState extends State<WizzardWalletWidget> {
   ImportMode? _importMode;
 
-  _WizzardKeyWidgetState() : this._importMode = null;
+  _WizzardWalletWidgetState() : this._importMode = null;
 
   void _setImportMode(ImportMode mode) {
     this.setState(() {
@@ -49,6 +49,10 @@ class _WizzardKeyWidgetState extends State<WizzardKeyWidget> {
             await Future<void>.delayed(Duration(seconds: 1));
             final KeyPair keyPair =
                 await this.widget._walletService.deriveKeyPair(mnemonicPhrase);
+            print("Calling this.widget._walletService.getDeployData ...");
+            final Object dd =
+                await this.widget._walletService.getDeployData(keyPair);
+            print("getDeployData return ${dd}");
             await this.widget._onComplete(walletName, keyPair, mnemonicPhrase);
           },
         );

@@ -20,7 +20,7 @@ class _TONClientFacadeInterop {
   external _TONClientFacadeInterop();
   external dynamic init();
   external dynamic generateMnemonicPhraseSeed(int wordsCount);
-  external dynamic deriveKeyPair(String seedMnemonicPhrase);
+  external dynamic deriveKeyPair(String seedMnemonicPhrase, int wordsCount);
   external dynamic getDeployData(dynamic keys);
   external dynamic calcDeployFees(dynamic keys);
   external dynamic deployContract(dynamic keys);
@@ -53,24 +53,16 @@ class TonClient extends AbstractTonClient {
 
   @override
   Future<String> generateMnemonicPhraseSeed(SeedType seedType) {
-    int wordsCount;
-    switch (seedType) {
-      case SeedType.LONG:
-        wordsCount = SEED_LONG_PHRASE_WORDS_COUNT;
-        break;
-      case SeedType.SHORT:
-        wordsCount = SEED_SHORT_PHRASE_WORDS_COUNT;
-        break;
-      default:
-        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
-    }
+    final int wordsCount = _resolveWordsCount(seedType);
     return promiseToFuture(this._wrap.generateMnemonicPhraseSeed(wordsCount));
   }
 
   @override
-  Future<KeyPair> deriveKeys(String seedMnemonicPhraseSeed) async {
-    final dynamic jsData =
-        await promiseToFuture(this._wrap.deriveKeyPair(seedMnemonicPhraseSeed));
+  Future<KeyPair> deriveKeys(
+      String seedMnemonicPhraseSeed, SeedType seedType) async {
+    final int wordsCount = _resolveWordsCount(seedType);
+    final dynamic jsData = await promiseToFuture(
+        this._wrap.deriveKeyPair(seedMnemonicPhraseSeed, wordsCount));
     if (!hasProperty(jsData, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME)) {
       throw InteropContractException(TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME);
     }
@@ -84,7 +76,7 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<TonDeployData> getDeployData(KeyPair keys) async {
+  Future<DeployData> getDeployData(KeyPair keys) async {
     dynamic nativeJsObject = newObject();
     setProperty(
         nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
@@ -111,7 +103,7 @@ class TonClient extends AbstractTonClient {
         throw InteropContractException(TonClient._DEPLOY_IMAGE_PROPERTY_NAME);
       }
 
-      TonDeployData deployData = TonDeployData(
+      DeployData deployData = DeployData(
           accountId:
               getProperty(jsData, TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME),
           address: getProperty(jsData, TonClient._DEPLOY_ADDRESS_PROPERTY_NAME),
@@ -170,5 +162,20 @@ class TonClient extends AbstractTonClient {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
     }
+  }
+
+  static int _resolveWordsCount(SeedType seedType) {
+    int wordsCount;
+    switch (seedType) {
+      case SeedType.LONG:
+        wordsCount = SEED_LONG_PHRASE_WORDS_COUNT;
+        break;
+      case SeedType.SHORT:
+        wordsCount = SEED_SHORT_PHRASE_WORDS_COUNT;
+        break;
+      default:
+        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
+    }
+    return wordsCount;
   }
 }

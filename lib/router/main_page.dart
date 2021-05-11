@@ -13,8 +13,10 @@
 // limitations under the License.
 
 import "package:flutter/src/animation/animation.dart" show Animation;
+import 'package:flutter/src/widgets/framework.dart';
 import "package:flutter/widgets.dart"
     show BuildContext, Page, PageRouteBuilder, Route, ValueKey;
+import 'package:provider/provider.dart';
 
 import "../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../states/app_state.dart" show AppState;
@@ -23,23 +25,26 @@ import "../widgets/business/main.dart" show MainWidget;
 import "app_route_data.dart" show AppRouteDataMain;
 
 class MainPage extends Page<AppRouteDataMain> {
-  final AppState _appState;
+  //final AppState _appState;
   final EncryptedDbService _encryptedDbService;
   final void Function() _onSelectHome;
   final void Function() _onSelectWallets;
   final void Function() _onSelectSettings;
+  final void Function() _onWalletNew;
   final AppRouteDataMain _routeDataMain;
 
   MainPage(
     this._routeDataMain,
-    this._appState,
+    //this._appState,
     this._encryptedDbService, {
     required void Function() onSelectHome,
     required void Function() onSelectWallets,
     required void Function() onSelectSetting,
+    required void Function() onWalletNew,
   })   : this._onSelectHome = onSelectHome,
         this._onSelectWallets = onSelectWallets,
         this._onSelectSettings = onSelectSetting,
+        this._onWalletNew = onWalletNew,
         super(
           key: ValueKey<MainTab>(_routeDataMain.selectedTab),
         );
@@ -59,13 +64,17 @@ class MainPage extends Page<AppRouteDataMain> {
         //     book: book,
         //   ),
         // );
-        return MainWidget(
-          this._appState,
-          this._encryptedDbService,
-          this._routeDataMain.selectedTab,
-          onSelectHome: this._onSelectHome,
-          onSelectSettings: this._onSelectSettings,
-          onSelectWallets: this._onSelectWallets,
+        return Consumer<AppState>(
+          builder: (BuildContext context, AppState appState, Widget? child) =>
+              MainWidget(
+            appState,
+            this._encryptedDbService,
+            this._routeDataMain.selectedTab,
+            onSelectHome: this._onSelectHome,
+            onSelectSettings: this._onSelectSettings,
+            onSelectWallets: this._onSelectWallets,
+            onWalletNew: this._onWalletNew,
+          ),
         );
       },
     );

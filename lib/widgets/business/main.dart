@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:async';
+
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
+import 'package:freeton_wallet/misc/void_callback_host.dart';
 import 'package:freeton_wallet/widgets/business/main_wallets.dart';
 
 import "../../services/encrypted_db_service.dart" show EncryptedDbService;
@@ -47,7 +50,7 @@ class MainWidget extends StatelessWidget {
       ),
       BottomNavigationBarItem(
         icon: Icon(Icons.account_balance_wallet),
-        label: 'Wallets',
+        label: "Wallets",
       ),
     ),
     _OptionTuple(
@@ -70,6 +73,7 @@ class MainWidget extends StatelessWidget {
   final void Function() _onSelectHome;
   final void Function() _onSelectWallets;
   final void Function() _onSelectSettings;
+  final void Function() _onWalletNew;
 
   MainWidget(
     this._appState,
@@ -78,28 +82,55 @@ class MainWidget extends StatelessWidget {
     required void Function() onSelectHome,
     required void Function() onSelectWallets,
     required void Function() onSelectSettings,
+    required void Function() onWalletNew,
   })   : this._selectedIndex = _tabOptions
             .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab),
         this._onSelectHome = onSelectHome,
         this._onSelectWallets = onSelectWallets,
-        this._onSelectSettings = onSelectSettings;
+        this._onSelectSettings = onSelectSettings,
+        this._onWalletNew = onWalletNew;
 
   @override
   Widget build(BuildContext context) {
+    final String appTitle = _tabOptions.elementAt(_selectedIndex).appTitle;
+    final List<BottomNavigationBarItem> barItems =
+        _tabOptions.map((_OptionTuple tuple) => tuple.barItem).toList();
+
+    final BottomNavigationBar bottomNavigationBar = BottomNavigationBar(
+      items: barItems,
+      currentIndex: _selectedIndex,
+      selectedItemColor: Colors.amber[800],
+      onTap: _onItemTapped,
+    );
+
+    final _OptionTuple selectedTuple = _tabOptions.elementAt(_selectedIndex);
+    switch (selectedTuple.tab) {
+      case MainTab.WALLETS:
+        return MainWalletsWidget(
+          this._appState,
+          bottomNavigationBar,
+          onWalletNew: this._onWalletNew,
+        );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_tabOptions.elementAt(_selectedIndex).appTitle),
+        title: Text(appTitle),
       ),
       body: Container(
         alignment: Alignment.topCenter,
         child: Builder(builder: this._buildContent),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: _tabOptions.map((_OptionTuple tuple) => tuple.barItem).toList(),
+        items: barItems,
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.amber[800],
         onTap: _onItemTapped,
       ),
+      // floatingActionButton: FloatingActionButton(
+      //   child: Icon(Icons.add),
+      //   onPressed: this._onWalletNew,
+      // ),
     );
   }
 
@@ -109,7 +140,7 @@ class MainWidget extends StatelessWidget {
       case MainTab.HOME:
         return selectedTuple.optionWidgetBuilder(context);
       case MainTab.WALLETS:
-        return MainWalletsWidget(this._appState);
+        return selectedTuple.optionWidgetBuilder(context);
       case MainTab.SETTINGS:
         return selectedTuple.optionWidgetBuilder(context);
     }

@@ -22,6 +22,7 @@ import "../data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
 abstract class WalletService {
   Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
+  Future<Object> getDeployData(KeyPair keyPair);
 }
 
 class TonWalletService extends WalletService {
@@ -51,7 +52,30 @@ class TonWalletService extends WalletService {
   @override
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase) async {
     final String seed = mnemonicPhrase.words.join(" ");
-    final TON.KeyPair keyPair = await this._tonClient.deriveKeys(seed);
+    TON.SeedType seedType;
+    switch (mnemonicPhrase.length) {
+      case MnemonicPhraseLength.LONG:
+        seedType = TON.SeedType.LONG;
+        break;
+      case MnemonicPhraseLength.SHORT:
+        seedType = TON.SeedType.SHORT;
+        break;
+      default:
+        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
+    }
+    final TON.KeyPair keyPair =
+        await this._tonClient.deriveKeys(seed, seedType);
     return KeyPair(public: keyPair.public, secret: keyPair.secret);
+  }
+
+  @override
+  Future<Object> getDeployData(KeyPair walletKeyPair) async {
+    final TON.KeyPair keyPair = TON.KeyPair(
+      public: walletKeyPair.public,
+      secret: walletKeyPair.secret,
+    );
+    final TON.DeployData res = await this._tonClient.getDeployData(keyPair);
+    print(res);
+    return res;
   }
 }
