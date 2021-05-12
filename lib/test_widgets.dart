@@ -126,21 +126,16 @@ void mainTestSetupMasterPasswordWidget() async {
 }
 
 void mainTestRestoreByMnemonicPhraseWidget() async {
-  final TonClient tonClient = TonClient();
-  await tonClient.init(ExecutionContext.EMPTY);
-
-  final String mnemonicPhrase =
-      await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
-
+  final String mnemonicPhrase = "1 2 3 4 5 6 7 8 9 10 11 12";
   runApp(_buildRootWidget(RestoreByMnemonicPhraseWidget(
+    mnemonicPhrase,
     onComplete: (
       ExecutionContext executionContext,
-      RestoreByMnemonicPhraseContext ctx,
+      _,
     ) async {
-      print("Dialog completed with private name: ${ctx.mnemonicPhrase}");
+      print("Dialog completed with private name: ${mnemonicPhrase}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
-    dataContextInit: RestoreByMnemonicPhraseContext(mnemonicPhrase),
   )));
 }
 
@@ -171,13 +166,8 @@ void mainTestShowMnemonicWidget() async {
 void mainTestConfirmMnemonicWidget() async {
   final List<String> words = "1 2 3 4 5 6 7 8 9 10 11 12".split(" ");
 
-  runApp(_buildRootWidget(ConfirmMnemonicWidget(
-    words,
-    onComplete: (
-      ExecutionContext executionContext,
-      _
-    ) async {
-      await Future<void>.delayed(Duration(seconds: 3));
-    }
-  )));
+  runApp(_buildRootWidget(ConfirmMnemonicWidget(words,
+      onComplete: (ExecutionContext executionContext, _) async {
+    await Future<void>.delayed(Duration(seconds: 3));
+  })));
 }
