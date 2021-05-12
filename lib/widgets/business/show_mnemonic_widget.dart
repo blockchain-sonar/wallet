@@ -14,43 +14,34 @@
 
 import "package:flutter/material.dart"
     show
+        BorderRadius,
+        Card,
         CircularProgressIndicator,
-        Colors,
         FloatingActionButton,
+        GridTile,
         Icons,
-        InputDecoration,
-        OutlineInputBorder,
-        Scaffold,
-        TextField;
+        RoundedRectangleBorder,
+        Scaffold;
 
 import "package:flutter/widgets.dart"
     show
-        Alignment,
-        BorderRadius,
-        BoxDecoration,
         BuildContext,
         Center,
         Column,
-        Container,
         EdgeInsets,
         Expanded,
-        Flexible,
         FontWeight,
+        GridView,
         Icon,
-        IconData,
         Key,
-        ListView,
         MainAxisAlignment,
-        NeverScrollableScrollPhysics,
+        MediaQuery,
         Padding,
-        Radius,
-        ScrollPhysics,
-        SingleChildScrollView,
+        SliverGridDelegateWithFixedCrossAxisCount,
         State,
         StatefulWidget,
         StatelessWidget,
         Text,
-        TextEditingController,
         TextStyle,
         Widget;
 
@@ -187,30 +178,27 @@ class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
               child: Text(
                   "Please copy down the mnemonic for your new account below. You will have to confirm the mnemonic on the next screen"),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+            Expanded(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Container(
-                  height: 235,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.all(
-                      const Radius.circular(5.0),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                    child: ListView.builder(
-                      itemBuilder: (BuildContext context, int index) {
-                        final String word =
-                            dataContextInit.mnemonicPhraseWords[index];
-                        return Text(word);
-                      },
-                      itemCount: dataContextInit.mnemonicPhraseWords.length,
-                    ),
-                  ),
+                padding: EdgeInsets.all(20.0),
+                child: GridView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    final String word =
+                        dataContextInit.mnemonicPhraseWords[index];
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: GridTile(
+                        child: Center(child: Text(word)),
+                      ),
+                    );
+                  },
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: MediaQuery.of(context).size.width /
+                          (MediaQuery.of(context).size.height / 4)),
+                  itemCount: dataContextInit.mnemonicPhraseWords.length,
                 ),
               ),
             ),
