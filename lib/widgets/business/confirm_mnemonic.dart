@@ -12,53 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import "package:flutter/foundation.dart" show Key, listEquals;
 import "package:flutter/material.dart"
     show
+        Card,
         CircularProgressIndicator,
         Colors,
+        Divider,
         FloatingActionButton,
+        GridTile,
+        GridView,
         Icons,
-        InputDecoration,
-        OutlineInputBorder,
+        InkWell,
+        MediaQuery,
+        RoundedRectangleBorder,
         Scaffold,
-        TextField;
+        SliverGridDelegateWithFixedCrossAxisCount;
 
 import "package:flutter/widgets.dart"
     show
-        Alignment,
         BorderRadius,
-        BoxDecoration,
         BuildContext,
         Center,
         Column,
-        Container,
         EdgeInsets,
         Expanded,
-        Flexible,
         FontWeight,
         Icon,
-        IconData,
         Key,
-        ListView,
         MainAxisAlignment,
-        NeverScrollableScrollPhysics,
         Padding,
-        Radius,
-        ScrollPhysics,
-        SingleChildScrollView,
         State,
         StatefulWidget,
         StatelessWidget,
         Text,
-        TextEditingController,
         TextStyle,
         Widget;
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-
-import '../reusable/button_widget.dart' show FWCancelFloatingActionButton;
-import '../toolchain/dialog_widget.dart'
+import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
+import "../toolchain/dialog_widget.dart"
     show
         DialogActionContentWidget,
         DialogCallback,
@@ -154,13 +148,16 @@ class _ConfirmMnemonicWidget extends DialogActionContentWidget<void> {
 
 class _ConfirmMnemonicActiveWidget extends StatefulWidget {
   final List<String> _mnemonicPhraseWords;
+  final List<String> _shuffledMnemonicsWords;
 
   final DialogCallback<void> onComplete;
   _ConfirmMnemonicActiveWidget(
-    this._mnemonicPhraseWords,
-    this.onComplete, {
-    Key? key,
-  }) : super(key: key);
+      List<String> mnemonicPhraseWords, this.onComplete,
+      {Key? key})
+      : this._mnemonicPhraseWords = mnemonicPhraseWords,
+        this._shuffledMnemonicsWords = <String>[...mnemonicPhraseWords]
+          ..shuffle(),
+        super(key: key);
 
   @override
   _ConfirmMnemonicActiveWidgetState createState() =>
@@ -169,40 +166,96 @@ class _ConfirmMnemonicActiveWidget extends StatefulWidget {
 
 class _ConfirmMnemonicActiveWidgetState
     extends State<_ConfirmMnemonicActiveWidget> {
+  final List<int?> _confirmedWords;
+
+  _ConfirmMnemonicActiveWidgetState() : this._confirmedWords = <int?>[];
+
+  @override
+  void initState() {
+    super.initState();
+    this._confirmedWords.addAll(
+        List<int?>.filled(this.widget._mnemonicPhraseWords.length, null));
+  }
+
   @override
   Widget build(BuildContext context) {
     return _ConfirmMnemonicWidget._buildContainer(
         Column(
           children: <Widget>[
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                  "Please copy down the mnemonic for your new account below. You will have to confirm the mnemonic on the next screen"),
+              padding: EdgeInsets.symmetric(horizontal: 20.0),
+              child:
+                  Text("Please confirm the mnemonic for your account below."),
             ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20),
+            Expanded(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                child: Container(
-                  height: 235,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.all(
-                      const Radius.circular(5.0),
-                    ),
-                  ),
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-                    child: ListView.builder(
-                      itemBuilder: (BuildContext context, int index) {
-                        final String word =
-                            this.widget._mnemonicPhraseWords[index];
-                        return Text(word);
-                      },
-                      itemCount: this.widget._mnemonicPhraseWords.length,
-                    ),
-                  ),
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: GridView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    final int? shuffleMenumonicWordIndex =
+                        this._confirmedWords[index];
+                    final String? word = shuffleMenumonicWordIndex != null
+                        ? this
+                            .widget
+                            ._shuffledMnemonicsWords[shuffleMenumonicWordIndex]
+                        : null;
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: InkWell(
+                        onTap: () => this._removeConfirmedWord(index),
+                        child: GridTile(
+                          child: Center(child: Text(word ?? "")),
+                        ),
+                      ),
+                    );
+                  },
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: MediaQuery.of(context).size.width /
+                          (MediaQuery.of(context).size.height / 4)),
+                  itemCount: this._confirmedWords.length,
+                ),
+              ),
+            ),
+            const Divider(
+              height: 10,
+              thickness: 1,
+              indent: 20,
+              endIndent: 20,
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: GridView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    final String word =
+                        this.widget._shuffledMnemonicsWords[index];
+                    final bool isConfirmedWord =
+                        this._confirmedWords.contains(index);
+                    return Card(
+                      color: isConfirmedWord ? Colors.grey[300] : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: isConfirmedWord
+                          ? GridTile(
+                              child: Center(child: Text(word)),
+                            )
+                          : InkWell(
+                              onTap: () => this._addConfirmedWord(index),
+                              child: GridTile(
+                                child: Center(child: Text(word)),
+                              ),
+                            ),
+                    );
+                  },
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      childAspectRatio: MediaQuery.of(context).size.width /
+                          (MediaQuery.of(context).size.height / 4)),
+                  itemCount: this.widget._shuffledMnemonicsWords.length,
                 ),
               ),
             ),
@@ -210,10 +263,38 @@ class _ConfirmMnemonicActiveWidgetState
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            widget.onComplete(null);
+            List<String?> confirmedWordsList = this
+                ._confirmedWords
+                .map((int? index) => index != null
+                    ? this.widget._shuffledMnemonicsWords[index]
+                    : null)
+                .toList();
+            if (listEquals(
+              confirmedWordsList,
+              this.widget._mnemonicPhraseWords,
+            )) {
+              widget.onComplete(null);
+            }
           },
           tooltip: "Continue",
           child: Icon(Icons.login),
         ));
+  }
+
+  void _addConfirmedWord(int shuffleMnemonicWordIndex) {
+    this.setState(() {
+      int firstNullIndex = this._confirmedWords.indexOf(null);
+      if (firstNullIndex != -1) {
+        this._confirmedWords[firstNullIndex] = shuffleMnemonicWordIndex;
+      }
+    });
+  }
+
+  void _removeConfirmedWord(int index) {
+    this.setState(() {
+      this._confirmedWords
+        ..remove(this._confirmedWords[index])
+        ..add(null);
+    });
   }
 }
