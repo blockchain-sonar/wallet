@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
 import 'package:freeton_wallet/clients/tonclient/src/models/deployData.dart';
+import 'package:freeton_wallet/widgets/business/confirm_mnemonic.dart';
 import 'clients/tonclient/src/models/keyPair.dart';
 import 'clients/tonclient/tonclient.dart';
 import 'widgets/business/import_mode_selector.dart'
@@ -86,7 +87,8 @@ void mainTestRestoreByPrivateKeyWidget() async {
   final TonClient tonClient = TonClient();
   await tonClient.init(ExecutionContext.EMPTY);
 
-  final String seed = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
+  final String seed =
+      await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
   final KeyPair keypair = await tonClient.deriveKeys(seed, SeedType.SHORT);
   final dynamic test = await tonClient.getAccountData(keypair.public);
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
@@ -118,7 +120,7 @@ void mainTestSetupMasterPasswordWidget() async {
       SetupMasterPasswordContext ctx,
     ) async {
       print("Dialog completed with password: ${ctx.password}");
-      await Future<void>.delayed(Duration(seconds: 3));
+      await Future<void>.delayed(Duration(seconds: 10));
     },
   )));
 }
@@ -127,7 +129,8 @@ void mainTestRestoreByMnemonicPhraseWidget() async {
   final TonClient tonClient = TonClient();
   await tonClient.init(ExecutionContext.EMPTY);
 
-  final String mnemonicPhrase = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
+  final String mnemonicPhrase =
+      await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
 
   runApp(_buildRootWidget(RestoreByMnemonicPhraseWidget(
     onComplete: (
@@ -162,5 +165,19 @@ void mainTestShowMnemonicWidget() async {
       await Future<void>.delayed(Duration(seconds: 3));
     },
     dataContextInit: ShowMnemonicContext(words),
+  )));
+}
+
+void mainTestConfirmMnemonicWidget() async {
+  final List<String> words = "1 2 3 4 5 6 7 8 9 10 11 12".split(" ");
+
+  runApp(_buildRootWidget(ConfirmMnemonicWidget(
+    words,
+    onComplete: (
+      ExecutionContext executionContext,
+      _
+    ) async {
+      await Future<void>.delayed(Duration(seconds: 3));
+    }
   )));
 }

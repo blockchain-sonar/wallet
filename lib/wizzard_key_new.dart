@@ -72,18 +72,16 @@ class _WizzardWalletNewState extends State<WizzardWalletNewWidget> {
       );
     } else {
       return ConfirmMnemonicWidget(
-        dataContextInit: ConfirmMnemonicContext(
-            mnemonicPhrase.words.toList(growable: false)),
+        mnemonicPhrase.words.toList(growable: false),
         onComplete: (
           ExecutionContext executionContext,
-          ConfirmMnemonicContext actionContext,
+          _,
         ) async {
-          if (listEquals(
-            mnemonicPhrase.words,
-            actionContext.mnemonicPhraseWords,
-          )) {
-            await this.widget.onComplete(walletName, mnemonicPhrase);
-          }
+          // if (listEquals(
+          //   mnemonicPhrase.words,
+          //   actionContext.mnemonicPhraseWords,
+          // )) {}
+          await this.widget.onComplete(walletName, mnemonicPhrase);
         },
       );
     }

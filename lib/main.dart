@@ -22,15 +22,15 @@ import "test_widgets.dart";
 import 'dart:html' as html;
 
 void main() {
-  html.window.onBeforeUnload.listen((event) async {
-    print("onBeforeUnload");
-  });
-  html.window.onUnload.listen((event) async {
-    print("onUnload");
-  });
+  // html.window.onBeforeUnload.listen((event) async {
+  //   print("onBeforeUnload");
+  // });
+  // html.window.onUnload.listen((event) async {
+  //   print("onUnload");
+  // });
 
   final ServiceFactory serviceFactory = ServiceFactoryProductive();
   runApp(App(serviceFactory));
 
-  // mainTestShowMnemonicWidget();
+  //mainTestConfirmMnemonicWidget();
 }

@@ -65,40 +65,35 @@ import '../toolchain/dialog_widget.dart'
         DialogHostCallback,
         DialogWidget;
 
-class ConfirmMnemonicContext {
-  final List<String> mnemonicPhraseWords;
-
-  ConfirmMnemonicContext(this.mnemonicPhraseWords);
-}
-
 class ConfirmMnemonicWidget extends StatelessWidget {
-  final ConfirmMnemonicContext _dataContextInit;
-  final DialogHostCallback<ConfirmMnemonicContext> _onComplete;
+  final List<String> _mnemonicPhraseWords;
+  final DialogHostCallback<void> _onComplete;
 
-  ConfirmMnemonicWidget({
-    required DialogHostCallback<ConfirmMnemonicContext> onComplete,
-    required ConfirmMnemonicContext dataContextInit,
-  })  : this._onComplete = onComplete,
-        this._dataContextInit = dataContextInit;
+  ConfirmMnemonicWidget(
+    this._mnemonicPhraseWords, {
+    required DialogHostCallback<void> onComplete,
+  }) : this._onComplete = onComplete;
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<ConfirmMnemonicContext>(
+    return DialogWidget<void>(
       onComplete: this._onComplete,
-      dataContextInit: this._dataContextInit,
-      child: _ConfirmMnemonicWidget(),
+      child: _ConfirmMnemonicWidget(this._mnemonicPhraseWords),
     );
   }
 }
 
-class _ConfirmMnemonicWidget
-    extends DialogActionContentWidget<ConfirmMnemonicContext> {
+class _ConfirmMnemonicWidget extends DialogActionContentWidget<void> {
+  final List<String> _mnemonicPhraseWords;
+
+  _ConfirmMnemonicWidget(this._mnemonicPhraseWords);
+
   @override
   Widget buildActive(
     BuildContext context, {
-    required DialogCallback<ConfirmMnemonicContext> onComplete,
+    required DialogCallback<void> onComplete,
   }) =>
-      _ConfirmMnemonicActiveWidget(onComplete);
+      _ConfirmMnemonicActiveWidget(this._mnemonicPhraseWords, onComplete);
 
   @override
   Widget buildBusy(
@@ -158,8 +153,11 @@ class _ConfirmMnemonicWidget
 }
 
 class _ConfirmMnemonicActiveWidget extends StatefulWidget {
-  final DialogCallback<ConfirmMnemonicContext> onComplete;
+  final List<String> _mnemonicPhraseWords;
+
+  final DialogCallback<void> onComplete;
   _ConfirmMnemonicActiveWidget(
+    this._mnemonicPhraseWords,
     this.onComplete, {
     Key? key,
   }) : super(key: key);
@@ -169,16 +167,10 @@ class _ConfirmMnemonicActiveWidget extends StatefulWidget {
       _ConfirmMnemonicActiveWidgetState();
 }
 
-class _ConfirmMnemonicActiveWidgetState extends State<_ConfirmMnemonicActiveWidget> {
+class _ConfirmMnemonicActiveWidgetState
+    extends State<_ConfirmMnemonicActiveWidget> {
   @override
   Widget build(BuildContext context) {
-    final ConfirmMnemonicContext? dataContextInit =
-        DialogWidget.of<ConfirmMnemonicContext>(this.context).dataContextInit;
-
-    if (dataContextInit == null) {
-      throw StateError("Bad usage. To use this please pass correct context.");
-    }
-
     return _ConfirmMnemonicWidget._buildContainer(
         Column(
           children: <Widget>[
@@ -205,10 +197,10 @@ class _ConfirmMnemonicActiveWidgetState extends State<_ConfirmMnemonicActiveWidg
                     child: ListView.builder(
                       itemBuilder: (BuildContext context, int index) {
                         final String word =
-                            dataContextInit.mnemonicPhraseWords[index];
+                            this.widget._mnemonicPhraseWords[index];
                         return Text(word);
                       },
-                      itemCount: dataContextInit.mnemonicPhraseWords.length,
+                      itemCount: this.widget._mnemonicPhraseWords.length,
                     ),
                   ),
                 ),
@@ -218,9 +210,7 @@ class _ConfirmMnemonicActiveWidgetState extends State<_ConfirmMnemonicActiveWidg
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            widget.onComplete(
-              dataContextInit,
-            );
+            widget.onComplete(null);
           },
           tooltip: "Continue",
           child: Icon(Icons.login),
