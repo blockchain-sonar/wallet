@@ -27,6 +27,7 @@ import "package:flutter/material.dart"
         MediaQuery,
         RoundedRectangleBorder,
         Scaffold,
+        SizedBox,
         SliverGridDelegateWithFixedCrossAxisCount;
 
 import "package:flutter/widgets.dart"
@@ -259,6 +260,9 @@ class _ConfirmMnemonicActiveWidgetState
                 ),
               ),
             ),
+            SizedBox(
+              height: 75,
+            ),
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -276,10 +280,13 @@ class _ConfirmMnemonicActiveWidgetState
               widget.onComplete(null);
             }
           },
+          backgroundColor: confirmMnemonicIsEntered ? null : Colors.grey[300],
           tooltip: "Continue",
           child: Icon(Icons.login),
         ));
   }
+
+  bool get confirmMnemonicIsEntered => this._confirmedWords.indexOf(null) == -1;
 
   void _addConfirmedWord(int shuffleMnemonicWordIndex) {
     this.setState(() {
