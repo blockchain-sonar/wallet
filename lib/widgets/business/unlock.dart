@@ -195,6 +195,7 @@ class _UnlockActiveWidgetState extends State<_UnlockActiveWidget> {
                     border: OutlineInputBorder(),
                     hintText: "Master Password",
                   ),
+                  obscureText: true,
                 ),
               ),
               // Padding(
