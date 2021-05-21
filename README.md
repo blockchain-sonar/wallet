@@ -1,6 +1,6 @@
 # Free TON Wallet
 
-Preconditions: [Flutter SDK](https://flutter.dev/docs) (2.0.2), [Dart](https://dart.dev/) (2.12.1)
+Preconditions: [Flutter SDK](https://flutter.dev/docs) (2.0.2), [Dart](https://dart.dev/) (2.12.1), [NodeJS](https://nodejs.org/en/)
 
 ```
 git submodule update --init && (cd submodule/ton-client-web-js-umd-facade && npm install && npm run build)
@@ -8,8 +8,6 @@ ln -sf index-webapp-devel.html web/index.html
 flutter run --device-id chrome
 ```
 ---
-
-https://freetonwallet.pages.zxteam.net/wallet
 
 ## Builds
 
