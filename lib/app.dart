@@ -5,6 +5,8 @@ import "package:flutter/widgets.dart"
         AsyncSnapshot,
         BoxConstraints,
         BuildContext,
+        Center,
+        ConnectionState,
         Container,
         FutureBuilder,
         Key,
@@ -14,11 +16,10 @@ import "package:flutter/widgets.dart"
         StatelessWidget,
         Text,
         Widget;
-import 'package:flutter/widgets.dart';
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'package:freeton_wallet/router/crash_page.dart';
-import 'package:freeton_wallet/widgets/business/crash.dart';
-import 'package:freeton_wallet/widgets/business/splash.dart';
+import "router/crash_page.dart";
+import "widgets/business/crash.dart" show CrashStandalone;
+import "widgets/business/splash.dart" show SplashStandalone;
 import "package:provider/provider.dart"
     show
         ChangeNotifierProvider,
@@ -31,10 +32,10 @@ import "package:provider/single_child_widget.dart" show SingleChildWidget;
 import 'app_router.dart';
 import "services/crypto_service.dart" show CryptoService;
 import "services/service_factory.dart" show ServiceFactory;
-import 'services/encrypted_db_service.dart' show EncryptedDbService;
-import "services/wallet_service.dart" show WalletService;
-import 'states/app_state.dart';
-import 'widgets/business/setup_master_password.dart'
+import "services/encrypted_db_service.dart" show EncryptedDbService;
+import "services/blockchain/blockchain.dart" show BlockchainService;
+import "states/app_state.dart" show AppState;
+import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
 import "wizzard_key.dart" show WizzardWalletWidget;
@@ -122,7 +123,7 @@ class _ServicesBundle {
   Future<_ServicesBundle>? _initFuture;
   CryptoService? _cryptoService;
   EncryptedDbService? _encryptedDbService;
-  WalletService? _walletService;
+  BlockchainService? _walletService;
 
   CryptoService get cryptoService {
     assert(this._cryptoService != null);
@@ -134,7 +135,7 @@ class _ServicesBundle {
     return this._encryptedDbService!;
   }
 
-  WalletService get walletService {
+  BlockchainService get walletService {
     assert(this._walletService != null);
     return this._walletService!;
   }
@@ -157,8 +158,8 @@ class _ServicesBundle {
         await this._serviceFactory.createCryptoService();
     final EncryptedDbService encryptedDbService =
         await this._serviceFactory.createEncryptedDbService(cryptoService);
-    final WalletService walletService =
-        await this._serviceFactory.createWalletService();
+    final BlockchainService walletService =
+        await this._serviceFactory.createBlockchainService();
 
     this._cryptoService = cryptoService;
     this._encryptedDbService = encryptedDbService;

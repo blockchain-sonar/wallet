@@ -180,6 +180,10 @@ class _ConfirmMnemonicActiveWidgetState
 
   @override
   Widget build(BuildContext context) {
+    final bool confirmMnemonicIsEntered = this.confirmMnemonicIsEntered;
+    final bool confirmMnemonicIsEnteredCorrectly =
+        this.confirmMnemonicIsEnteredCorrectly;
+
     return _ConfirmMnemonicWidget._buildContainer(
         Column(
           children: <Widget>[
@@ -266,27 +270,37 @@ class _ConfirmMnemonicActiveWidgetState
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            List<String?> confirmedWordsList = this
-                ._confirmedWords
-                .map((int? index) => index != null
-                    ? this.widget._shuffledMnemonicsWords[index]
-                    : null)
-                .toList();
-            if (listEquals(
-              confirmedWordsList,
-              this.widget._mnemonicPhraseWords,
-            )) {
-              widget.onComplete(null);
-            }
-          },
-          backgroundColor: confirmMnemonicIsEntered ? null : Colors.grey[300],
-          tooltip: "Continue",
-          child: Icon(Icons.login),
+          onPressed: confirmMnemonicIsEnteredCorrectly
+              ? this._onFloatingActionButtonTap
+              : null,
+          backgroundColor:
+              confirmMnemonicIsEnteredCorrectly ? null : Colors.grey[300],
+          tooltip:
+              confirmMnemonicIsEntered && !confirmMnemonicIsEnteredCorrectly
+                  ? "Incorrect words sequence"
+                  : "Continue",
+          child: confirmMnemonicIsEntered && !confirmMnemonicIsEnteredCorrectly
+              ? Icon(Icons.block)
+              : Icon(Icons.login),
         ));
   }
 
+  List<String?> get confirmedWordsList => this
+      ._confirmedWords
+      .map((int? index) =>
+          index != null ? this.widget._shuffledMnemonicsWords[index] : null)
+      .toList();
   bool get confirmMnemonicIsEntered => this._confirmedWords.indexOf(null) == -1;
+  bool get confirmMnemonicIsEnteredCorrectly {
+    if (!confirmMnemonicIsEntered) {
+      return false;
+    }
+
+    return (listEquals(
+      confirmedWordsList,
+      this.widget._mnemonicPhraseWords,
+    ));
+  }
 
   void _addConfirmedWord(int shuffleMnemonicWordIndex) {
     this.setState(() {
@@ -295,6 +309,15 @@ class _ConfirmMnemonicActiveWidgetState
         this._confirmedWords[firstNullIndex] = shuffleMnemonicWordIndex;
       }
     });
+  }
+
+  void _onFloatingActionButtonTap() {
+    assert(listEquals(
+      confirmedWordsList,
+      this.widget._mnemonicPhraseWords,
+    ));
+
+    widget.onComplete(null);
   }
 
   void _removeConfirmedWord(int index) {

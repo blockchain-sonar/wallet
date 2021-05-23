@@ -14,21 +14,21 @@
 
 import "package:freemework/errors/InvalidOperationException.dart"
     show InvalidOperationException;
-import "../clients/tonclient/tonclient.dart" as TON;
+import "../../clients/tonclient/tonclient.dart" as TON;
 
-import "../data/key_pair.dart" show KeyPair;
-import "../data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
+import "../../data/key_pair.dart" show KeyPair;
+import "../../data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
 
-abstract class WalletService {
+abstract class BlockchainService {
   Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
   Future<Object> getDeployData(KeyPair keyPair);
 }
 
-class TonWalletService extends WalletService {
+class BlockchainServiceImpl extends BlockchainService {
   final TON.AbstractTonClient _tonClient;
 
-  TonWalletService(this._tonClient);
+  BlockchainServiceImpl(this._tonClient);
 
   @override
   Future<MnemonicPhrase> generateMnemonicPhrase(

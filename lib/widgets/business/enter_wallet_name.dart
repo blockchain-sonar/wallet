@@ -185,7 +185,7 @@ class _EnterWalletNameActiveWidgetState
                   controller: _actionTextEditingController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    hintText: "Enter wallet name",
+                    hintText: "Enter keypair name",
                   ),
                 ),
               ),

@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import "dart:async" show Future;
-import 'dart:typed_data';
+import "dart:typed_data" show Uint8List;
 
 import "package:flutter/material.dart"
     show AppBar, Colors, MaterialApp, MaterialPage, Scaffold, ThemeData;
@@ -21,12 +21,16 @@ import "package:flutter/src/widgets/framework.dart";
 import "package:flutter/src/widgets/navigator.dart";
 import "package:flutter/widgets.dart"
     show
+        Alignment,
         AsyncSnapshot,
+        BoxConstraints,
         BuildContext,
         Center,
         ChangeNotifier,
         Container,
         GlobalKey,
+        MainAxisAlignment,
+        MainAxisSize,
         Navigator,
         NavigatorState,
         Page,
@@ -44,26 +48,24 @@ import "package:flutter/widgets.dart"
         TransitionDelegate,
         ValueKey,
         Widget;
-import 'package:flutter/widgets.dart';
 import "package:freemework/freemework.dart";
-import 'package:freemework_cancellation/freemework_cancellation.dart';
-import 'package:freeton_wallet/router/main_page.dart';
-import 'package:freeton_wallet/router/redirect_page.dart';
-import 'package:freeton_wallet/services/crypto_service.dart';
-import 'package:freeton_wallet/widgets/business/main_tab.dart';
-import 'data/key_pair.dart';
-import 'data/mnemonic_phrase.dart';
-import 'router/app_route_data.dart';
-import 'router/crash_page.dart';
-import 'services/wallet_service.dart';
+import "router/main_page.dart" show MainPage;
+import "router/redirect_page.dart" show RedirectPage;
+import "widgets/business/main_tab.dart" show MainTab;
+import "data/key_pair.dart" show KeyPair;
+import "data/mnemonic_phrase.dart" show MnemonicPhrase;
+import "router/app_route_data.dart";
+import "router/crash_page.dart" show CrashPage;
+import "services/blockchain/blockchain.dart" show BlockchainService;
 import "states/app_state.dart" show AppState;
-import "package:provider/provider.dart" show Consumer, Provider;
+import "package:provider/provider.dart" show Consumer;
 
 import "services/encrypted_db_service.dart"
     show DataSet, EncryptedDbService, WalletData, WalletDataPlain;
-import 'widgets/business/setup_master_password.dart';
-import 'widgets/business/unlock.dart';
-import 'wizzard_key.dart';
+import "widgets/business/setup_master_password.dart"
+    show SetupMasterPasswordContext, SetupMasterPasswordWidget;
+import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
+import "wizzard_key.dart" show WizzardWalletWidget;
 
 class AppRouterWidget extends StatelessWidget {
   final _AppRouterDelegate _routerDelegate;
@@ -71,9 +73,9 @@ class AppRouterWidget extends StatelessWidget {
 
   AppRouterWidget(
     final EncryptedDbService encryptedDbService,
-    final WalletService walletService,
+    final BlockchainService blockchainService,
   )   : this._routerDelegate =
-            _AppRouterDelegate(encryptedDbService, walletService),
+            _AppRouterDelegate(encryptedDbService, blockchainService),
         this._routeInformationParser = _AppRouteInformationParser();
 
   @override
@@ -118,7 +120,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<AppRouteData> {
   final GlobalKey<NavigatorState> _navigatorKey;
   final EncryptedDbService _encryptedDbService;
-  final WalletService _walletService;
+  final BlockchainService _walletService;
 
   AppRouteData _currentConfiguration;
 
@@ -380,7 +382,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     BuildContext context,
     AppState appState,
     EncryptedDbService encryptedDbService,
-    WalletService walletService,
+    BlockchainService blockchainService,
   ) {
     if (encryptedDbService.isInitialized) {
       if (!appState.isLogged) {

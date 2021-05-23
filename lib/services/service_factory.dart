@@ -21,12 +21,12 @@ import "../clients/tonclient/tonclient.dart" show TonClient;
 import "encrypted_db_service.dart"
     show EncryptedDbService, LocalStorageEncryptedDbService;
 import "crypto_service.dart" show CryptoService, PointyCastleCryptoService;
-import "wallet_service.dart" show TonWalletService, WalletService;
+import "blockchain/blockchain.dart" show BlockchainService, BlockchainServiceImpl;
 
 abstract class ServiceFactory {
   EncryptedDbService createEncryptedDbService(CryptoService cryptoService);
   CryptoService createCryptoService();
-  Future<WalletService> createWalletService();
+  Future<BlockchainService> createBlockchainService();
 }
 
 class ServiceFactoryProductive extends ServiceFactory {
@@ -38,9 +38,9 @@ class ServiceFactoryProductive extends ServiceFactory {
   CryptoService createCryptoService() => PointyCastleCryptoService();
 
   @override
-  Future<WalletService> createWalletService() async {
+  Future<BlockchainService> createBlockchainService() async {
     final TonClient tonClient = await this._tonClient;
-    return TonWalletService(tonClient);
+    return BlockchainServiceImpl(tonClient);
   }
 
   Future<TonClient>? __tonClient;

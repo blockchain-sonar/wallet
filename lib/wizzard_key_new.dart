@@ -4,7 +4,7 @@ import "package:freemework/freemework.dart" show ExecutionContext;
 
 import "data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
 
-import "services/wallet_service.dart" show WalletService;
+import "services/blockchain/blockchain.dart" show BlockchainService;
 import "widgets/business/show_mnemonic_widget.dart"
     show ShowMnemonicContext, ShowMnemonicWidget;
 import "widgets/business/confirm_mnemonic.dart"
@@ -15,10 +15,10 @@ import "widgets/business/enter_wallet_name.dart"
 class WizzardWalletNewWidget extends StatefulWidget {
   final Future<void> Function(String walletName, MnemonicPhrase mnemonicPhrase)
       onComplete;
-  final WalletService _walletService;
+  final BlockchainService _blockchainService;
 
   WizzardWalletNewWidget(
-    this._walletService, {
+    this._blockchainService, {
     required this.onComplete,
   });
 
@@ -49,7 +49,7 @@ class _WizzardWalletNewState extends State<WizzardWalletNewWidget> {
         ) async {
           final MnemonicPhrase mnemonicPhrase = await this
               .widget
-              ._walletService
+              ._blockchainService
               .generateMnemonicPhrase(MnemonicPhraseLength.SHORT);
           this.setState(() {
             this._walletName = actionContext.walletName;
