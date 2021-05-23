@@ -20,6 +20,7 @@ import 'package:provider/provider.dart';
 
 import "../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../states/app_state.dart" show AppState;
+import "../widgets/business/main_wallets.dart" show MainWalletsDeployContractCallback;
 import "../widgets/business/main_tab.dart" show MainTab;
 import "../widgets/business/main.dart" show MainWidget;
 import "app_route_data.dart" show AppRouteDataMain;
@@ -31,6 +32,7 @@ class MainPage extends Page<AppRouteDataMain> {
   final void Function() _onSelectWallets;
   final void Function() _onSelectSettings;
   final void Function() _onWalletNew;
+  final MainWalletsDeployContractCallback onDeployContract;
   final AppRouteDataMain _routeDataMain;
 
   MainPage(
@@ -41,6 +43,7 @@ class MainPage extends Page<AppRouteDataMain> {
     required void Function() onSelectWallets,
     required void Function() onSelectSetting,
     required void Function() onWalletNew,
+    required this.onDeployContract,
   })   : this._onSelectHome = onSelectHome,
         this._onSelectWallets = onSelectWallets,
         this._onSelectSettings = onSelectSetting,
@@ -73,7 +76,8 @@ class MainPage extends Page<AppRouteDataMain> {
             onSelectHome: this._onSelectHome,
             onSelectSettings: this._onSelectSettings,
             onSelectWallets: this._onSelectWallets,
-            onWalletNew: this._onWalletNew,
+            onAddNewKey: this._onWalletNew,
+            onDeployContract: this.onDeployContract,
           ),
         );
       },

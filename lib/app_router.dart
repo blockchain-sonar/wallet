@@ -56,12 +56,15 @@ import "data/key_pair.dart" show KeyPair;
 import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "router/app_route_data.dart";
 import "router/crash_page.dart" show CrashPage;
-import "services/blockchain/blockchain.dart" show BlockchainService;
+import "services/blockchain/blockchain.dart"
+    show BlockchainService, SmartContract;
 import "states/app_state.dart" show AppState;
 import "package:provider/provider.dart" show Consumer;
 
 import "services/encrypted_db_service.dart"
-    show DataSet, EncryptedDbService, WalletData, WalletDataPlain;
+    show DataSet, EncryptedDbService, KeyPairBundleData, WalletDataPlain;
+import 'widgets/business/main_wallets.dart';
+import 'widgets/business/select_smart_contract.dart';
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
@@ -285,9 +288,15 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainWalletsNew();
       this.notifyListeners();
     };
+    final MainWalletsDeployContractCallback onDeployContract =
+        (final String keypairName) {
+      this._currentConfiguration = AppRouteDataMainWallets(keypairName);
+      this.notifyListeners();
+    };
 
     final MainTab selectedTab = configuration.selectedTab;
 
+    final AppRouteData currentConfiguration = this._currentConfiguration;
     return <Page<dynamic>>[
       if (selectedTab != MainTab.HOME)
         MainPage(
@@ -298,6 +307,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           onSelectWallets: onSelectWallets,
           onSelectSetting: onSelectSetting,
           onWalletNew: onWalletNew,
+          onDeployContract: onDeployContract,
         ),
       MainPage(
         configuration,
@@ -307,9 +317,13 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         onSelectWallets: onSelectWallets,
         onSelectSetting: onSelectSetting,
         onWalletNew: onWalletNew,
+        onDeployContract: onDeployContract,
       ),
-      if (this._currentConfiguration is AppRouteDataMainWalletsNew)
+      if (currentConfiguration is AppRouteDataMainWalletsNew)
         _buildWizzardWalletPage(appState)
+      else if (currentConfiguration is AppRouteDataMainWallets &&
+          currentConfiguration.keyNameToDeployContract != null)
+        ..._wizzardDeployContractPagesStack(currentConfiguration.keyNameToDeployContract!)
     ];
   }
 
@@ -348,7 +362,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                     await encryptedDbService.read(encryptionKey);
                 if (!appState.isLogged) {
                   appState.setLoginEncryptionKey(encryptionKey);
-                  for (final WalletData dsWallet in dataSet.wallets) {
+                  for (final KeyPairBundleData dsWallet in dataSet.wallets) {
                     appState.addWallet(dsWallet);
                   }
                 } else {
@@ -424,6 +438,27 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 
     return <Page<dynamic>>[
       _buildWizzardWalletPage(appState),
+    ];
+  }
+
+  List<Page<dynamic>> _wizzardDeployContractPagesStack(
+      final String keyNameToDeployContract) {
+    return <Page<dynamic>>[
+      MaterialPage<SelectSmartContractWidget>(
+        key: ValueKey<Object>(SelectSmartContractWidget),
+        child: SelectSmartContractWidget(
+          SmartContract.ALL,
+          onComplete: (final SmartContract? selectedSmartContract) {
+            if (selectedSmartContract != null) {
+              this._currentConfiguration = AppRouteDataMainWallets(
+                  keyNameToDeployContract, selectedSmartContract);
+            } else {
+              this._currentConfiguration = AppRouteDataMainWallets();
+            }
+            this.notifyListeners();
+          },
+        ),
+      )
     ];
   }
 

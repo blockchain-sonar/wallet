@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:freeton_wallet/services/blockchain/blockchain.dart';
+
 import "../widgets/business/main_tab.dart" show MainTab;
 
 abstract class AppRouteData {
@@ -51,20 +53,32 @@ class AppRouteDataCrash extends AppRouteData {
 
 class AppRouteDataMain extends AppRouteData {
   static const String PATH = "/";
-  static const String _PATH_WALLETS = "/wallets";
-  static const String _PATH_WALLETS_NEW = "/wallets/new";
+  static const String _PATH_WALLET = "/wallet";
+  static const String _PATH_WALLET_DEPLOY = "/wallet/deploy";
+  static const String _PATH_WALLET_NEW = "/wallet/new";
 
   static AppRouteDataMain? test(Uri routeUri) {
     print("testing: ${routeUri.path}");
     print("testing: ${routeUri.toString()}");
     if (routeUri.path == PATH) {
       return AppRouteDataMain._(MainTab.HOME);
-    } else if (routeUri.path == _PATH_WALLETS) {
+    } else if (routeUri.path == _PATH_WALLET) {
       return AppRouteDataMainWallets();
-    } else if (routeUri.path == _PATH_WALLETS_NEW) {
+    } else if (routeUri.path == _PATH_WALLET_NEW) {
       return AppRouteDataMainWalletsNew();
-    } else if (routeUri.path == "/settings") {
+    } else if (routeUri.path == "/setting") {
       return AppRouteDataMain._(MainTab.SETTINGS);
+    } else if (routeUri.path.startsWith(_PATH_WALLET_DEPLOY) &&
+        routeUri.pathSegments.length == 3) {
+      final String keypairName = routeUri.pathSegments[2];
+      return AppRouteDataMainWallets(keypairName);
+    } else if (routeUri.path.startsWith(_PATH_WALLET_DEPLOY) &&
+        routeUri.pathSegments.length == 4) {
+      final String keypairName = routeUri.pathSegments[2];
+      final String contractName = routeUri.pathSegments[3];
+      final SmartContract smartContract = SmartContract.ALL
+          .firstWhere((SmartContract element) => element.name == contractName);
+      return AppRouteDataMainWallets(keypairName, smartContract);
     }
     return null;
   }
@@ -82,7 +96,21 @@ class AppRouteDataMain extends AppRouteData {
       case MainTab.HOME:
         return "/";
       case MainTab.WALLETS:
-        return "/wallets";
+        final AppRouteDataMain _this = this;
+        print("Read location for ${_this}");
+        if (_this is AppRouteDataMainWallets) {
+          final String? keyNameToDeployContract = _this.keyNameToDeployContract;
+          if (_this.keyNameToDeployContract != null) {
+            final SmartContract? deployContract = _this.deployContract;
+            if (deployContract != null) {
+              return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}/${deployContract.name}";
+            } else {
+              return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}";
+            }
+          }
+        }
+
+        return _PATH_WALLET;
       case MainTab.SETTINGS:
         return "/settings";
       default:
@@ -92,17 +120,23 @@ class AppRouteDataMain extends AppRouteData {
 }
 
 class AppRouteDataMainWallets extends AppRouteDataMain {
-  AppRouteDataMainWallets() : super._(MainTab.WALLETS);
+  final String? keyNameToDeployContract;
+  final SmartContract? deployContract;
 
-  @override
-  String get location => AppRouteDataMain._PATH_WALLETS;
+  AppRouteDataMainWallets([
+    this.keyNameToDeployContract = null,
+    this.deployContract = null,
+  ]) : super._(MainTab.WALLETS);
+
+  // @override
+  // String get location => AppRouteDataMain._PATH_WALLET;
 }
 
 class AppRouteDataMainWalletsNew extends AppRouteDataMainWallets {
   AppRouteDataMainWalletsNew() : super();
 
   @override
-  String get location => AppRouteDataMain._PATH_WALLETS_NEW;
+  String get location => AppRouteDataMain._PATH_WALLET_NEW;
 }
 
 class AppRouteDataNewbeWizzard extends AppRouteData {

@@ -70,25 +70,23 @@ class MainWidget extends StatelessWidget {
   final AppState _appState;
   final EncryptedDbService _encryptedDbService;
   final int _selectedIndex;
-  final void Function() _onSelectHome;
-  final void Function() _onSelectWallets;
-  final void Function() _onSelectSettings;
-  final void Function() _onWalletNew;
+  final void Function() onSelectHome;
+  final void Function() onSelectWallets;
+  final void Function() onSelectSettings;
+  final void Function() onAddNewKey;
+  final MainWalletsDeployContractCallback onDeployContract;
 
   MainWidget(
     this._appState,
     this._encryptedDbService,
     MainTab selectedTab, {
-    required void Function() onSelectHome,
-    required void Function() onSelectWallets,
-    required void Function() onSelectSettings,
-    required void Function() onWalletNew,
-  })   : this._selectedIndex = _tabOptions
-            .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab),
-        this._onSelectHome = onSelectHome,
-        this._onSelectWallets = onSelectWallets,
-        this._onSelectSettings = onSelectSettings,
-        this._onWalletNew = onWalletNew;
+    required this.onSelectHome,
+    required this.onSelectWallets,
+    required this.onSelectSettings,
+    required this.onAddNewKey,
+    required this.onDeployContract,
+  }) : this._selectedIndex = _tabOptions
+            .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab);
 
   @override
   Widget build(BuildContext context) {
@@ -109,8 +107,11 @@ class MainWidget extends StatelessWidget {
         return MainWalletsWidget(
           this._appState,
           bottomNavigationBar,
-          onWalletNew: this._onWalletNew,
+          onAddNewKey: this.onAddNewKey,
+          onDeployContract: this.onDeployContract,
         );
+      default:
+        break;
     }
 
     return Scaffold(
@@ -150,13 +151,13 @@ class MainWidget extends StatelessWidget {
     final _OptionTuple tapTuple = _tabOptions[index];
     switch (tapTuple.tab) {
       case MainTab.HOME:
-        this._onSelectHome();
+        this.onSelectHome();
         break;
       case MainTab.WALLETS:
-        this._onSelectWallets();
+        this.onSelectWallets();
         break;
       case MainTab.SETTINGS:
-        this._onSelectSettings();
+        this.onSelectSettings();
         break;
     }
   }

@@ -54,26 +54,26 @@ abstract class DataSet {
     KeyPair keyPair,
     MnemonicPhrase? mnemonicPhrase,
   );
-  UnmodifiableSetView<WalletData> get wallets;
+  UnmodifiableSetView<KeyPairBundleData> get wallets;
   Map<String, dynamic> toJson();
 
   DataSet._(); // internal
 }
 
-abstract class WalletData {
+abstract class KeyPairBundleData {
   final int id;
-  final String walletName;
+  final String keypairName;
   final String keyPublic;
 
-  factory WalletData.fromJson(final Map<String, dynamic> rawJson) {
-    final int? id = rawJson[WalletData._ID__PROPERTY];
+  factory KeyPairBundleData.fromJson(final Map<String, dynamic> rawJson) {
+    final int? id = rawJson[KeyPairBundleData._ID__PROPERTY];
     final String? kind = rawJson[_KIND__PROPERTY];
     final String? keyPublic = rawJson[_KEY_PUBLIC__PROPERTY];
-    final String? walletName = rawJson[_WALLET_NAME__PROPERTY];
+    final String? keypairName = rawJson[_KEYPAIR_NAME__PROPERTY];
 
     if (id == null) {
       throw SerializationException(
-          "A field '${WalletData._ID__PROPERTY}' is null");
+          "A field '${KeyPairBundleData._ID__PROPERTY}' is null");
     }
     if (kind == null) {
       throw SerializationException("A field '$_KIND__PROPERTY' is null");
@@ -81,13 +81,13 @@ abstract class WalletData {
     if (keyPublic == null) {
       throw SerializationException("A field '$_KEY_PUBLIC__PROPERTY' is null");
     }
-    if (walletName == null) {
-      throw SerializationException("A field '$_WALLET_NAME__PROPERTY' is null");
+    if (keypairName == null) {
+      throw SerializationException("A field '$_KEYPAIR_NAME__PROPERTY' is null");
     }
 
     switch (kind) {
       case "plain":
-        return WalletDataPlain.fromJson(id, walletName, keyPublic, rawJson);
+        return WalletDataPlain.fromJson(id, keypairName, keyPublic, rawJson);
       default:
         throw SerializationException(
             "A field '$_KIND__PROPERTY' has unsupported value '$kind'.");
@@ -106,7 +106,7 @@ abstract class WalletData {
     final Map<String, dynamic> rawJson = <String, dynamic>{
       _ID__PROPERTY: this.id,
       _KIND__PROPERTY: kind,
-      _WALLET_NAME__PROPERTY: this.walletName,
+      _KEYPAIR_NAME__PROPERTY: this.keypairName,
       _KEY_PUBLIC__PROPERTY: this.keyPublic,
     };
 
@@ -116,18 +116,18 @@ abstract class WalletData {
   static const String _ID__PROPERTY = "id";
   static const String _KIND__PROPERTY = "kind";
   static const String _KEY_PUBLIC__PROPERTY = "keypub";
-  static const String _WALLET_NAME__PROPERTY = "name";
+  static const String _KEYPAIR_NAME__PROPERTY = "name";
 
-  WalletData._(this.id, this.walletName, this.keyPublic);
+  KeyPairBundleData._(this.id, this.keypairName, this.keyPublic);
 }
 
-class WalletDataPlain extends WalletData {
+class WalletDataPlain extends KeyPairBundleData {
   final String keySecret;
   final MnemonicPhrase? mnemonicPhrase;
 
   factory WalletDataPlain.fromJson(
     final int id,
-    final String walletName,
+    final String keypairName,
     final String keyPublic,
     final Map<String, dynamic> rawJson,
   ) {
@@ -152,7 +152,7 @@ class WalletDataPlain extends WalletData {
 
     return WalletDataPlain._(
       id,
-      walletName,
+      keypairName,
       keyPublic,
       keySecret,
       mnemonicPhrase,
@@ -179,11 +179,11 @@ class WalletDataPlain extends WalletData {
 
   WalletDataPlain._(
     int id,
-    String walletName,
+    String keypairName,
     String keyPublic,
     this.keySecret,
     this.mnemonicPhrase,
-  ) : super._(id, walletName, keyPublic);
+  ) : super._(id, keypairName, keyPublic);
 }
 
 // class WalletDataEncrypted extends WalletData {
@@ -321,7 +321,7 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
 
     final _DataSet emptyDataSet = _DataSet(
       derivateResult.derivatedKey,
-      Set<WalletData>(),
+      Set<KeyPairBundleData>(),
     );
 
     LocalStorageEncryptedDbService._backupDto();
@@ -463,21 +463,21 @@ class _DataServiceLocalStorageMeta {
 
 class _DataSet extends DataSet {
   final Uint8List _encryptionKey;
-  final Set<WalletData> _wallets;
+  final Set<KeyPairBundleData> _wallets;
 
   @override
   Uint8List get encryptionKey => this._encryptionKey;
 
   @override
   WalletDataPlain addPlainWallet(
-      String walletName, KeyPair keyPair, MnemonicPhrase? mnemonicPhrase) {
+      String keypairName, KeyPair keyPair, MnemonicPhrase? mnemonicPhrase) {
     int maxId = this._wallets.length > 0
-        ? this._wallets.map((WalletData e) => e.id).reduce(max)
+        ? this._wallets.map((KeyPairBundleData e) => e.id).reduce(max)
         : 0;
 
     final WalletDataPlain walletData = WalletDataPlain._(
       maxId + 1,
-      walletName,
+      keypairName,
       keyPair.public,
       keyPair.secret,
       mnemonicPhrase,
@@ -489,8 +489,8 @@ class _DataSet extends DataSet {
   }
 
   @override
-  UnmodifiableSetView<WalletData> get wallets =>
-      UnmodifiableSetView<WalletData>(this._wallets);
+  UnmodifiableSetView<KeyPairBundleData> get wallets =>
+      UnmodifiableSetView<KeyPairBundleData>(this._wallets);
 
   factory _DataSet.fromJson(
     final Map<String, dynamic> rawJson, {
@@ -502,9 +502,9 @@ class _DataSet extends DataSet {
       throw SerializationException("A field '$_WALLETS__PROPERTY' is null");
     }
 
-    Set<WalletData> wallets = Set<WalletData>();
+    Set<KeyPairBundleData> wallets = Set<KeyPairBundleData>();
     for (final dynamic walletJson in walletsJson) {
-      wallets.add(WalletData.fromJson(walletJson));
+      wallets.add(KeyPairBundleData.fromJson(walletJson));
     }
 
     _DataSet dataSet = _DataSet(encryptionKey, wallets);
@@ -516,7 +516,7 @@ class _DataSet extends DataSet {
     final Map<String, dynamic> rawJson = <String, dynamic>{
       _WALLETS__PROPERTY: this
           ._wallets
-          .map((WalletData walletData) => walletData.toJson())
+          .map((KeyPairBundleData walletData) => walletData.toJson())
           .toList(),
     };
 

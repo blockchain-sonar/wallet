@@ -17,8 +17,7 @@ import "package:flutter/widgets.dart"
 
 import "../../services/blockchain/smart_contract.dart" show SmartContract;
 
-typedef _CompleteCallback = Future<void> Function(
-    SmartContract? selectedContract);
+typedef _CompleteCallback = void Function(SmartContract? selectedContract);
 
 class SelectSmartContractWidget extends StatelessWidget {
   final List<SmartContract> smartContracts;

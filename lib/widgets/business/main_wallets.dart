@@ -12,25 +12,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/material.dart';
-import "package:flutter/widgets.dart";
+import 'package:flutter/src/widgets/basic.dart';
+import "package:flutter/widgets.dart"
+    show
+        Alignment,
+        BuildContext,
+        Container,
+        EdgeInsets,
+        Icon,
+        Key,
+        Padding,
+        Row,
+        SingleChildScrollView,
+        SizedBox,
+        State,
+        StatefulWidget,
+        Text,
+        UniqueKey,
+        Widget;
+import "package:flutter/material.dart"
+    show
+        AppBar,
+        BottomNavigationBar,
+        Colors,
+        ExpansionPanel,
+        ExpansionPanelList,
+        FloatingActionButton,
+        Icons,
+        InkWell,
+        ListTile,
+        Material,
+        Scaffold;
 
-import '../../misc/void_callback_host.dart';
-import '../../services/encrypted_db_service.dart';
+import "../../services/encrypted_db_service.dart" show KeyPairBundleData;
 import "../../states/app_state.dart" show AppState;
+
+typedef MainWalletsDeployContractCallback = void Function(String keypairName);
 
 class MainWalletsWidget extends StatefulWidget {
   final AppState _appState;
-  final void Function() _onWalletNew;
-  final BottomNavigationBar _bottomNavigationBar;
+  final void Function() onAddNewKey;
+  final MainWalletsDeployContractCallback onDeployContract;
+  final BottomNavigationBar bottomNavigationBar;
 
   MainWalletsWidget(
     this._appState,
-    this._bottomNavigationBar, {
-    required void Function() onWalletNew,
+    this.bottomNavigationBar, {
+    required this.onAddNewKey,
+    required this.onDeployContract,
     Key? key,
-  })  : this._onWalletNew = onWalletNew,
-        super(key: key);
+  }) : super(key: key);
 
   @override
   _MainWalletsState createState() => _MainWalletsState();
@@ -61,7 +92,7 @@ class _MainWalletsState extends State<MainWalletsWidget> {
         .widget
         ._appState
         .wallets
-        .map((WalletData walletData) => _WalletViewModel(walletData))
+        .map((KeyPairBundleData walletData) => _WalletViewModel(walletData))
         .toList();
   }
 
@@ -86,10 +117,10 @@ class _MainWalletsState extends State<MainWalletsWidget> {
           ),
         ),
       ),
-      bottomNavigationBar: this.widget._bottomNavigationBar,
+      bottomNavigationBar: this.widget.bottomNavigationBar,
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: this.widget._onWalletNew,
+        onPressed: this.widget.onAddNewKey,
       ),
     );
   }
@@ -111,22 +142,49 @@ class _MainWalletsState extends State<MainWalletsWidget> {
                   const Icon(Icons.vpn_key),
                   if (item.hasMnemonicPhrase) const Icon(Icons.subtitles),
                   SizedBox(width: 10),
-                  Text(item.walletData.walletName),
+                  Text(item.walletData.keypairName),
                 ],
               ),
             );
           },
-          body: ListTile(
-              title: Text(item.walletData.keyPublic),
-              subtitle:
-                  const Text('To delete this panel, tap the trash can icon'),
-              trailing: const Icon(Icons.delete),
-              onTap: () {
-                setState(() {
-                  _wallets.removeWhere(
-                      (_WalletViewModel currentItem) => item == currentItem);
-                });
-              }),
+          body: Column(
+            children: <Widget>[
+              ListTile(
+                  title: Text(item.walletData.keyPublic),
+                  subtitle: const Text(
+                      "To delete this panel, tap the trash can icon"),
+                  trailing: const Icon(Icons.delete),
+                  onTap: () {
+                    setState(() {
+                      _wallets.removeWhere((_WalletViewModel currentItem) =>
+                          item == currentItem);
+                    });
+                  }),
+              SizedBox.fromSize(
+                size: Size(56, 56), // button width and height
+                child: ClipOval(
+                  child: Material(
+                    color: Colors.orange, // button color
+                    child: InkWell(
+                      splashColor: Colors.green, // splash color
+                      onTap: () {
+                        this
+                            .widget
+                            .onDeployContract(item.walletData.keypairName);
+                      }, // button pressed
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Icon(Icons.addchart_rounded), // icon
+                          Text("Add Wallet/Contact"), // text
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
           isExpanded: item.isExpanded,
         );
       }).toList(),
@@ -136,11 +194,11 @@ class _MainWalletsState extends State<MainWalletsWidget> {
 
 // stores ExpansionPanel state information
 class _WalletViewModel {
-  final WalletData _walletData;
+  final KeyPairBundleData _walletData;
 
   _WalletViewModel(this._walletData) : this.isExpanded = true;
 
-  WalletData get walletData => this._walletData;
+  KeyPairBundleData get walletData => this._walletData;
 
   bool get hasMnemonicPhrase => true;
 
