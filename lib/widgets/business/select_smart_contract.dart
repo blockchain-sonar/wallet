@@ -12,8 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart"
-    show BuildContext, StatelessWidget, Text, Widget;
+    show BuildContext, Column, Container, StatelessWidget, Text, Widget;
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import "../../services/blockchain/smart_contract.dart" show SmartContract;
 
@@ -30,6 +33,70 @@ class SelectSmartContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(this.smartContracts.map((e) => e.name).join(", "));
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Smart contracts"),
+      ),
+      body: Column(
+        children: <Widget>[
+          ...this.smartContracts.map(
+                (SmartContract e) => Center(
+                  child: Card(
+                    child: InkWell(
+                      splashColor: Colors.blue.withAlpha(30),
+                      onTap: () {
+                        print('Card tapped.');
+                      },
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: <Widget>[
+                              Center(
+                                child: Text(
+                                  e.name,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                              ),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: 10,
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: () =>
+                                      launch(e.referenceUri.toString()),
+                                  child: Text("More..."),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+        ],
+      ),
+
+      // Markdown(data: this.smartContracts.first.descriptionMarkdown),
+      // Column(children: <Widget>[
+
+      //   ...this.smartContracts.map(
+      //         (SmartContract e) => Container(
+      //           child: Column(
+      //             children: <Widget>[
+      //               Text(e.name),
+      //             ],
+      //           ),
+      //         ),
+      //       ),
+      // ]),
+    );
   }
 }
