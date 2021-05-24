@@ -62,9 +62,12 @@ import "states/app_state.dart" show AppState;
 import "package:provider/provider.dart" show Consumer;
 
 import "services/encrypted_db_service.dart"
-    show DataSet, EncryptedDbService, KeyPairBundleData, WalletDataPlain;
-import 'widgets/business/main_wallets.dart';
-import 'widgets/business/select_smart_contract.dart';
+    show DataSet, EncryptedDbService, KeypairBundle, KeypairBundlePlain;
+import "services/job.dart" show JobService;
+import "widgets/business/main_wallets.dart"
+    show MainWalletsDeployContractCallback;
+import "widgets/business/select_smart_contract.dart"
+    show SelectSmartContractWidget;
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
@@ -77,8 +80,9 @@ class AppRouterWidget extends StatelessWidget {
   AppRouterWidget(
     final EncryptedDbService encryptedDbService,
     final BlockchainService blockchainService,
-  )   : this._routerDelegate =
-            _AppRouterDelegate(encryptedDbService, blockchainService),
+    final JobService jobService,
+  )   : this._routerDelegate = _AppRouterDelegate(
+            encryptedDbService, blockchainService, jobService),
         this._routeInformationParser = _AppRouteInformationParser();
 
   @override
@@ -123,11 +127,13 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<AppRouteData> {
   final GlobalKey<NavigatorState> _navigatorKey;
   final EncryptedDbService _encryptedDbService;
+  final JobService _jobService;
   final BlockchainService _walletService;
 
   AppRouteData _currentConfiguration;
 
-  _AppRouterDelegate(this._encryptedDbService, this._walletService)
+  _AppRouterDelegate(
+      this._encryptedDbService, this._walletService, this._jobService)
       : this._navigatorKey = GlobalKey<NavigatorState>(),
         this._currentConfiguration = AppRouteDataMain.home();
 
@@ -240,12 +246,15 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         ) async {
           final DataSet dataSet =
               await this._encryptedDbService.read(appState.encryptionKey);
-          final WalletDataPlain walletData =
-              dataSet.addPlainWallet(walletName, keyPair, mnemonicPhrase);
+          final KeypairBundlePlain keypairBundle = dataSet
+              .addKeypairBundlePlain(walletName, keyPair, mnemonicPhrase);
+
           await this._encryptedDbService.write(dataSet);
-          appState.addWallet(walletData);
+          appState.addKeypairBundle(keypairBundle);
           this._currentConfiguration = AppRouteDataMainWallets();
           this.notifyListeners();
+          this._jobService.registerAccountsActivationJob(
+              keypairBundle); // push keypairBundle to account activation
         },
       ),
     );
@@ -267,7 +276,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     if (!appState.isLogged) {
       return this._redirectPagesStack(AppRouterDataSignin.PATH);
     } else {
-      if (appState.wallets.length == 0) {
+      if (appState.keypairBundles.length == 0) {
         return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
       }
     }
@@ -303,6 +312,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           AppRouteDataMain.home(),
           //appState,
           encryptedDbService,
+          jobService: this._jobService,
           onSelectHome: onSelectHome,
           onSelectWallets: onSelectWallets,
           onSelectSetting: onSelectSetting,
@@ -313,6 +323,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         configuration,
         //appState,
         encryptedDbService,
+        jobService: this._jobService,
         onSelectHome: onSelectHome,
         onSelectWallets: onSelectWallets,
         onSelectSetting: onSelectSetting,
@@ -323,7 +334,8 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         _buildWizzardWalletPage(appState)
       else if (currentConfiguration is AppRouteDataMainWallets &&
           currentConfiguration.keyNameToDeployContract != null)
-        ..._wizzardDeployContractPagesStack(currentConfiguration.keyNameToDeployContract!)
+        ..._wizzardDeployContractPagesStack(
+            currentConfiguration.keyNameToDeployContract!)
     ];
   }
 
@@ -338,7 +350,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     }
 
     if (appState.isLogged) {
-      if (appState.wallets.length == 0) {
+      if (appState.keypairBundles.length == 0) {
         return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
       }
 
@@ -362,8 +374,13 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                     await encryptedDbService.read(encryptionKey);
                 if (!appState.isLogged) {
                   appState.setLoginEncryptionKey(encryptionKey);
-                  for (final KeyPairBundleData dsWallet in dataSet.wallets) {
-                    appState.addWallet(dsWallet);
+                  for (final KeypairBundle keypairBundle
+                      in dataSet.keypairBundles) {
+                    appState.addKeypairBundle(keypairBundle);
+                    if (keypairBundle.accounts.length == 0) {
+                      this._jobService.registerAccountsActivationJob(
+                          keypairBundle); // push keypairBundle to account activation
+                    }
                   }
                 } else {
                   this._currentConfiguration = AppRouteDataCrash();
@@ -402,7 +419,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       if (!appState.isLogged) {
         return this._redirectPagesStack(AppRouterDataSignin.PATH);
       }
-      if (appState.wallets.length > 0) {
+      if (appState.keypairBundles.length > 0) {
         return this._redirectPagesStack(AppRouteDataMain.PATH);
       }
     } else {

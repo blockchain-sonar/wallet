@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-class KeyPair {
-  final String public;
-  final String secret;
+class AccountInfo {
+  final String balance;
+  final String codeHash;
 
-  KeyPair({required this.public, required this.secret});
+  const AccountInfo(this.balance, this.codeHash);
 }

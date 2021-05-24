@@ -1,9 +1,8 @@
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'package:freeton_wallet/clients/tonclient/src/models/keyPair.dart';
+import 'package:freeton_wallet/clients/tonclient/src/models/keypair.dart';
 
-import '../contract.dart';
-import 'models/deployData.dart';
-import '../contract.dart' show AbstractTonClient;
+import 'models/account_info.dart';
+import '../contract.dart' show AbstractTonClient, SeedType;
 
 class TonClient extends AbstractTonClient {
   @override
@@ -12,13 +11,13 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<String> generateMnemonicPhraseSeed(
-      SeedType seedType) async {
+  Future<String> generateMnemonicPhraseSeed(SeedType seedType) async {
     return "stub stub stub stub stub stub stub stub stub stub stub stub";
   }
 
   @override
-  Future<KeyPair> deriveKeys(String mnemonicPhraseSeed, SeedType seedType) async {
+  Future<KeyPair> deriveKeys(
+      String mnemonicPhraseSeed, SeedType seedType) async {
     return KeyPair(
         public:
             "public public public public public public public public public",
@@ -27,14 +26,18 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<DeployData> getDeployData(KeyPair keys) async {
-    DeployData deployData = DeployData(
-      accountId: "accountId",
-      address: "address",
-      dataBase64: "dataBase64",
-      imageBase64: " imageBase64",
-    );
-    return deployData;
+  Future<String> getDeployData(
+    String publicKey,
+    String smartContractABI,
+    String smartContractTVCBase64,
+  ) async {
+    // DeployData deployData = DeployData(
+    //   accountId: "accountId",
+    //   address: "address",
+    //   dataBase64: "dataBase64",
+    //   imageBase64: "imageBase64",
+    // );
+    return "address";
   }
 
   @override
@@ -50,7 +53,7 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<dynamic> getAccountData(String address) {
+  Future<AccountInfo> getAccountInformation(String accountAddress) {
     // TODO: implement getAccountData
     throw UnimplementedError();
   }

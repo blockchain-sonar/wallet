@@ -15,9 +15,8 @@
 import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'package:freeton_wallet/clients/tonclient/src/models/deployData.dart';
 import 'package:freeton_wallet/widgets/business/confirm_mnemonic.dart';
-import 'clients/tonclient/src/models/keyPair.dart';
+import 'clients/tonclient/src/models/keypair.dart';
 import 'clients/tonclient/tonclient.dart';
 import 'widgets/business/import_mode_selector.dart'
     show ImportModeSelectorContext, ImportModeSelectorWidget;
@@ -77,7 +76,7 @@ void mainTestEnterWalletNameWidget() {
       ExecutionContext executionContext,
       EnterWalletNameContext ctx,
     ) async {
-      print("Dialog completed with wallet name: ${ctx.walletName}");
+      print("Dialog completed with wallet name: ${ctx.keyName}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
   )));
@@ -89,8 +88,6 @@ void mainTestRestoreByPrivateKeyWidget() async {
 
   final String seed =
       await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
-  final KeyPair keypair = await tonClient.deriveKeys(seed, SeedType.SHORT);
-  final dynamic test = await tonClient.getAccountData(keypair.public);
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
     onComplete: (
       ExecutionContext executionContext,
@@ -121,20 +118,6 @@ void mainTestSetupMasterPasswordWidget() async {
     ) async {
       print("Dialog completed with password: ${ctx.password}");
       await Future<void>.delayed(Duration(seconds: 10));
-    },
-  )));
-}
-
-void mainTestRestoreByMnemonicPhraseWidget() async {
-  final String mnemonicPhrase = "1 2 3 4 5 6 7 8 9 10 11 12";
-  runApp(_buildRootWidget(RestoreByMnemonicPhraseWidget(
-    mnemonicPhrase,
-    onComplete: (
-      ExecutionContext executionContext,
-      _,
-    ) async {
-      print("Dialog completed with private name: ${mnemonicPhrase}");
-      await Future<void>.delayed(Duration(seconds: 3));
     },
   )));
 }

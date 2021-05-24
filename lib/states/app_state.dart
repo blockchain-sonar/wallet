@@ -18,10 +18,10 @@ import "dart:typed_data" show Uint8List;
 
 import "package:flutter/foundation.dart" show ChangeNotifier;
 import "package:freemework/freemework.dart" show InvalidOperationException;
-import "../services/encrypted_db_service.dart" show KeyPairBundleData;
+import "../services/encrypted_db_service.dart" show KeypairBundle;
 
 class AppState extends ChangeNotifier {
-  final List<KeyPairBundleData> _wallets;
+  final List<KeypairBundle> _keypairBundles;
   Timer? _autoLogoutTimer;
   Uint8List? _encryptionKey;
 
@@ -31,16 +31,16 @@ class AppState extends ChangeNotifier {
   }
 
   bool get isLogged => this._encryptionKey != null;
-  UnmodifiableListView<KeyPairBundleData> get wallets =>
-      UnmodifiableListView<KeyPairBundleData>(this._wallets);
+  UnmodifiableListView<KeypairBundle> get keypairBundles =>
+      UnmodifiableListView<KeypairBundle>(this._keypairBundles);
 
   AppState()
       : this._autoLogoutTimer = null,
         this._encryptionKey = null,
-        this._wallets = <KeyPairBundleData>[];
+        this._keypairBundles = <KeypairBundle>[];
 
-  void addWallet(KeyPairBundleData walletData) {
-    this._wallets.add(walletData);
+  void addKeypairBundle(KeypairBundle walletData) {
+    this._keypairBundles.add(walletData);
     this.notifyListeners();
   }
 

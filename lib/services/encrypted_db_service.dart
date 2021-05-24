@@ -13,19 +13,18 @@
 // limitations under the License.
 
 import "dart:async" show Future;
-import "dart:collection" show UnmodifiableSetView;
-import "dart:convert"
-    show base64Decode, base64Encode, jsonDecode, jsonEncode, utf8;
+import "dart:collection" show UnmodifiableMapView, UnmodifiableSetView;
+import "dart:convert" show base64Decode, base64Encode, jsonDecode, jsonEncode;
 import "dart:html" show window;
 import "dart:typed_data" show Uint8List;
 import "dart:math" show max;
 
+import "package:flutter/widgets.dart" show ChangeNotifier;
 import "package:freemework/freemework.dart"
     show FreemeworkException, InvalidOperationException;
+
 import "../data/key_pair.dart" show KeyPair;
-
 import "../data/mnemonic_phrase.dart" show MnemonicPhrase;
-
 import "crypto_service.dart" show CryptoService, DerivateResult, Encypter;
 
 abstract class EncryptedDbService {
@@ -46,68 +45,159 @@ abstract class EncryptedDbService {
   Future<void> write(DataSet data);
 }
 
-abstract class DataSet {
+abstract class DataSet extends ChangeNotifier {
   Uint8List get encryptionKey;
 
-  WalletDataPlain addPlainWallet(
+  KeypairBundlePlain addKeypairBundlePlain(
     String title,
     KeyPair keyPair,
     MnemonicPhrase? mnemonicPhrase,
   );
-  UnmodifiableSetView<KeyPairBundleData> get wallets;
-  Map<String, dynamic> toJson();
+  UnmodifiableSetView<KeypairBundle> get keypairBundles;
 
   DataSet._(); // internal
 }
 
-abstract class KeyPairBundleData {
+abstract class Account extends ChangeNotifier {
+  final String blockchainAddress;
+  final String smartContractId;
+  final String balance;
+  final AccountType accountType;
+
+  KeypairBundle get parentKeypairBundle;
+
+  Account._(
+    this.blockchainAddress,
+    this.smartContractId,
+    this.accountType,
+    this.balance,
+  );
+}
+
+enum AccountType {
+  /// Account is uninitialized when contract is not deployed yet.
+  UNINITIALIZED,
+
+  /// Account is active when contract is deployed.
+  ACTIVE,
+}
+
+abstract class KeypairBundle extends ChangeNotifier {
   final int id;
   final String keypairName;
   final String keyPublic;
 
-  factory KeyPairBundleData.fromJson(final Map<String, dynamic> rawJson) {
-    final int? id = rawJson[KeyPairBundleData._ID__PROPERTY];
-    final String? kind = rawJson[_KIND__PROPERTY];
-    final String? keyPublic = rawJson[_KEY_PUBLIC__PROPERTY];
-    final String? keypairName = rawJson[_KEYPAIR_NAME__PROPERTY];
+  /// The map of accounts. Key of the map is a SmartContract Identifier
+  UnmodifiableMapView<String, Account> get accounts =>
+      this._accountsView ??
+      (this._accountsView =
+          UnmodifiableMapView<String, Account>(this._accounts));
+
+  Account setAccount(
+    String smartContractId,
+    String blockchainAddress,
+    AccountType accountType,
+    String balance,
+  ) {
+    final _Account account = _Account._(
+      blockchainAddress,
+      smartContractId,
+      accountType,
+      balance,
+    );
+    account._parentKeypairBundle = this;
+    this._accounts[smartContractId] = account;
+
+    this.notifyListeners();
+
+    return account;
+  }
+
+  factory KeypairBundle._fromJson(final Map<String, dynamic> rawJson) {
+    final int? id = rawJson[KeypairBundle._ID__PROPERTY];
+    final String? kind = rawJson[KeypairBundle._KIND__PROPERTY];
+    final String? keyPublic = rawJson[KeypairBundle._KEY_PUBLIC__PROPERTY];
+    final String? keypairName = rawJson[KeypairBundle._KEYPAIR_NAME__PROPERTY];
+    final Map<String, dynamic>? accountsJson =
+        rawJson[KeypairBundle._ACCOUNTS__PROPERTY];
 
     if (id == null) {
       throw SerializationException(
-          "A field '${KeyPairBundleData._ID__PROPERTY}' is null");
+          "A field '${KeypairBundle._ID__PROPERTY}' is null");
     }
     if (kind == null) {
-      throw SerializationException("A field '$_KIND__PROPERTY' is null");
+      throw SerializationException(
+          "A field '${KeypairBundle._KIND__PROPERTY}' is null");
     }
     if (keyPublic == null) {
-      throw SerializationException("A field '$_KEY_PUBLIC__PROPERTY' is null");
+      throw SerializationException(
+          "A field '${KeypairBundle._KEY_PUBLIC__PROPERTY}' is null");
     }
     if (keypairName == null) {
-      throw SerializationException("A field '$_KEYPAIR_NAME__PROPERTY' is null");
+      throw SerializationException(
+          "A field '${KeypairBundle._KEYPAIR_NAME__PROPERTY}' is null");
+    }
+    if (accountsJson == null) {
+      throw SerializationException(
+          "A field '${KeypairBundle._ACCOUNTS__PROPERTY}' is null");
     }
 
+    final Map<String, _Account> accounts = <String, _Account>{};
+
+    for (final MapEntry<String, dynamic> kv in accountsJson.entries) {
+      final String smartContractId = kv.key;
+      final Map<String, dynamic> accountJson = kv.value;
+
+      final _Account account = _Account.fromJson(accountJson);
+      accounts[smartContractId] = account;
+    }
+
+    KeypairBundle keypairBundle;
     switch (kind) {
       case "plain":
-        return WalletDataPlain.fromJson(id, keypairName, keyPublic, rawJson);
+        keypairBundle = KeypairBundlePlain._fromJson(
+          id,
+          keypairName,
+          keyPublic,
+          accounts,
+          rawJson,
+        );
+        break;
       default:
         throw SerializationException(
             "A field '$_KIND__PROPERTY' has unsupported value '$kind'.");
     }
+
+    for (final _Account account in accounts.values) {
+      account._parentKeypairBundle = keypairBundle;
+    }
+
+    return keypairBundle;
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> _toJson() {
     String kind;
-    if (this is WalletDataPlain) {
+    if (this is KeypairBundlePlain) {
       kind = "plain";
     } else {
       throw SerializationException(
           "Cannot serialize a field '$_KIND__PROPERTY'. Cannot resolve text representation by runtimeType '${this.runtimeType}'.");
     }
 
+    final Map<String, dynamic> accountJson = <String, dynamic>{};
+
+    for (final MapEntry<String, Account> kv in this.accounts.entries) {
+      final String smartContractId = kv.key;
+      final _Account account = kv.value as _Account;
+      accountJson[smartContractId] = account.toJson();
+    }
+
     final Map<String, dynamic> rawJson = <String, dynamic>{
-      _ID__PROPERTY: this.id,
-      _KIND__PROPERTY: kind,
-      _KEYPAIR_NAME__PROPERTY: this.keypairName,
-      _KEY_PUBLIC__PROPERTY: this.keyPublic,
+      KeypairBundle._ID__PROPERTY: this.id,
+      KeypairBundle._KIND__PROPERTY: kind,
+      KeypairBundle._KEYPAIR_NAME__PROPERTY: this.keypairName,
+      KeypairBundle._KEY_PUBLIC__PROPERTY: this.keyPublic,
+      KeypairBundle._ACCOUNTS__PROPERTY: accountJson
     };
 
     return rawJson;
@@ -117,18 +207,28 @@ abstract class KeyPairBundleData {
   static const String _KIND__PROPERTY = "kind";
   static const String _KEY_PUBLIC__PROPERTY = "keypub";
   static const String _KEYPAIR_NAME__PROPERTY = "name";
+  static const String _ACCOUNTS__PROPERTY = "accounts";
 
-  KeyPairBundleData._(this.id, this.keypairName, this.keyPublic);
+  UnmodifiableMapView<String, Account>? _accountsView;
+  final Map<String, Account> _accounts;
+
+  KeypairBundle._(
+    this.id,
+    this.keypairName,
+    this.keyPublic,
+    this._accounts,
+  ) : this._accountsView = null;
 }
 
-class WalletDataPlain extends KeyPairBundleData {
+class KeypairBundlePlain extends KeypairBundle {
   final String keySecret;
   final MnemonicPhrase? mnemonicPhrase;
 
-  factory WalletDataPlain.fromJson(
+  factory KeypairBundlePlain._fromJson(
     final int id,
     final String keypairName,
     final String keyPublic,
+    final Map<String, Account> accounts,
     final Map<String, dynamic> rawJson,
   ) {
     final String? keySecret = rawJson[_KEY_SECRET__PROPERTY];
@@ -150,18 +250,19 @@ class WalletDataPlain extends KeyPairBundleData {
       }
     }
 
-    return WalletDataPlain._(
+    return KeypairBundlePlain._(
       id,
       keypairName,
       keyPublic,
+      accounts,
       keySecret,
       mnemonicPhrase,
     );
   }
 
   @override
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> rawJson = super.toJson()
+  Map<String, dynamic> _toJson() {
+    final Map<String, dynamic> rawJson = super._toJson()
       ..addAll(<String, dynamic>{
         _KEY_SECRET__PROPERTY: this.keySecret,
       });
@@ -177,16 +278,17 @@ class WalletDataPlain extends KeyPairBundleData {
   static const String _KEY_SECRET__PROPERTY = "keysecret";
   static const String _MNEMONIC_PHRASE__PROPERTY = "mnemonic";
 
-  WalletDataPlain._(
+  KeypairBundlePlain._(
     int id,
     String keypairName,
     String keyPublic,
+    Map<String, Account> accounts,
     this.keySecret,
     this.mnemonicPhrase,
-  ) : super._(id, keypairName, keyPublic);
+  ) : super._(id, keypairName, keyPublic, accounts);
 }
 
-// class WalletDataEncrypted extends WalletData {
+// class KeyPairBundleDataEncrypted extends KeyPairBundleData {
 //   WalletDataEncrypted._(int id) : super._(id);
 // }
 
@@ -321,7 +423,7 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
 
     final _DataSet emptyDataSet = _DataSet(
       derivateResult.derivatedKey,
-      Set<KeyPairBundleData>(),
+      Set<KeypairBundle>(),
     );
 
     LocalStorageEncryptedDbService._backupDto();
@@ -463,34 +565,38 @@ class _DataServiceLocalStorageMeta {
 
 class _DataSet extends DataSet {
   final Uint8List _encryptionKey;
-  final Set<KeyPairBundleData> _wallets;
+  final Set<KeypairBundle> _keypairBundles;
 
   @override
   Uint8List get encryptionKey => this._encryptionKey;
 
   @override
-  WalletDataPlain addPlainWallet(
-      String keypairName, KeyPair keyPair, MnemonicPhrase? mnemonicPhrase) {
-    int maxId = this._wallets.length > 0
-        ? this._wallets.map((KeyPairBundleData e) => e.id).reduce(max)
+  KeypairBundlePlain addKeypairBundlePlain(
+    String keypairName,
+    KeyPair keyPair,
+    MnemonicPhrase? mnemonicPhrase,
+  ) {
+    int maxId = this._keypairBundles.length > 0
+        ? this._keypairBundles.map((KeypairBundle e) => e.id).reduce(max)
         : 0;
 
-    final WalletDataPlain walletData = WalletDataPlain._(
+    final KeypairBundlePlain keypairBundle = KeypairBundlePlain._(
       maxId + 1,
       keypairName,
       keyPair.public,
+      <String, Account>{},
       keyPair.secret,
       mnemonicPhrase,
     );
 
-    this._wallets.add(walletData);
+    this._keypairBundles.add(keypairBundle);
 
-    return walletData;
+    return keypairBundle;
   }
 
   @override
-  UnmodifiableSetView<KeyPairBundleData> get wallets =>
-      UnmodifiableSetView<KeyPairBundleData>(this._wallets);
+  UnmodifiableSetView<KeypairBundle> get keypairBundles =>
+      UnmodifiableSetView<KeypairBundle>(this._keypairBundles);
 
   factory _DataSet.fromJson(
     final Map<String, dynamic> rawJson, {
@@ -502,21 +608,20 @@ class _DataSet extends DataSet {
       throw SerializationException("A field '$_WALLETS__PROPERTY' is null");
     }
 
-    Set<KeyPairBundleData> wallets = Set<KeyPairBundleData>();
+    Set<KeypairBundle> wallets = Set<KeypairBundle>();
     for (final dynamic walletJson in walletsJson) {
-      wallets.add(KeyPairBundleData.fromJson(walletJson));
+      wallets.add(KeypairBundle._fromJson(walletJson));
     }
 
     _DataSet dataSet = _DataSet(encryptionKey, wallets);
     return dataSet;
   }
 
-  @override
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> rawJson = <String, dynamic>{
       _WALLETS__PROPERTY: this
-          ._wallets
-          .map((KeyPairBundleData walletData) => walletData.toJson())
+          ._keypairBundles
+          .map((KeypairBundle walletData) => walletData._toJson())
           .toList(),
     };
 
@@ -525,5 +630,78 @@ class _DataSet extends DataSet {
 
   static const String _WALLETS__PROPERTY = "wallets";
 
-  _DataSet(this._encryptionKey, this._wallets) : super._();
+  _DataSet(this._encryptionKey, this._keypairBundles) : super._();
+}
+
+class _Account extends Account {
+  KeypairBundle? _parentKeypairBundle;
+
+  @override
+  KeypairBundle get parentKeypairBundle {
+    assert(this._parentKeypairBundle != null);
+    return this._parentKeypairBundle!;
+  }
+
+  factory _Account.fromJson(
+    final Map<String, dynamic> rawJson,
+  ) {
+    final String? smartContractId =
+        rawJson[_Account._SMART_CONTRACT_ID__PROPERTY];
+    final String? blockchainAddress =
+        rawJson[_Account.__BLOCKCHAIN_ADDRESS__PROPERTY];
+    final AccountType? accountType = rawJson[_Account.__ACCOUNT_TYPE__PROPERTY];
+    final String? balance = rawJson[_Account.__BALANCE__PROPERTY];
+
+    if (smartContractId == null) {
+      throw SerializationException(
+          "A field '${_Account._SMART_CONTRACT_ID__PROPERTY}' is null");
+    }
+    if (blockchainAddress == null) {
+      throw SerializationException(
+          "A field '${_Account.__BLOCKCHAIN_ADDRESS__PROPERTY}' is null");
+    }
+    if (accountType == null) {
+      throw SerializationException(
+          "A field '${_Account.__ACCOUNT_TYPE__PROPERTY}' is null");
+    }
+    if (balance == null) {
+      throw SerializationException(
+          "A field '${_Account.__BALANCE__PROPERTY}' is null");
+    }
+
+    return _Account._(
+      blockchainAddress,
+      smartContractId,
+      accountType,
+      balance,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> rawJson = <String, dynamic>{
+      _Account._SMART_CONTRACT_ID__PROPERTY: this.smartContractId,
+      _Account.__BLOCKCHAIN_ADDRESS__PROPERTY: this.blockchainAddress,
+      _Account.__ACCOUNT_TYPE__PROPERTY: this.accountType,
+      _Account.__BALANCE__PROPERTY: this.balance,
+    };
+
+    return rawJson;
+  }
+
+  static const String _SMART_CONTRACT_ID__PROPERTY = "smartContractId";
+  static const String __BLOCKCHAIN_ADDRESS__PROPERTY = "blockchainAddress";
+  static const String __ACCOUNT_TYPE__PROPERTY = "accountType";
+  static const String __BALANCE__PROPERTY = "balance";
+
+  _Account._(
+    String blockchainAddress,
+    String smartContractId,
+    AccountType accountType,
+    String balance,
+  ) : super._(
+          blockchainAddress,
+          smartContractId,
+          accountType,
+          balance,
+        );
 }

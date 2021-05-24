@@ -1,44 +1,29 @@
-import "package:flutter/material.dart" show Colors, MaterialApp, ThemeData;
 import "package:flutter/widgets.dart"
     show
-        Alignment,
         AsyncSnapshot,
-        BoxConstraints,
         BuildContext,
         Center,
         ConnectionState,
-        Container,
         FutureBuilder,
         Key,
-        MainAxisAlignment,
-        MainAxisSize,
-        Row,
         StatelessWidget,
         Text,
         Widget;
-import "package:freemework/freemework.dart" show ExecutionContext;
-import "router/crash_page.dart";
+
 import "widgets/business/crash.dart" show CrashStandalone;
 import "widgets/business/splash.dart" show SplashStandalone;
 import "package:provider/provider.dart"
     show
         ChangeNotifierProvider,
-        Consumer,
-        FutureProvider,
-        MultiProvider,
         Provider;
-import "package:provider/single_child_widget.dart" show SingleChildWidget;
 
-import 'app_router.dart';
+import "app_router.dart" show AppRouterWidget;
 import "services/crypto_service.dart" show CryptoService;
 import "services/service_factory.dart" show ServiceFactory;
 import "services/encrypted_db_service.dart" show EncryptedDbService;
 import "services/blockchain/blockchain.dart" show BlockchainService;
+import "services/job.dart" show JobService;
 import "states/app_state.dart" show AppState;
-import "widgets/business/setup_master_password.dart"
-    show SetupMasterPasswordContext, SetupMasterPasswordWidget;
-import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
-import "wizzard_key.dart" show WizzardWalletWidget;
 
 class App extends StatelessWidget {
   const App(this.serviceFactory, {Key? key}) : super(key: key);
@@ -69,7 +54,8 @@ class App extends StatelessWidget {
             create: (_) => AppState(),
             child: AppRouterWidget(
               servicesBundle.encryptedDbService,
-              servicesBundle.walletService,
+              servicesBundle.blockchainService,
+              servicesBundle.jobService,
             ),
           );
         },
@@ -78,52 +64,13 @@ class App extends StatelessWidget {
   }
 }
 
-// Widget _buildAuthenticationWidget() {
-//   return Consumer<EncryptedDbService>(
-//     builder: (
-//       BuildContext context,
-//       EncryptedDbService databaseService,
-//       Widget? child,
-//     ) {
-//       if (databaseService.isLogged) {
-//         if (databaseService.keys.length > 0) {
-//           return Text("YEYEESSPS");
-//         } else {
-//           return WizzardKeyWidget();
-//         }
-//       } else {
-//         if (!databaseService.hasDatabase) {
-//           return SetupMasterPasswordWidget(
-//             onComplete: (
-//               ExecutionContext executionContext,
-//               SetupMasterPasswordContext ctx,
-//             ) async {
-//               final String masterPassword = ctx.password;
-//               await databaseService.wipeDatabase(masterPassword);
-//             },
-//           );
-//         } else {
-//           return UnlockWidget(
-//             onComplete: (
-//               ExecutionContext executionContext,
-//               UnlockContext ctx,
-//             ) async {
-//               final String masterPassword = ctx.password;
-//               await databaseService.loginDatabase(masterPassword);
-//             },
-//           );
-//         }
-//       }
-//     },
-//   );
-// }
-
 class _ServicesBundle {
   final ServiceFactory _serviceFactory;
   Future<_ServicesBundle>? _initFuture;
   CryptoService? _cryptoService;
   EncryptedDbService? _encryptedDbService;
-  BlockchainService? _walletService;
+  BlockchainService? _blockchainService;
+  JobService? _jobService;
 
   CryptoService get cryptoService {
     assert(this._cryptoService != null);
@@ -135,9 +82,14 @@ class _ServicesBundle {
     return this._encryptedDbService!;
   }
 
-  BlockchainService get walletService {
-    assert(this._walletService != null);
-    return this._walletService!;
+  BlockchainService get blockchainService {
+    assert(this._blockchainService != null);
+    return this._blockchainService!;
+  }
+
+  JobService get jobService {
+    assert(this._jobService != null);
+    return this._jobService!;
   }
 
   Future<_ServicesBundle> init() {
@@ -151,19 +103,23 @@ class _ServicesBundle {
   _ServicesBundle(this._serviceFactory)
       : this._cryptoService = null,
         this._encryptedDbService = null,
-        this._walletService = null;
+        this._blockchainService = null;
 
   Future<_ServicesBundle> _init() async {
     final CryptoService cryptoService =
         await this._serviceFactory.createCryptoService();
     final EncryptedDbService encryptedDbService =
         await this._serviceFactory.createEncryptedDbService(cryptoService);
-    final BlockchainService walletService =
+    final BlockchainService blockchainService =
         await this._serviceFactory.createBlockchainService();
+    final JobService jobService = await this
+        ._serviceFactory
+        .createJobService(blockchainService, encryptedDbService);
 
     this._cryptoService = cryptoService;
     this._encryptedDbService = encryptedDbService;
-    this._walletService = walletService;
+    this._blockchainService = blockchainService;
+    this._jobService = jobService;
 
     return this;
   }

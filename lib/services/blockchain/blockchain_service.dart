@@ -14,15 +14,20 @@
 
 import "package:freemework/errors/InvalidOperationException.dart"
     show InvalidOperationException;
+
 import "../../clients/tonclient/tonclient.dart" as TON;
 
+import "../../data/account_info.dart" show AccountInfo;
 import "../../data/key_pair.dart" show KeyPair;
-import "../../data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
+import "../../data/mnemonic_phrase.dart"
+    show MnemonicPhrase, MnemonicPhraseLength;
 
 abstract class BlockchainService {
   Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
-  Future<Object> getDeployData(KeyPair keyPair);
+  Future<String> generateAddress(
+      String publicKey, String smartContractABI, String smartContractTVCBase64);
+  Future<AccountInfo> getAccountInformation(String accountAddress);
 }
 
 class BlockchainServiceImpl extends BlockchainService {
@@ -69,13 +74,18 @@ class BlockchainServiceImpl extends BlockchainService {
   }
 
   @override
-  Future<Object> getDeployData(KeyPair walletKeyPair) async {
-    final TON.KeyPair keyPair = TON.KeyPair(
-      public: walletKeyPair.public,
-      secret: walletKeyPair.secret,
-    );
-    final TON.DeployData res = await this._tonClient.getDeployData(keyPair);
-    print(res);
-    return res;
+  Future<String> generateAddress(String publicKey, String smartContractABI,
+      String smartContractTVCBase64) async {
+    final String address = await this
+        ._tonClient
+        .getDeployData(publicKey, smartContractABI, smartContractTVCBase64);
+    return address;
+  }
+
+  @override
+  Future<AccountInfo> getAccountInformation(String accountAddress) async {
+    final TON.AccountInfo accountInfo =
+        await this._tonClient.getAccountInformation(accountAddress);
+    return AccountInfo(accountInfo.balance, accountInfo.codeHash);
   }
 }

@@ -14,12 +14,15 @@
 
 import "dart:typed_data" show Uint8List;
 
+import 'package:freeton_wallet/services/blockchain/blockchain.dart';
+
 import "tonlabs.safemultisigwallet.20200501/index.dart" as safemultisigwallet;
 import "tonlabs.setcodemultisigwallet.20200506/index.dart"
     as setcodemultisigwallet;
 
 class SmartContract {
   static const SmartContract SafeMultisigWallet = SmartContract(
+      "tonlabs.safemultisigwallet.20200501",
       "TON Labs Safe Multisignature Wallet 20200501",
       """Multisignature wallet is a crypto wallet on the blockchain, which supports multiple owners (custodians), who are authorized to manage the wallet.
 
@@ -38,6 +41,7 @@ Available actions in TONOS-CLI include the following:
       "https://github.com/tonlabs/ton-labs-contracts/tree/776bc3d614ded58330577167313a9b4f80767f41/solidity/safemultisig");
 
   static const SmartContract SetcodeMultisigWallet = SmartContract(
+      "tonlabs.setcodemultisigwallet.20200506",
       "TON Labs Setcode Multisignature Wallet 20200506",
       """SetcodeMultisigWallet - multisignature wallet with setcode.
 
@@ -62,9 +66,15 @@ Available actions in TONOS-CLI include the following:
     SetcodeMultisigWallet,
   ];
 
+  static SmartContract getById(String smartContractId) {
+    return ALL.singleWhere(
+        (SmartContract smartContract) => smartContract.id == smartContractId);
+  }
+
+  final String id;
   final String name;
   final String descriptionMarkdown;
-  final String api;
+  final String abi;
 
   Uint8List get tvc => Uint8List.fromList(this._tvc);
   Uri? get referenceUri {
@@ -75,9 +85,10 @@ Available actions in TONOS-CLI include the following:
   final List<int> _tvc;
   final String? _referenceUri;
   const SmartContract(
+    this.id,
     this.name,
     this.descriptionMarkdown,
-    this.api,
+    this.abi,
     this._tvc, [
     this._referenceUri = null,
   ]);

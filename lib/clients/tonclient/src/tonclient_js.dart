@@ -5,12 +5,12 @@ import 'dart:html';
 import "dart:js_util" show getProperty, hasProperty, newObject, promiseToFuture;
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException, InvalidOperationException;
-import 'package:freeton_wallet/clients/tonclient/src/models/deployData.dart';
 import "package:js/js.dart";
 import "package:js/js_util.dart"
     show getProperty, hasProperty, newObject, promiseToFuture, setProperty;
 import '../contract.dart';
-import "models/keyPair.dart" show KeyPair;
+import 'models/account_info.dart';
+import 'models/keypair.dart' show KeyPair;
 import '../contract.dart'
     show AbstractTonClient, InteropContractException, TonClientException;
 
@@ -21,10 +21,14 @@ class _TONClientFacadeInterop {
   external dynamic init();
   external dynamic generateMnemonicPhraseSeed(int wordsCount);
   external dynamic deriveKeyPair(String seedMnemonicPhrase, int wordsCount);
-  external dynamic getDeployData(dynamic keys);
+  external dynamic getDeployData(
+    String publicKey,
+    String smartContractABI,
+    String smartContractTVCBase64,
+  );
   external dynamic calcDeployFees(dynamic keys);
   external dynamic deployContract(dynamic keys);
-  external dynamic getAccountData(String address);
+  external dynamic getAccountInformation(String accountAddress);
 }
 
 class TonClient extends AbstractTonClient {
@@ -35,6 +39,9 @@ class TonClient extends AbstractTonClient {
 
   static const String _KEYPAIR_PUBLIC_PROPERTY_NAME = "public";
   static const String _KEYPAIR_SECRET_PROPERTY_NAME = "secret";
+
+  static const String _ACCOUNTINFO_BALANCE_PROPERTY_NAME = "balance";
+  static const String _ACCOUNTINFO_CODEHASH_PROPERTY_NAME = "codeHash";
 
   static const String _DEPLOY_ACCOUNTID_PROPERTY_NAME = "accountId";
   static const String _DEPLOY_ADDRESS_PROPERTY_NAME = "address";
@@ -76,42 +83,49 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<DeployData> getDeployData(KeyPair keys) async {
-    dynamic nativeJsObject = newObject();
-    setProperty(
-        nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
-    setProperty(
-        nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
+  Future<String> getDeployData(
+    String publicKey,
+    String smartContractABI,
+    String smartContractTVCBase64,
+  ) async {
+    // dynamic nativeJsObject = newObject();
+    // setProperty(
+    //     nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
+    // setProperty(
+    //     nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
     try {
-      final dynamic jsData =
-          await promiseToFuture(this._wrap.getDeployData(nativeJsObject));
+      final String jsData = await promiseToFuture(this._wrap.getDeployData(
+            publicKey,
+            smartContractABI,
+            smartContractTVCBase64,
+          ));
 
-      if (!hasProperty(jsData, TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME)) {
-        throw InteropContractException(
-            TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME);
-      }
+      // if (!hasProperty(jsData, TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME)) {
+      //   throw InteropContractException(
+      //       TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME);
+      // }
 
-      if (!hasProperty(jsData, TonClient._DEPLOY_ADDRESS_PROPERTY_NAME)) {
-        throw InteropContractException(TonClient._DEPLOY_ADDRESS_PROPERTY_NAME);
-      }
+      // if (!hasProperty(jsData, TonClient._DEPLOY_ADDRESS_PROPERTY_NAME)) {
+      //   throw InteropContractException(TonClient._DEPLOY_ADDRESS_PROPERTY_NAME);
+      // }
 
-      if (!hasProperty(jsData, TonClient._DEPLOY_DATA_PROPERTY_NAME)) {
-        throw InteropContractException(TonClient._DEPLOY_DATA_PROPERTY_NAME);
-      }
+      // if (!hasProperty(jsData, TonClient._DEPLOY_DATA_PROPERTY_NAME)) {
+      //   throw InteropContractException(TonClient._DEPLOY_DATA_PROPERTY_NAME);
+      // }
 
-      if (!hasProperty(jsData, TonClient._DEPLOY_IMAGE_PROPERTY_NAME)) {
-        throw InteropContractException(TonClient._DEPLOY_IMAGE_PROPERTY_NAME);
-      }
+      // if (!hasProperty(jsData, TonClient._DEPLOY_IMAGE_PROPERTY_NAME)) {
+      //   throw InteropContractException(TonClient._DEPLOY_IMAGE_PROPERTY_NAME);
+      // }
 
-      DeployData deployData = DeployData(
-          accountId:
-              getProperty(jsData, TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME),
-          address: getProperty(jsData, TonClient._DEPLOY_ADDRESS_PROPERTY_NAME),
-          dataBase64: getProperty(jsData, TonClient._DEPLOY_DATA_PROPERTY_NAME),
-          imageBase64:
-              getProperty(jsData, TonClient._DEPLOY_IMAGE_PROPERTY_NAME));
+      // DeployData deployData = DeployData(
+      //     accountId:
+      //         getProperty(jsData, TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME),
+      //     address: getProperty(jsData, TonClient._DEPLOY_ADDRESS_PROPERTY_NAME),
+      //     dataBase64: getProperty(jsData, TonClient._DEPLOY_DATA_PROPERTY_NAME),
+      //     imageBase64:
+      //         getProperty(jsData, TonClient._DEPLOY_IMAGE_PROPERTY_NAME));
 
-      return deployData;
+      return jsData;
     } catch (e) {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
@@ -153,11 +167,17 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<dynamic> getAccountData(String address) async {
+  Future<AccountInfo> getAccountInformation(String accountAddress) async {
     try {
-      final dynamic jsData =
-          await promiseToFuture(this._wrap.getAccountData(address));
-      return jsData;
+      final dynamic jsData = await promiseToFuture(
+          this._wrap.getAccountInformation(accountAddress));
+
+      final String balance =
+          getProperty(jsData, TonClient._ACCOUNTINFO_BALANCE_PROPERTY_NAME);
+      final String codeHash =
+          getProperty(jsData, TonClient._ACCOUNTINFO_CODEHASH_PROPERTY_NAME);
+
+      return AccountInfo(balance, codeHash);
     } catch (e) {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));

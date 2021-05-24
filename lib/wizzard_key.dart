@@ -1,3 +1,17 @@
+// Copyright 2021 Free TON Wallet Team
+
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+
+// 	http://www.apache.org/licenses/LICENSE-2.0
+
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 import "package:flutter/widgets.dart";
 import "package:freemework/freemework.dart" show ExecutionContext;
 
@@ -5,7 +19,11 @@ import "data/key_pair.dart" show KeyPair;
 import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "services/blockchain/blockchain.dart" show BlockchainService;
 import "wizzard_key_new.dart" show WizzardWalletNewWidget;
-import "wizzard_key_restore.dart" show WizzardKeyRestoreWidget;
+import "wizzard_key_restore.dart"
+    show
+        WizzardKeyRestoreMnemonicPhraseResult,
+        WizzardKeyRestoreResult,
+        WizzardKeyRestoreWidget;
 import "widgets/business/import_mode_selector.dart"
     show ImportMode, ImportModeSelectorContext, ImportModeSelectorWidget;
 
@@ -47,17 +65,34 @@ class _WizzardWalletWidgetState extends State<WizzardWalletWidget> {
           this.widget._blockchainService,
           onComplete: (String walletName, MnemonicPhrase mnemonicPhrase) async {
             await Future<void>.delayed(Duration(seconds: 1));
-            final KeyPair keyPair =
-                await this.widget._blockchainService.deriveKeyPair(mnemonicPhrase);
-            print("Calling this.widget._walletService.getDeployData ...");
-            final Object dd =
-                await this.widget._blockchainService.getDeployData(keyPair);
-            print("getDeployData return ${dd}");
-            await this.widget._onComplete(walletName, keyPair, mnemonicPhrase);
+            final KeyPair keyPair = await this
+                .widget
+                ._blockchainService
+                .deriveKeyPair(mnemonicPhrase);
+            await this.widget._onComplete(
+                  walletName,
+                  keyPair,
+                  mnemonicPhrase,
+                );
           },
         );
       case ImportMode.RESTORE:
-        return WizzardKeyRestoreWidget();
+        return WizzardKeyRestoreWidget(
+          onComplete: (WizzardKeyRestoreResult restoreResult) async {
+            await Future<void>.delayed(Duration(seconds: 1));
+            if (restoreResult is WizzardKeyRestoreMnemonicPhraseResult) {
+              final KeyPair keyPair = await this
+                  .widget
+                  ._blockchainService
+                  .deriveKeyPair(restoreResult.mnemonicPhrase);
+              await this.widget._onComplete(
+                    restoreResult.walletName,
+                    keyPair,
+                    restoreResult.mnemonicPhrase,
+                  );
+            }
+          },
+        );
       default:
         return ImportModeSelectorWidget(
           onComplete: (

@@ -53,9 +53,9 @@ import "../toolchain/dialog_widget.dart"
         DialogWidget;
 
 class EnterWalletNameContext {
-  final String walletName;
+  final String keyName;
 
-  EnterWalletNameContext(this.walletName);
+  EnterWalletNameContext(this.keyName);
 }
 
 class EnterWalletNameWidget extends StatelessWidget {
@@ -155,7 +155,7 @@ class _EnterWalletNameActiveWidgetState
     final EnterWalletNameContext? dataContextInit =
         DialogWidget.of<EnterWalletNameContext>(this.context).dataContextInit;
     if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.walletName;
+      this._actionTextEditingController.text = dataContextInit.keyName;
     }
     super.initState();
   }
@@ -171,7 +171,7 @@ class _EnterWalletNameActiveWidgetState
     final EnterWalletNameContext? dataContextInit =
         DialogWidget.of<EnterWalletNameContext>(this.context).dataContextInit;
     if (dataContextInit != null) {
-      this._actionTextEditingController.text = dataContextInit.walletName;
+      this._actionTextEditingController.text = dataContextInit.keyName;
     }
 
     return _EnterWalletNameWidget._buildContainer(

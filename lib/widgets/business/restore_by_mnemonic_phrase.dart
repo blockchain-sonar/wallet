@@ -34,8 +34,10 @@ import "package:flutter/widgets.dart"
         Container,
         EdgeInsets,
         Expanded,
+        Flexible,
         FontWeight,
         Icon,
+        IconData,
         Key,
         MainAxisAlignment,
         Padding,
@@ -59,36 +61,40 @@ import "../toolchain/dialog_widget.dart"
         DialogHostCallback,
         DialogWidget;
 
-class RestoreByMnemonicPhraseWidget extends StatelessWidget {
-  final String _mnemonicPhrase;
-  final DialogHostCallback<void> _onComplete;
+class RestoreByMnemonicPhraseContext {
+  final List<String> mnemonicPhraseWords;
 
-  RestoreByMnemonicPhraseWidget(
-    String mnemonicPhrase, {
-    required DialogHostCallback<void> onComplete,
-  })   : this._onComplete = onComplete,
-        this._mnemonicPhrase = mnemonicPhrase;
+  RestoreByMnemonicPhraseContext(this.mnemonicPhraseWords);
+}
+
+class RestoreByMnemonicPhraseWidget extends StatelessWidget {
+  final RestoreByMnemonicPhraseContext? _dataContextInit;
+  final DialogHostCallback<RestoreByMnemonicPhraseContext> _onComplete;
+
+  RestoreByMnemonicPhraseWidget({
+    required DialogHostCallback<RestoreByMnemonicPhraseContext> onComplete,
+    RestoreByMnemonicPhraseContext? dataContextInit,
+  })  : this._onComplete = onComplete,
+        this._dataContextInit = dataContextInit;
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<void>(
+    return DialogWidget<RestoreByMnemonicPhraseContext>(
       onComplete: this._onComplete,
-      child: _RestoreByMnemonicPhraseWidget(this._mnemonicPhrase),
+      dataContextInit: this._dataContextInit,
+      child: _RestoreByMnemonicPhraseWidget(),
     );
   }
 }
 
-class _RestoreByMnemonicPhraseWidget extends DialogActionContentWidget<void> {
-  final String _mnemonicPhrase;
-
-  _RestoreByMnemonicPhraseWidget(String mnemonicPhrase)
-      : this._mnemonicPhrase = mnemonicPhrase;
+class _RestoreByMnemonicPhraseWidget
+    extends DialogActionContentWidget<RestoreByMnemonicPhraseContext> {
   @override
   Widget buildActive(
     BuildContext context, {
-    required DialogCallback<void> onComplete,
+    required DialogCallback<RestoreByMnemonicPhraseContext> onComplete,
   }) =>
-      _RestoreByMnemonicPhraseActiveWidget(this._mnemonicPhrase, onComplete);
+      _RestoreByMnemonicPhraseActiveWidget(onComplete);
 
   @override
   Widget buildBusy(
@@ -148,16 +154,11 @@ class _RestoreByMnemonicPhraseWidget extends DialogActionContentWidget<void> {
 }
 
 class _RestoreByMnemonicPhraseActiveWidget extends StatefulWidget {
-  final DialogCallback<void> onComplete;
-
-  final String _mnemonicPhrase;
-
+  final DialogCallback<RestoreByMnemonicPhraseContext> onComplete;
   _RestoreByMnemonicPhraseActiveWidget(
-    String mnemonicPhrase,
     this.onComplete, {
     Key? key,
-  })  : this._mnemonicPhrase = mnemonicPhrase,
-        super(key: key);
+  }) : super(key: key);
 
   @override
   _RestoreByMnemonicPhraseActiveWidgetState createState() =>
@@ -168,6 +169,24 @@ class _RestoreByMnemonicPhraseActiveWidgetState
     extends State<_RestoreByMnemonicPhraseActiveWidget> {
   final TextEditingController _actionTextEditingController =
       TextEditingController();
+
+  @override
+  void initState() {
+    final RestoreByMnemonicPhraseContext? dataContextInit =
+        DialogWidget.of<RestoreByMnemonicPhraseContext>(this.context)
+            .dataContextInit;
+    if (dataContextInit != null) {
+      this._actionTextEditingController.text =
+          dataContextInit.mnemonicPhraseWords.join(" ");
+    }
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    this._actionTextEditingController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +216,7 @@ class _RestoreByMnemonicPhraseActiveWidgetState
                     controller: this._actionTextEditingController,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(),
-                      hintText: "Private Key",
+                      hintText: "Mnemonic phrase",
                     ),
                   ),
                 ),
@@ -207,10 +226,8 @@ class _RestoreByMnemonicPhraseActiveWidgetState
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            if (this.widget._mnemonicPhrase ==
-                this._actionTextEditingController.text) {
-              widget.onComplete(null);
-            }
+            widget.onComplete(RestoreByMnemonicPhraseContext(
+                this._actionTextEditingController.text.split(" ")));
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

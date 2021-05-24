@@ -19,14 +19,17 @@ import "package:flutter/widgets.dart"
 import 'package:provider/provider.dart';
 
 import "../services/encrypted_db_service.dart" show EncryptedDbService;
+import "../services/job.dart" show JobService;
 import "../states/app_state.dart" show AppState;
-import "../widgets/business/main_wallets.dart" show MainWalletsDeployContractCallback;
+import "../widgets/business/main_wallets.dart"
+    show MainWalletsDeployContractCallback;
 import "../widgets/business/main_tab.dart" show MainTab;
 import "../widgets/business/main.dart" show MainWidget;
 import "app_route_data.dart" show AppRouteDataMain;
 
 class MainPage extends Page<AppRouteDataMain> {
   //final AppState _appState;
+  final JobService jobService;
   final EncryptedDbService _encryptedDbService;
   final void Function() _onSelectHome;
   final void Function() _onSelectWallets;
@@ -39,6 +42,7 @@ class MainPage extends Page<AppRouteDataMain> {
     this._routeDataMain,
     //this._appState,
     this._encryptedDbService, {
+    required this.jobService,
     required void Function() onSelectHome,
     required void Function() onSelectWallets,
     required void Function() onSelectSetting,
@@ -73,6 +77,7 @@ class MainPage extends Page<AppRouteDataMain> {
             appState,
             this._encryptedDbService,
             this._routeDataMain.selectedTab,
+            jobService: this.jobService,
             onSelectHome: this._onSelectHome,
             onSelectSettings: this._onSelectSettings,
             onSelectWallets: this._onSelectWallets,

@@ -17,9 +17,10 @@ import 'dart:async';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:freeton_wallet/misc/void_callback_host.dart';
-import 'package:freeton_wallet/widgets/business/main_wallets.dart';
+import "main_wallets.dart" show MainWalletsDeployContractCallback, MainWalletsWidget;
 
 import "../../services/encrypted_db_service.dart" show EncryptedDbService;
+import "../../services/job.dart" show JobService;
 import "../../states/app_state.dart" show AppState;
 import "main_tab.dart" show MainTab;
 
@@ -70,6 +71,7 @@ class MainWidget extends StatelessWidget {
   final AppState _appState;
   final EncryptedDbService _encryptedDbService;
   final int _selectedIndex;
+  final JobService jobService;
   final void Function() onSelectHome;
   final void Function() onSelectWallets;
   final void Function() onSelectSettings;
@@ -80,6 +82,7 @@ class MainWidget extends StatelessWidget {
     this._appState,
     this._encryptedDbService,
     MainTab selectedTab, {
+    required this.jobService,
     required this.onSelectHome,
     required this.onSelectWallets,
     required this.onSelectSettings,
@@ -107,6 +110,7 @@ class MainWidget extends StatelessWidget {
         return MainWalletsWidget(
           this._appState,
           bottomNavigationBar,
+          jobService: this.jobService,
           onAddNewKey: this.onAddNewKey,
           onDeployContract: this.onDeployContract,
         );

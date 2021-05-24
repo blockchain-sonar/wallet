@@ -3,5 +3,5 @@ export "src/tonclient_emulator.dart" // Default emulator implementation
     if (dart.library.io) "src/tonclient_io.dart" // dart:io implementation
     if (dart.library.html) "src/tonclient_js.dart"; // dart:html implementation
 
-export "src/models/deployData.dart";
-export "src/models/keyPair.dart";
+export "src/models/account_info.dart";
+export "src/models/keypair.dart";

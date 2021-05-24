@@ -15,23 +15,33 @@
 import "dart:async" show Completer, Future;
 
 import "package:freemework/freemework.dart" show ExecutionContext;
+import 'package:freeton_wallet/services/job.dart';
 
 import "../clients/tonclient/tonclient.dart" show TonClient;
 
 import "encrypted_db_service.dart"
     show EncryptedDbService, LocalStorageEncryptedDbService;
 import "crypto_service.dart" show CryptoService, PointyCastleCryptoService;
-import "blockchain/blockchain.dart" show BlockchainService, BlockchainServiceImpl;
+import "blockchain/blockchain.dart"
+    show BlockchainService, BlockchainServiceImpl;
 
 abstract class ServiceFactory {
-  EncryptedDbService createEncryptedDbService(CryptoService cryptoService);
+  EncryptedDbService createEncryptedDbService(
+    CryptoService cryptoService,
+  );
   CryptoService createCryptoService();
   Future<BlockchainService> createBlockchainService();
+  JobService createJobService(
+    BlockchainService blockchainService,
+    EncryptedDbService encryptedDbService,
+  );
 }
 
 class ServiceFactoryProductive extends ServiceFactory {
   @override
-  EncryptedDbService createEncryptedDbService(CryptoService cryptoService) =>
+  EncryptedDbService createEncryptedDbService(
+    CryptoService cryptoService,
+  ) =>
       LocalStorageEncryptedDbService(cryptoService);
 
   @override
@@ -60,4 +70,14 @@ class ServiceFactoryProductive extends ServiceFactory {
 
     return this.__tonClient = tonClientCompleter.future;
   }
+
+  @override
+  JobService createJobService(
+    BlockchainService blockchainService,
+    EncryptedDbService encryptedDbService,
+  ) =>
+      JobServiceImpl(
+        blockchainService: blockchainService,
+        encryptedDbService: encryptedDbService,
+      );
 }

@@ -75,9 +75,9 @@ class AppRouteDataMain extends AppRouteData {
     } else if (routeUri.path.startsWith(_PATH_WALLET_DEPLOY) &&
         routeUri.pathSegments.length == 4) {
       final String keypairName = routeUri.pathSegments[2];
-      final String contractName = routeUri.pathSegments[3];
-      final SmartContract smartContract = SmartContract.ALL
-          .firstWhere((SmartContract element) => element.name == contractName);
+      final String smartContractId = routeUri.pathSegments[3];
+      final SmartContract smartContract =
+          SmartContract.getById(smartContractId);
       return AppRouteDataMainWallets(keypairName, smartContract);
     }
     return null;
