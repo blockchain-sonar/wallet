@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart" show AppBar, BuildContext, Card, Center, Colors, Column, CrossAxisAlignment, EdgeInsets, ElevatedButton, FontWeight, InkWell, Padding, Scaffold, SizedBox, StatelessWidget, Text, TextStyle, Widget;
 import "package:flutter/widgets.dart"
-    show BuildContext, Column, Container, StatelessWidget, Text, Widget;
-import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:url_launcher/url_launcher.dart';
+    show BuildContext, Column, StatelessWidget, Text, Widget;
+import "package:url_launcher/url_launcher.dart" show launch;
 
 import "../../services/blockchain/smart_contract.dart" show SmartContract;
 
@@ -45,7 +44,7 @@ class SelectSmartContractWidget extends StatelessWidget {
                     child: InkWell(
                       splashColor: Colors.blue.withAlpha(30),
                       onTap: () {
-                        print('Card tapped.');
+                        print("Card tapped.");
                       },
                       child: SizedBox(
                         width: double.infinity,
