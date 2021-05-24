@@ -12,7 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "package:flutter/material.dart" show AppBar, BuildContext, Card, Center, Colors, Column, CrossAxisAlignment, EdgeInsets, ElevatedButton, FontWeight, InkWell, Padding, Scaffold, SizedBox, StatelessWidget, Text, TextStyle, Widget;
+import "package:flutter/material.dart"
+    show
+        AppBar,
+        BuildContext,
+        Card,
+        Center,
+        Colors,
+        Column,
+        CrossAxisAlignment,
+        EdgeInsets,
+        ElevatedButton,
+        FontWeight,
+        InkWell,
+        Padding,
+        Scaffold,
+        SizedBox,
+        StatelessWidget,
+        Text,
+        TextStyle,
+        Widget;
 import "package:flutter/widgets.dart"
     show BuildContext, Column, StatelessWidget, Text, Widget;
 import "package:url_launcher/url_launcher.dart" show launch;
@@ -39,12 +58,12 @@ class SelectSmartContractWidget extends StatelessWidget {
       body: Column(
         children: <Widget>[
           ...this.smartContracts.map(
-                (SmartContract e) => Center(
+                (SmartContract smartContract) => Center(
                   child: Card(
                     child: InkWell(
                       splashColor: Colors.blue.withAlpha(30),
                       onTap: () {
-                        print("Card tapped.");
+                        this.onComplete(smartContract);
                       },
                       child: SizedBox(
                         width: double.infinity,
@@ -55,7 +74,7 @@ class SelectSmartContractWidget extends StatelessWidget {
                             children: <Widget>[
                               Center(
                                 child: Text(
-                                  e.name,
+                                  smartContract.name,
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 18,
@@ -67,8 +86,8 @@ class SelectSmartContractWidget extends StatelessWidget {
                                   top: 10,
                                 ),
                                 child: ElevatedButton(
-                                  onPressed: () =>
-                                      launch(e.referenceUri.toString()),
+                                  onPressed: () => launch(
+                                      smartContract.referenceUri.toString()),
                                   child: Text("More..."),
                                 ),
                               ),

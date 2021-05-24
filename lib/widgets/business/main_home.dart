@@ -15,9 +15,33 @@
 import "dart:convert" show json;
 import "dart:math" show max, min;
 import "package:fl_chart/fl_chart.dart"
-    show FlGridData, FlLine, FlSpot, LineChart, LineChartBarData, LineChartData;
-import 'package:flutter/material.dart';
-import 'package:freeton_wallet/app.dart';
+    show
+        BarAreaData,
+        FlGridData,
+        FlLine,
+        FlSpot,
+        LineChart,
+        LineChartBarData,
+        LineChartData;
+import "package:flutter/material.dart"
+    show
+        AppBar,
+        BuildContext,
+        Colors,
+        Column,
+        EdgeInsets,
+        Expanded,
+        MainAxisAlignment,
+        MaterialColor,
+        Padding,
+        Row,
+        Scaffold,
+        SizedBox,
+        State,
+        StatefulWidget,
+        Text,
+        TextButton,
+        Widget;
 import "package:http/http.dart" as http;
 import "package:flutter/material.dart"
     show
@@ -36,23 +60,31 @@ import "package:flutter/material.dart"
         TextButton,
         Widget;
 
-class Home extends StatefulWidget {
+class ChartWidget extends StatefulWidget {
   @override
-  _HomeState createState() => _HomeState();
+  _ChartWidgetState createState() => _ChartWidgetState();
 }
 
-class _HomeState extends State<Home> {
+class _ChartWidgetState extends State<ChartWidget> {
   List<ChartDataRow> chartData = [];
 
   void fetchData(String currency1, String currency2) async {
-    Uri url = Uri.parse("https://cex.io/api/price_stats/TON/USD");
-    print(url.toString());
+    Uri url =
+        Uri.parse("https://cex.io/api/price_stats/${currency1}/${currency2}");
+
     http.Response response = await http.post(url,
         body: <String, String>{"lastHours": "24", "maxRespArrSize": "100"});
     List<ChartDataRow> chartDataRows = (json.decode(response.body)
             as List<dynamic>)
         .map((dynamic e) => ChartDataRow.fromJson(e as Map<String, dynamic>))
         .toList();
+    List<ChartDataRow> filteredChartDataRows = <ChartDataRow>[];
+    // for (int index = 1; index < chartDataRows.length - 1; index++) {
+    //   if (chartDataRows[index].price != chartDataRows[index - 1].price ||
+    //       chartDataRows[index].price != chartDataRows[index + 1].price) {
+    //     filteredChartDataRows.add(chartDataRows[index]);
+    //   }
+    // }
     this.setState(() {
       chartData = chartDataRows;
     });
@@ -66,11 +98,11 @@ class _HomeState extends State<Home> {
 
   double get chartMinY => this.chartData.length == 0
       ? 0
-      : this.chartData.map((ChartDataRow e) => e.price).reduce(min) * 0.98;
+      : this.chartData.map((ChartDataRow e) => e.price).reduce(min) * 0.99;
 
   double get chartMaxY => this.chartData.length == 0
       ? 1
-      : this.chartData.map((ChartDataRow e) => e.price).reduce(max) * 1.02;
+      : this.chartData.map((ChartDataRow e) => e.price).reduce(max) * 1.01;
 
   @override
   Widget build(BuildContext context) {
@@ -97,13 +129,13 @@ class _HomeState extends State<Home> {
                 ),
               ),
               TextButton(
-                onPressed: () => this.fetchData("TON", "BTC"),
+                onPressed: () => this.fetchData("TON", "USDT"),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
                     vertical: 5,
                     horizontal: 10,
                   ),
-                  child: Text("BTC"),
+                  child: Text("USDT"),
                 ),
               ),
               TextButton(
@@ -118,8 +150,7 @@ class _HomeState extends State<Home> {
               ),
             ],
           ),
-          SizedBox(
-            height: 500,
+          Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: 10,
@@ -138,12 +169,9 @@ class _HomeState extends State<Home> {
                   lineBarsData: <LineChartBarData>[
                     LineChartBarData(
                       spots: this.chartData.map((e) => e.chartData).toList(),
-                      isCurved: true,
-                      colors: [
-                        Colors.red,
-                        Colors.green,
-                      ],
-                      barWidth: 5,
+                      // isCurved: true,
+                      colors: <MaterialColor>[Colors.blue, Colors.cyan],
+                      barWidth: 3,
                     ),
                   ],
                 ),
