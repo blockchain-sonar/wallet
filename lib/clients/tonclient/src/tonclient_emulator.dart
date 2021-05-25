@@ -53,7 +53,7 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<AccountInfo> getAccountInformation(String accountAddress) {
+  Future<AccountInfo?> fetchAccountInformation(String accountAddress) {
     // TODO: implement getAccountData
     throw UnimplementedError();
   }

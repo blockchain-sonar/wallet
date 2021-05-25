@@ -13,6 +13,8 @@
 // limitations under the License.
 
 class AccountInfo {
+  static const AccountInfo EMPTY = AccountInfo("0.000000000", "");
+
   final String balance;
   final String codeHash;
 

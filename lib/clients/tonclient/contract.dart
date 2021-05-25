@@ -22,7 +22,7 @@ abstract class AbstractTonClient {
 
   Future<dynamic> deployContract(KeyPair keys);
 
-  Future<AccountInfo> getAccountInformation(String accountAddress);
+  Future<AccountInfo?> fetchAccountInformation(String accountAddress);
 }
 
 ///

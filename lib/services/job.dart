@@ -79,7 +79,7 @@ class AccountsActivationJob extends Job {
       print(accountAddress);
 
       final AccountInfo accountData =
-          await this._blockchainService.getAccountInformation(accountAddress);
+          await this._blockchainService.fetchAccountInformation(accountAddress);
 
       print(accountData);
 

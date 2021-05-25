@@ -28,7 +28,7 @@ class _TONClientFacadeInterop {
   );
   external dynamic calcDeployFees(dynamic keys);
   external dynamic deployContract(dynamic keys);
-  external dynamic getAccountInformation(String accountAddress);
+  external dynamic fetchAccountInformation(String accountAddress);
 }
 
 class TonClient extends AbstractTonClient {
@@ -167,10 +167,14 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<AccountInfo> getAccountInformation(String accountAddress) async {
+  Future<AccountInfo?> fetchAccountInformation(String accountAddress) async {
     try {
       final dynamic jsData = await promiseToFuture(
-          this._wrap.getAccountInformation(accountAddress));
+          this._wrap.fetchAccountInformation(accountAddress));
+
+      if(jsData == null) {
+        return null;
+      }
 
       final String balance =
           getProperty(jsData, TonClient._ACCOUNTINFO_BALANCE_PROPERTY_NAME);

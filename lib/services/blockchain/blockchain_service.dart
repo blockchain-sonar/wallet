@@ -27,7 +27,7 @@ abstract class BlockchainService {
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
   Future<String> generateAddress(
       String publicKey, String smartContractABI, String smartContractTVCBase64);
-  Future<AccountInfo> getAccountInformation(String accountAddress);
+  Future<AccountInfo> fetchAccountInformation(String accountAddress);
 }
 
 class BlockchainServiceImpl extends BlockchainService {
@@ -83,9 +83,12 @@ class BlockchainServiceImpl extends BlockchainService {
   }
 
   @override
-  Future<AccountInfo> getAccountInformation(String accountAddress) async {
-    final TON.AccountInfo accountInfo =
-        await this._tonClient.getAccountInformation(accountAddress);
-    return AccountInfo(accountInfo.balance, accountInfo.codeHash);
+  Future<AccountInfo> fetchAccountInformation(String accountAddress) async {
+    final TON.AccountInfo? accountInfo =
+        await this._tonClient.fetchAccountInformation(accountAddress);
+    if (accountInfo != null) {
+      return AccountInfo(accountInfo.balance, accountInfo.codeHash);
+    }
+    return AccountInfo.EMPTY;
   }
 }
