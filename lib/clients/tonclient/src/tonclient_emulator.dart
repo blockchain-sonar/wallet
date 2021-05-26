@@ -1,7 +1,7 @@
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'package:freeton_wallet/clients/tonclient/src/models/keypair.dart';
 
 import 'models/account_info.dart';
+import "models/key_pair.dart";
 import '../contract.dart' show AbstractTonClient, SeedType;
 
 class TonClient extends AbstractTonClient {

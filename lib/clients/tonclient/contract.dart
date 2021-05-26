@@ -1,7 +1,7 @@
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
 import "src/models/account_info.dart" show AccountInfo;
-import 'src/models/keypair.dart' show KeyPair;
+import "src/models/key_pair.dart" show KeyPair;
 
 enum SeedType {
   SHORT,

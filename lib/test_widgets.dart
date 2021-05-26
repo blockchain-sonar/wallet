@@ -16,7 +16,7 @@ import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
 import 'package:freeton_wallet/widgets/business/confirm_mnemonic.dart';
-import 'clients/tonclient/src/models/keypair.dart';
+import 'clients/tonclient/src/models/key_pair.dart';
 import 'clients/tonclient/tonclient.dart';
 import 'widgets/business/import_mode_selector.dart'
     show ImportModeSelectorContext, ImportModeSelectorWidget;

@@ -1,17 +1,16 @@
 @JS()
 library tonclient;
 
-import 'dart:html';
 import "dart:js_util" show getProperty, hasProperty, newObject, promiseToFuture;
 import "package:freemework/freemework.dart"
-    show ExecutionContext, FreemeworkException, InvalidOperationException;
+    show ExecutionContext, InvalidOperationException;
 import "package:js/js.dart";
 import "package:js/js_util.dart"
     show getProperty, hasProperty, newObject, promiseToFuture, setProperty;
-import '../contract.dart';
-import 'models/account_info.dart';
-import 'models/keypair.dart' show KeyPair;
-import '../contract.dart'
+import "../contract.dart";
+import "models/account_info.dart" show AccountInfo;
+import "models/key_pair.dart" show KeyPair;
+import "../contract.dart"
     show AbstractTonClient, InteropContractException, TonClientException;
 
 // The `TONClientFacade` constructor invokes JavaScript `new window.TONClientFacade()`

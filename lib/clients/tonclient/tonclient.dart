@@ -4,4 +4,4 @@ export "src/tonclient_emulator.dart" // Default emulator implementation
     if (dart.library.html) "src/tonclient_js.dart"; // dart:html implementation
 
 export "src/models/account_info.dart";
-export "src/models/keypair.dart";
+export "src/models/key_pair.dart";
