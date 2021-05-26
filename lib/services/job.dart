@@ -17,7 +17,12 @@ import 'dart:convert' show base64Encode;
 import "package:flutter/widgets.dart" show ChangeNotifier;
 import 'package:freeton_wallet/data/account_info.dart';
 
-import "blockchain/blockchain.dart" show BlockchainService, SmartContract;
+import "blockchain/blockchain.dart"
+    show
+        BlockchainService,
+        SmartContractAbi,
+        SmartContractBlob,
+        SmartContractKeeper;
 import "encrypted_db_service.dart"
     show Account, AccountType, EncryptedDbService, KeypairBundle;
 
@@ -65,14 +70,16 @@ class AccountsActivationJob extends Job {
 
   @override
   Future<void> _doJob() async {
-    for (final SmartContract smartContract in SmartContract.ALL) {
+    for (final SmartContractBlob smartContractBlob
+        in SmartContractKeeper.instance.all) {
       //
-      final String tvcBase64 = base64Encode(smartContract.tvc);
+      final SmartContractAbi smartContractAbi = smartContractBlob.abi;
+      final String tvcBase64 = base64Encode(smartContractBlob.tvc);
 
       final String accountAddress =
           await this._blockchainService.resolveAccountAddress(
                 this.keypairBundle.keyPublic,
-                smartContract.abi,
+                smartContractAbi.spec,
                 tvcBase64,
               );
 
@@ -86,7 +93,7 @@ class AccountsActivationJob extends Job {
       final String balance = accountData.balance;
 
       keypairBundle.setAccount(
-        smartContract.id,
+        smartContractBlob.fullQualifiedName,
         accountAddress,
         accountType,
         balance,

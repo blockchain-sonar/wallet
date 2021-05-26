@@ -36,12 +36,12 @@ import "package:flutter/widgets.dart"
     show BuildContext, Column, StatelessWidget, Text, Widget;
 import "package:url_launcher/url_launcher.dart" show launch;
 
-import "../../services/blockchain/smart_contract.dart" show SmartContract;
+import "../../services/blockchain/smart_contract.dart" show SmartContractBlob;
 
-typedef _CompleteCallback = void Function(SmartContract? selectedContract);
+typedef _CompleteCallback = void Function(SmartContractBlob? selectedContract);
 
 class SelectSmartContractWidget extends StatelessWidget {
-  final List<SmartContract> smartContracts;
+  final List<SmartContractBlob> smartContracts;
   final _CompleteCallback onComplete;
 
   SelectSmartContractWidget(
@@ -58,7 +58,7 @@ class SelectSmartContractWidget extends StatelessWidget {
       body: Column(
         children: <Widget>[
           ...this.smartContracts.map(
-                (SmartContract smartContract) => Center(
+                (SmartContractBlob smartContract) => Center(
                   child: Card(
                     child: InkWell(
                       splashColor: Colors.blue.withAlpha(30),

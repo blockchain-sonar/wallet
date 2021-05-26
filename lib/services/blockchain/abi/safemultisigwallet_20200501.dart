@@ -15,7 +15,7 @@
 //
 // wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/776bc3d614ded58330577167313a9b4f80767f41/solidity/safemultisig/SafeMultisigWallet.abi.json >> abi.dart
 //
-const String ABI = """{
+const String ABI__SAFE_MULTISIG_20200501 = """{
 	"ABI version": 2,
 	"header": ["pubkey", "time", "expire"],
 	"functions": [

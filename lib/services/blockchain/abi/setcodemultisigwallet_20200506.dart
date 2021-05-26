@@ -13,9 +13,9 @@
 // limitations under the License.
 
 //
-// wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/776bc3d614ded58330577167313a9b4f80767f41/solidity/setcodemultisig/SetcodeMultisigWallet.abi.json >> abi.dart
+// wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/b79bf98b89ae95b714fbcf55eb43ea22516c4788/solidity/setcodemultisig/SetcodeMultisigWallet.abi.json >> abi.dart
 //
-const String ABI = """{
+const String ABI__SETCODE_MULTISIG_20200506 = """{
 	"ABI version": 2,
 	"header": ["pubkey", "time", "expire"],
 	"functions": [

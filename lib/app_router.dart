@@ -332,10 +332,10 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       ),
       if (currentConfiguration is AppRouteDataMainWalletsNew)
         _buildWizzardWalletPage(appState)
-      else if (currentConfiguration is AppRouteDataMainWallets &&
-          currentConfiguration.keyNameToDeployContract != null)
-        ..._wizzardDeployContractPagesStack(
-            currentConfiguration.keyNameToDeployContract!)
+      // else if (currentConfiguration is AppRouteDataMainWallets &&
+      //     currentConfiguration.keyNameToDeployContract != null)
+      //   ..._wizzardDeployContractPagesStack(
+      //       currentConfiguration.keyNameToDeployContract!)
     ];
   }
 
@@ -458,26 +458,26 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     ];
   }
 
-  List<Page<dynamic>> _wizzardDeployContractPagesStack(
-      final String keyNameToDeployContract) {
-    return <Page<dynamic>>[
-      MaterialPage<SelectSmartContractWidget>(
-        key: ValueKey<Object>(SelectSmartContractWidget),
-        child: SelectSmartContractWidget(
-          SmartContract.ALL,
-          onComplete: (final SmartContract? selectedSmartContract) {
-            if (selectedSmartContract != null) {
-              this._currentConfiguration = AppRouteDataMainWallets(
-                  keyNameToDeployContract, selectedSmartContract);
-            } else {
-              this._currentConfiguration = AppRouteDataMainWallets();
-            }
-            this.notifyListeners();
-          },
-        ),
-      )
-    ];
-  }
+  // List<Page<dynamic>> _wizzardDeployContractPagesStack(
+  //     final String keyNameToDeployContract) {
+  //   return <Page<dynamic>>[
+  //     MaterialPage<SelectSmartContractWidget>(
+  //       key: ValueKey<Object>(SelectSmartContractWidget),
+  //       child: SelectSmartContractWidget(
+  //         SmartContract.ALL,
+  //         onComplete: (final SmartContract? selectedSmartContract) {
+  //           if (selectedSmartContract != null) {
+  //             this._currentConfiguration = AppRouteDataMainWallets(
+  //                 keyNameToDeployContract, selectedSmartContract);
+  //           } else {
+  //             this._currentConfiguration = AppRouteDataMainWallets();
+  //           }
+  //           this.notifyListeners();
+  //         },
+  //       ),
+  //     )
+  //   ];
+  // }
 
   List<Page<dynamic>> _redirectPagesStack(String location, [String? state]) {
     return <Page<dynamic>>[

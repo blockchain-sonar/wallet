@@ -76,9 +76,9 @@ class AppRouteDataMain extends AppRouteData {
         routeUri.pathSegments.length == 4) {
       final String keypairName = routeUri.pathSegments[2];
       final String smartContractId = routeUri.pathSegments[3];
-      final SmartContract smartContract =
-          SmartContract.getById(smartContractId);
-      return AppRouteDataMainWallets(keypairName, smartContract);
+      // final SmartContract smartContract =
+      //     SmartContract.getById(smartContractId);
+      return AppRouteDataMainWallets(keypairName, "smartContract");
     }
     return null;
   }
@@ -101,12 +101,12 @@ class AppRouteDataMain extends AppRouteData {
         if (_this is AppRouteDataMainWallets) {
           final String? keyNameToDeployContract = _this.keyNameToDeployContract;
           if (_this.keyNameToDeployContract != null) {
-            final SmartContract? deployContract = _this.deployContract;
-            if (deployContract != null) {
-              return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}/${deployContract.name}";
-            } else {
-              return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}";
-            }
+            // final SmartContract? deployContract = _this.deployContract;
+            // if (deployContract != null) {
+            //   return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}/${deployContract.name}";
+            // } else {
+            return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}";
+            // }
           }
         }
 
@@ -121,7 +121,7 @@ class AppRouteDataMain extends AppRouteData {
 
 class AppRouteDataMainWallets extends AppRouteDataMain {
   final String? keyNameToDeployContract;
-  final SmartContract? deployContract;
+  final dynamic? deployContract;
 
   AppRouteDataMainWallets([
     this.keyNameToDeployContract = null,

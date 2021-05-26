@@ -53,7 +53,12 @@ import "package:flutter/services.dart" show Clipboard, ClipboardData;
 import "package:freemework/freemework.dart";
 import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
 
-import "../../services/blockchain/blockchain.dart" show SmartContract;
+import "../../services/blockchain/blockchain.dart"
+    show
+        SmartContract,
+        SmartContractAbi,
+        SmartContractBlob,
+        SmartContractKeeper;
 import "../../services/encrypted_db_service.dart"
     show Account, AccountType, KeypairBundle;
 import "../../services/job.dart" show AccountsActivationJob, JobService;
@@ -369,7 +374,8 @@ class _AccountsState extends State<AccountsWidget> {
                   children: <Widget>[
                     InkWell(
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 2.0),
                         child: Icon(Icons.content_copy),
                       ),
                       onTap: () {
@@ -381,7 +387,8 @@ class _AccountsState extends State<AccountsWidget> {
                     Text(_trimAddress(item.account.blockchainAddress)),
                     InkWell(
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0, vertical: 2.0),
                         child: Icon(Icons.link),
                       ),
                       onTap: () {
@@ -435,8 +442,9 @@ class _AccountWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SmartContract smartContract =
-        SmartContract.getById(account.smartContractId);
+    final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
+        .getByFullQualifiedName(account.smartContractFullQualifiedName);
+    // final SmartContractAbi smartContract = blob.abi;
 
     return Container(
       color: Colors.grey[50],
@@ -467,11 +475,11 @@ class _AccountWidget extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Text(
-                          "Smart Contract:",
+                          "Contract Type:",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      Text(smartContract.name),
+                      Text(smartContractBlob.abi.descriptionShort),
                     ],
                   ),
                   TableRow(
@@ -479,7 +487,19 @@ class _AccountWidget extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.only(right: 8.0),
                         child: Text(
-                          "Smart Status:",
+                          "Contract Implementation:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Text(smartContractBlob.descriptionShort),
+                    ],
+                  ),
+                  TableRow(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          "Account Status:",
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -497,9 +517,7 @@ class _AccountWidget extends StatelessWidget {
                 children: <Widget>[
                   if (account.accountType != AccountType.ACTIVE)
                     ElevatedButton.icon(
-                      onPressed: () {
-                        //
-                      },
+                      onPressed: this._onDeployContractClick,
                       icon: Icon(Icons.api),
                       label: Text("Deploy Contract"),
                     ),
@@ -525,6 +543,10 @@ class _AccountWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _onDeployContractClick() {
+    //this.account.
   }
 }
 

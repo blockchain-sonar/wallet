@@ -12,5 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export "abi.dart";
-export "tvc.dart";
+export "./safemultisigwallet_20200501.dart";
+export "./setcodemultisigwallet_20200506.dart";

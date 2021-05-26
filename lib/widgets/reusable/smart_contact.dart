@@ -13,33 +13,36 @@
 // limitations under the License.
 
 import "package:flutter/widgets.dart"
-    show BuildContext, StatelessWidget, Text, Widget;
+    show
+        AssetImage,
+        BuildContext,
+        Column,
+        EdgeInsets,
+        FontWeight,
+        Image,
+        Padding,
+        StatelessWidget,
+        Text,
+        TextStyle,
+        Widget;
 
-import "../../services/blockchain/smart_contract.dart" show SmartContract, SmartContractBlob;
+import "../../services/blockchain/blockchain.dart" show SmartContractBlob;
 
-typedef _CompleteCallback = Future<void> Function();
-
-class ReviewSmartContractOpts {
-  final String completeButtonText;
-  final _CompleteCallback onComplete;
-
-  const ReviewSmartContractOpts(
-    this.completeButtonText, {
-    required this.onComplete,
-  });
-}
-
-class ReviewSmartContractWidget extends StatelessWidget {
+class SmartContractWidget extends StatelessWidget {
   final SmartContractBlob smartContractBlob;
-  final ReviewSmartContractOpts? opts;
 
-  ReviewSmartContractWidget(
-    this.smartContractBlob, {
-    this.opts = null,
-  });
+  SmartContractWidget(this.smartContractBlob);
 
   @override
   Widget build(BuildContext context) {
-    return Text(this.smartContractBlob.name);
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        children: <Widget>[
+          Text(this.smartContractBlob.abi.descriptionShort),
+          Text(this.smartContractBlob.descriptionShort),
+        ],
+      ),
+    );
   }
 }

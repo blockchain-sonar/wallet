@@ -13,9 +13,9 @@
 // limitations under the License.
 
 //
-// wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/776bc3d614ded58330577167313a9b4f80767f41/solidity/setcodemultisig/SetcodeMultisigWallet.tvc | xxd -i >> tvc.dart
+// wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/b79bf98b89ae95b714fbcf55eb43ea22516c4788/solidity/setcodemultisig/SetcodeMultisigWallet.tvc | xxd -i >> tvc.dart
 //
-const List<int> TVC = <int>[
+const List<int> TVC__IO_TONLABS_SETCODE_MULTISIG_20200506 = <int>[
   0xb5, 0xee, 0x9c, 0x72, 0x01, 0x02, 0x65, 0x01, 0x00, 0x1a, 0x04, 0x00,
   0x02, 0x01, 0x34, 0x06, 0x01, 0x01, 0x01, 0xc0, 0x02, 0x02, 0x03, 0xcf,
   0x20, 0x05, 0x03, 0x01, 0x01, 0xde, 0x04, 0x00, 0x03, 0xd0, 0x20, 0x00,

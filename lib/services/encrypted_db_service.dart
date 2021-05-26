@@ -60,7 +60,7 @@ abstract class DataSet extends ChangeNotifier {
 
 abstract class Account extends ChangeNotifier {
   final String blockchainAddress;
-  final String smartContractId;
+  final String smartContractFullQualifiedName;
   final String balance;
   final AccountType accountType;
 
@@ -68,7 +68,7 @@ abstract class Account extends ChangeNotifier {
 
   Account._(
     this.blockchainAddress,
-    this.smartContractId,
+    this.smartContractFullQualifiedName,
     this.accountType,
     this.balance,
   );
@@ -679,7 +679,7 @@ class _Account extends Account {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> rawJson = <String, dynamic>{
-      _Account._SMART_CONTRACT_ID__PROPERTY: this.smartContractId,
+      _Account._SMART_CONTRACT_ID__PROPERTY: this.smartContractFullQualifiedName,
       _Account.__BLOCKCHAIN_ADDRESS__PROPERTY: this.blockchainAddress,
       _Account.__ACCOUNT_TYPE__PROPERTY: this.accountType,
       _Account.__BALANCE__PROPERTY: this.balance,

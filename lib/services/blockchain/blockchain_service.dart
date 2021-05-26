@@ -28,8 +28,8 @@ abstract class BlockchainService {
   Future<AccountInfo> fetchAccountInformation(String accountAddress);
   Future<String> resolveAccountAddress(
     String publicKey,
-    String smartContractABI,
-    String smartContractTVCBase64,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
   );
 }
 
@@ -89,12 +89,12 @@ class BlockchainServiceImpl extends BlockchainService {
   @override
   Future<String> resolveAccountAddress(
     String publicKey,
-    String smartContractABI,
-    String smartContractTVCBase64,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
   ) async {
     final String address = await this
         ._tonClient
-        .getDeployData(publicKey, smartContractABI, smartContractTVCBase64);
+        .getDeployData(publicKey, smartContractAbiSpec, smartContractBlobTvcBase64);
     return address;
   }
 }
