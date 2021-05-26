@@ -23,6 +23,7 @@ import "main_wallets.dart"
 import "../../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../../services/job.dart" show JobService;
 import "../../states/app_state.dart" show AppState;
+import 'main_home.dart';
 import "main_tab.dart" show MainTab;
 
 class MainWidget extends StatelessWidget {
@@ -34,10 +35,7 @@ class MainWidget extends StatelessWidget {
     _OptionTuple(
       MainTab.HOME,
       "Home",
-      (BuildContext context) => Text(
-        'Index 0: Home',
-        style: _tabOptionStyle,
-      ),
+      (BuildContext context) => HomeChartWidget(),
       BottomNavigationBarItem(
         icon: Icon(Icons.home),
         label: 'Home',
@@ -181,5 +179,9 @@ class _OptionTuple {
   final BottomNavigationBarItem barItem;
 
   const _OptionTuple(
-      this.tab, this.appTitle, this.optionWidgetBuilder, this.barItem);
+    this.tab,
+    this.appTitle,
+    this.optionWidgetBuilder,
+    this.barItem,
+  );
 }

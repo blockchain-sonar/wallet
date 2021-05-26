@@ -20,17 +20,21 @@ import "package:fl_chart/fl_chart.dart"
         FlGridData,
         FlLine,
         FlSpot,
+        FlTitlesData,
         LineChart,
         LineChartBarData,
-        LineChartData;
+        LineChartData,
+        SideTitles;
 import "package:flutter/material.dart"
     show
         AppBar,
         BuildContext,
+        Color,
         Colors,
         Column,
         EdgeInsets,
         Expanded,
+        FontWeight,
         MainAxisAlignment,
         MaterialColor,
         Padding,
@@ -41,6 +45,7 @@ import "package:flutter/material.dart"
         StatefulWidget,
         Text,
         TextButton,
+        TextStyle,
         Widget;
 import "package:http/http.dart" as http;
 import "package:flutter/material.dart"
@@ -60,17 +65,28 @@ import "package:flutter/material.dart"
         TextButton,
         Widget;
 
-class ChartWidget extends StatefulWidget {
+class HomeChartWidget extends StatefulWidget {
   @override
-  _ChartWidgetState createState() => _ChartWidgetState();
+  _HomeChartWidgetState createState() => _HomeChartWidgetState();
 }
 
-class _ChartWidgetState extends State<ChartWidget> {
-  List<ChartDataRow> chartData = [];
+class _HomeChartWidgetState extends State<HomeChartWidget> {
+  List<ChartDataRow> chartData = <ChartDataRow>[];
+
+  String currentPair = "";
+
+  void setPair(String currency1, String currency2) {
+    this.currentPair = "${currency1}/${currency2}";
+    this.fetchData(currency1, currency2);
+  }
 
   void fetchData(String currency1, String currency2) async {
-    Uri url =
-        Uri.parse("https://cex.io/api/price_stats/${currency1}/${currency2}");
+    Uri url = Uri.parse("https://cex.io").replace(pathSegments: <String>[
+      "api",
+      "price_stats",
+      currency1,
+      currency2,
+    ]);
 
     http.Response response = await http.post(url,
         body: <String, String>{"lastHours": "24", "maxRespArrSize": "100"});
@@ -78,13 +94,6 @@ class _ChartWidgetState extends State<ChartWidget> {
             as List<dynamic>)
         .map((dynamic e) => ChartDataRow.fromJson(e as Map<String, dynamic>))
         .toList();
-    List<ChartDataRow> filteredChartDataRows = <ChartDataRow>[];
-    // for (int index = 1; index < chartDataRows.length - 1; index++) {
-    //   if (chartDataRows[index].price != chartDataRows[index - 1].price ||
-    //       chartDataRows[index].price != chartDataRows[index + 1].price) {
-    //     filteredChartDataRows.add(chartDataRows[index]);
-    //   }
-    // }
     this.setState(() {
       chartData = chartDataRows;
     });
@@ -93,8 +102,16 @@ class _ChartWidgetState extends State<ChartWidget> {
   @override
   void initState() {
     super.initState();
-    this.fetchData("TON", "USD");
+
+    this.setPair("TON", "USD");
   }
+
+  double get chartBottomInterval => this.chartData.length == 0
+      ? 1
+      : (this.chartData.last.timestamp - this.chartData.first.timestamp) / 2;
+
+  double get currentLastPrice =>
+      this.chartData.length == 0 ? 0 : this.chartData.last.price;
 
   double get chartMinY => this.chartData.length == 0
       ? 0
@@ -104,82 +121,127 @@ class _ChartWidgetState extends State<ChartWidget> {
       ? 1
       : this.chartData.map((ChartDataRow e) => e.price).reduce(max) * 1.01;
 
+  String getDateFromTimestamp(double timestamp) {
+    DateTime date =
+        DateTime.fromMillisecondsSinceEpoch((timestamp * 1000).toInt());
+
+    String result = "${date.year}";
+    result += "-${date.month.toString().padLeft(2, '0')}";
+    result += "-${date.day.toString().padLeft(2, '0')}\n";
+    result += "${date.hour.toString().padLeft(2, '0')}";
+    result += ":${date.minute.toString().padLeft(2, '0')}";
+    result += ":${date.second.toString().padLeft(2, '0')}";
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("TON"),
-      ),
-      body: Column(
-        children: <Widget>[
-          SizedBox(
-            height: 20,
+    return Column(
+      children: <Widget>[
+        SizedBox(
+          height: 20,
+        ),
+        Text(
+          "Current ${this.currentPair} - ${this.currentLastPrice}",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+            fontSize: 24,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              TextButton(
-                onPressed: () => this.fetchData("TON", "USD"),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 5,
-                    horizontal: 10,
+        ),
+        SizedBox(
+          height: 20,
+        ),
+        Expanded(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(0, 10, 20, 10),
+            child: LineChart(
+              LineChartData(
+                backgroundColor: Colors.white,
+                minX: this.chartData.length == 0
+                    ? 0
+                    : this.chartData.first.timestamp,
+                maxX: this.chartData.length == 0
+                    ? 1
+                    : this.chartData.last.timestamp,
+                minY: this.chartMinY,
+                maxY: this.chartMaxY,
+                titlesData: FlTitlesData(
+                  show: true,
+                  bottomTitles: SideTitles(
+                    showTitles: true,
+                    rotateAngle: 90,
+                    interval: this.chartBottomInterval,
+                    getTitles: (double title) =>
+                        this.getDateFromTimestamp(title),
                   ),
-                  child: Text("USD"),
                 ),
-              ),
-              TextButton(
-                onPressed: () => this.fetchData("TON", "USDT"),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 5,
-                    horizontal: 10,
-                  ),
-                  child: Text("USDT"),
-                ),
-              ),
-              TextButton(
-                onPressed: () => this.fetchData("TON", "ETH"),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 5,
-                    horizontal: 10,
-                  ),
-                  child: Text("ETH"),
-                ),
-              ),
-            ],
-          ),
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 10,
-              ),
-              child: LineChart(
-                LineChartData(
-                  backgroundColor: Colors.white,
-                  minX: this.chartData.length == 0
-                      ? 0
-                      : this.chartData.first.timestamp,
-                  maxX: this.chartData.length == 0
-                      ? 1
-                      : this.chartData.last.timestamp,
-                  minY: this.chartMinY,
-                  maxY: this.chartMaxY,
-                  lineBarsData: <LineChartBarData>[
-                    LineChartBarData(
-                      spots: this.chartData.map((e) => e.chartData).toList(),
-                      // isCurved: true,
-                      colors: <MaterialColor>[Colors.blue, Colors.cyan],
-                      barWidth: 3,
+                lineBarsData: <LineChartBarData>[
+                  LineChartBarData(
+                    spots: this
+                        .chartData
+                        .map((ChartDataRow e) => e.chartData)
+                        .toList(),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      colors: <Color>[
+                        Colors.blue.withAlpha(85),
+                        Colors.cyan.withAlpha(85),
+                      ],
                     ),
-                  ],
-                ),
+                    colors: <Color>[
+                      Colors.blue,
+                      Colors.cyan,
+                    ],
+                    barWidth: 3,
+                  ),
+                ],
               ),
             ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(
+          height: 30,
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: <Widget>[
+            TextButton(
+              onPressed: () => this.setPair("TON", "USD"),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 10,
+                ),
+                child: Text(
+                  "TON/USD",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => this.setPair("TON", "USDT"),
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 5,
+                  horizontal: 10,
+                ),
+                child: Text(
+                  "TON/USDT",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          height: 20,
+        ),
+      ],
     );
   }
 }
