@@ -17,7 +17,8 @@ import 'dart:async';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:freeton_wallet/misc/void_callback_host.dart';
-import "main_wallets.dart" show MainWalletsDeployContractCallback, MainWalletsWidget;
+import "main_wallets.dart"
+    show MainWalletsDeployContractCallback, MainWalletsWidget;
 
 import "../../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../../services/job.dart" show JobService;
@@ -123,6 +124,12 @@ class MainWidget extends StatelessWidget {
         title: Text(appTitle),
       ),
       body: Container(
+        constraints: BoxConstraints(
+          minWidth: 320,
+          maxWidth: 800,
+          minHeight: 480,
+          maxHeight: 1080,
+        ),
         alignment: Alignment.topCenter,
         child: Builder(builder: this._buildContent),
       ),

@@ -16,7 +16,7 @@ import "package:flutter/src/animation/animation.dart" show Animation;
 import "package:flutter/widgets.dart"
     show BuildContext, Page, PageRouteBuilder, Route, ValueKey;
 
-import '../widgets/business/crash.dart' show CrashWidget;
+import "../widgets/business/crash.dart" show CrashWidget;
 import "app_route_data.dart" show AppRouteDataCrash;
 
 class CrashPage extends Page<AppRouteDataCrash> {

@@ -13,10 +13,10 @@
 // limitations under the License.
 
 class AccountInfo {
-  static const AccountInfo EMPTY = AccountInfo("0.000000000", "");
+  static const AccountInfo EMPTY = AccountInfo("0.000000000", false);
 
   final String balance;
-  final String codeHash;
+  final bool isSmartContractDeployed;
 
-  const AccountInfo(this.balance, this.codeHash);
+  const AccountInfo(this.balance, this.isSmartContractDeployed);
 }

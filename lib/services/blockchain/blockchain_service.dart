@@ -25,9 +25,12 @@ import "../../data/mnemonic_phrase.dart"
 abstract class BlockchainService {
   Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
-  Future<String> generateAddress(
-      String publicKey, String smartContractABI, String smartContractTVCBase64);
   Future<AccountInfo> fetchAccountInformation(String accountAddress);
+  Future<String> resolveAccountAddress(
+    String publicKey,
+    String smartContractABI,
+    String smartContractTVCBase64,
+  );
 }
 
 class BlockchainServiceImpl extends BlockchainService {
@@ -74,21 +77,24 @@ class BlockchainServiceImpl extends BlockchainService {
   }
 
   @override
-  Future<String> generateAddress(String publicKey, String smartContractABI,
-      String smartContractTVCBase64) async {
-    final String address = await this
-        ._tonClient
-        .getDeployData(publicKey, smartContractABI, smartContractTVCBase64);
-    return address;
-  }
-
-  @override
   Future<AccountInfo> fetchAccountInformation(String accountAddress) async {
     final TON.AccountInfo? accountInfo =
         await this._tonClient.fetchAccountInformation(accountAddress);
     if (accountInfo != null) {
-      return AccountInfo(accountInfo.balance, accountInfo.codeHash);
+      return AccountInfo(accountInfo.balance, true);
     }
     return AccountInfo.EMPTY;
+  }
+
+  @override
+  Future<String> resolveAccountAddress(
+    String publicKey,
+    String smartContractABI,
+    String smartContractTVCBase64,
+  ) async {
+    final String address = await this
+        ._tonClient
+        .getDeployData(publicKey, smartContractABI, smartContractTVCBase64);
+    return address;
   }
 }

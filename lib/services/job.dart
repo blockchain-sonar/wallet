@@ -70,21 +70,20 @@ class AccountsActivationJob extends Job {
       final String tvcBase64 = base64Encode(smartContract.tvc);
 
       final String accountAddress =
-          await this._blockchainService.generateAddress(
+          await this._blockchainService.resolveAccountAddress(
                 this.keypairBundle.keyPublic,
                 smartContract.abi,
                 tvcBase64,
               );
 
-      print(accountAddress);
-
       final AccountInfo accountData =
           await this._blockchainService.fetchAccountInformation(accountAddress);
 
-      print(accountData);
+      final AccountType accountType = accountData.isSmartContractDeployed
+          ? AccountType.ACTIVE
+          : AccountType.UNINITIALIZED;
 
-      AccountType accountType = AccountType.UNINITIALIZED;
-      String balance = accountData.balance;
+      final String balance = accountData.balance;
 
       keypairBundle.setAccount(
         smartContract.id,

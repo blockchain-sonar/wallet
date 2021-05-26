@@ -12,8 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/src/widgets/basic.dart';
+import "package:flutter/src/widgets/basic.dart";
 import "package:flutter/widgets.dart"
     show
         Alignment,
@@ -22,13 +21,17 @@ import "package:flutter/widgets.dart"
         EdgeInsets,
         Icon,
         Key,
+        ObjectKey,
         Padding,
         Row,
         SingleChildScrollView,
         SizedBox,
+        Spacer,
         State,
         StatefulWidget,
         StatelessWidget,
+        Table,
+        TableRow,
         Text,
         UniqueKey,
         Widget;
@@ -37,20 +40,24 @@ import "package:flutter/material.dart"
         AppBar,
         BottomNavigationBar,
         Colors,
+        ElevatedButton,
         ExpansionPanel,
         ExpansionPanelList,
         FloatingActionButton,
         Icons,
         InkWell,
         ListTile,
-        Material,
         Scaffold;
-import "package:freemework/freemework.dart";
-import 'package:freeton_wallet/services/blockchain/blockchain.dart';
+import "package:flutter/services.dart" show Clipboard, ClipboardData;
 
+import "package:freemework/freemework.dart";
+import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
+
+import "../../services/blockchain/blockchain.dart" show SmartContract;
 import "../../services/encrypted_db_service.dart"
     show Account, AccountType, KeypairBundle;
 import "../../services/job.dart" show AccountsActivationJob, JobService;
+
 import "../../states/app_state.dart" show AppState;
 
 typedef MainWalletsDeployContractCallback = void Function(String keypairName);
@@ -121,6 +128,12 @@ class _MainWalletsState extends State<MainWalletsWidget> {
         title: Text("Wallets"),
       ),
       body: Container(
+        constraints: BoxConstraints(
+          minWidth: 320,
+          maxWidth: 800,
+          minHeight: 480,
+          maxHeight: 1080,
+        ),
         alignment: Alignment.topCenter,
         child: SingleChildScrollView(
           child: Padding(
@@ -138,81 +151,79 @@ class _MainWalletsState extends State<MainWalletsWidget> {
   }
 
   Widget _buildPanel() {
-    return ExpansionPanelList(
-      key: UniqueKey(),
-      expansionCallback: (int index, bool isExpanded) {
-        setState(() {
-          _keypairBundleExpansionPanelViewModels[index].isExpanded =
-              !isExpanded;
-        });
-      },
-      children: _keypairBundleExpansionPanelViewModels
-          .map<ExpansionPanel>((_KeypairBundleExpansionPanelViewModel item) {
-        final String keypairName = item.keypairBundle.keypairName;
-        final String trimmedPublicKey =
-            _trimPublicKey(item.keypairBundle.keyPublic);
+    return Column(
+      children: [
+        ExpansionPanelList(
+          key: UniqueKey(),
+          expansionCallback: (int index, bool isExpanded) {
+            setState(() {
+              _keypairBundleExpansionPanelViewModels[index].isExpanded =
+                  !isExpanded;
+            });
+          },
+          children: _keypairBundleExpansionPanelViewModels.map<ExpansionPanel>(
+              (_KeypairBundleExpansionPanelViewModel item) {
+            final String keypairName = item.keypairBundle.keypairName;
+            final String trimmedPublicKey =
+                _trimPublicKey(item.keypairBundle.keyPublic);
 
-        return ExpansionPanel(
-          headerBuilder: (BuildContext context, bool isExpanded) {
-            return ListTile(
-              title: Row(
+            return ExpansionPanel(
+              headerBuilder: (BuildContext context, bool isExpanded) {
+                return ListTile(
+                  title: Row(
+                    children: <Widget>[
+                      const Icon(Icons.vpn_key),
+                      if (item.hasMnemonicPhrase) const Icon(Icons.subtitles),
+                      SizedBox(width: 10),
+                      Text("${keypairName} ${trimmedPublicKey}"),
+                    ],
+                  ),
+                );
+              },
+              body: Column(
                 children: <Widget>[
-                  const Icon(Icons.vpn_key),
-                  if (item.hasMnemonicPhrase) const Icon(Icons.subtitles),
-                  SizedBox(width: 10),
-                  Text("${keypairName} ${trimmedPublicKey}"),
+                  KeypairBundleContentWidget(
+                    item.keypairBundle,
+                    jobService: this.widget.jobService,
+                  ),
+                  // SizedBox.fromSize(
+                  //   size: Size(92, 92), // button width and height
+                  //   child: ClipOval(
+                  //     child: Material(
+                  //       color: Colors.orange, // button color
+                  //       child: InkWell(
+                  //         splashColor: Colors.green, // splash color
+                  //         onTap: () {
+                  //           this
+                  //               .widget
+                  //               .onDeployContract(item.keypairBundle.keypairName);
+                  //         }, // button pressed
+                  //         child: Column(
+                  //           mainAxisAlignment: MainAxisAlignment.center,
+                  //           children: <Widget>[
+                  //             Icon(Icons.addchart_rounded), // icon
+                  //             Text("Add Wallet"), // text
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
+              isExpanded: item.isExpanded,
             );
-          },
-          body: Column(
-            children: <Widget>[
-              KeypairBundleContentWidget(
-                item.keypairBundle,
-                jobService: this.widget.jobService,
-              ),
-              SizedBox.fromSize(
-                size: Size(92, 92), // button width and height
-                child: ClipOval(
-                  child: Material(
-                    color: Colors.orange, // button color
-                    child: InkWell(
-                      splashColor: Colors.green, // splash color
-                      onTap: () {
-                        this
-                            .widget
-                            .onDeployContract(item.keypairBundle.keypairName);
-                      }, // button pressed
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Icon(Icons.addchart_rounded), // icon
-                          Text("Add Wallet"), // text
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          isExpanded: item.isExpanded,
-        );
-      }).toList(),
+          }).toList(),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 96.0),
+        )
+      ],
     );
-  }
-
-  static String _trimPublicKey(String publicKey) {
-    if (publicKey.length > 16) {
-      final String head = publicKey.substring(0, 8);
-      final String tail = publicKey.substring(publicKey.length - 8);
-      return "${head}...${tail}";
-    }
-    return publicKey;
   }
 }
 
-//
+///
 /// stores ExpansionPanel state information
 ///
 class _KeypairBundleExpansionPanelViewModel {
@@ -311,37 +322,6 @@ class _KeypairBundleContentState extends State<KeypairBundleContentWidget> {
   }
 }
 
-// class AccountsWidget extends StatelessWidget {
-//   final List<Account> _accounts;
-
-//   AccountsWidget(this._accounts);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final List<Account> activeAccounts = this._accounts;
-//     final List<Account> inactiveAccounts = this._accounts;
-
-//     return Container(
-//       alignment: Alignment.centerLeft,
-//       child: Column(
-//         crossAxisAlignment: CrossAxisAlignment.start,
-//         children: <Widget>[
-//           ...activeAccounts
-//               .map((Account account) => Padding(
-//                     padding: const EdgeInsets.all(8.0),
-//                     child: ActiveAccountWidget(account),
-//                   ))
-//               .toList(),
-//           Padding(
-//             padding: const EdgeInsets.all(8.0),
-//             child: InactiveAccountsWidget(inactiveAccounts),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
 class AccountsWidget extends StatefulWidget {
   final List<Account> accounts;
 
@@ -387,13 +367,43 @@ class _AccountsState extends State<AccountsWidget> {
                   ListTile(
                 title: Row(
                   children: <Widget>[
-                    Text(item.account.blockchainAddress),
+                    InkWell(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
+                        child: Icon(Icons.content_copy),
+                      ),
+                      onTap: () {
+                        Clipboard.setData(
+                          ClipboardData(text: item.account.blockchainAddress),
+                        ); // TODO missing await
+                      },
+                    ),
+                    Text(_trimAddress(item.account.blockchainAddress)),
+                    InkWell(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 8.0),
+                        child: Icon(Icons.link),
+                      ),
+                      onTap: () {
+                        final Uri baseUrl = Uri.parse(
+                          "https://net.ton.live/accounts/accountDetails",
+                        );
+
+                        final Uri accountDetailsUrl = baseUrl.replace(
+                            queryParameters: <String, String>{
+                              "id": item.account.blockchainAddress
+                            });
+
+                        launch(
+                            accountDetailsUrl.toString()); // TODO missing await
+                      },
+                    ),
                     Spacer(),
                     Text(item.account.balance),
                   ],
                 ),
               ),
-              body: Text("Test"),
+              body: _AccountWidget(item.account),
               isExpanded: item.isExpanded,
             ),
           )
@@ -402,7 +412,7 @@ class _AccountsState extends State<AccountsWidget> {
   }
 }
 
-//
+///
 /// stores ExpansionPanel state information
 ///
 class _AccountExpansionPanelViewModel {
@@ -418,28 +428,120 @@ class _AccountExpansionPanelViewModel {
   bool isExpanded;
 }
 
-class ActiveAccountWidget extends StatelessWidget {
+class _AccountWidget extends StatelessWidget {
   final Account account;
 
-  ActiveAccountWidget(this.account);
+  _AccountWidget(this.account);
 
   @override
   Widget build(BuildContext context) {
     final SmartContract smartContract =
         SmartContract.getById(account.smartContractId);
 
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            smartContract.name,
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Text(account.blockchainAddress),
-        ],
+    return Container(
+      color: Colors.grey[50],
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          //mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Table(
+                children: <TableRow>[
+                  TableRow(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          "Account Address:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Text(account.blockchainAddress),
+                    ],
+                  ),
+                  TableRow(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          "Smart Contract:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Text(smartContract.name),
+                    ],
+                  ),
+                  TableRow(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: Text(
+                          "Smart Status:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Text(account.accountType == AccountType.ACTIVE
+                          ? "Active"
+                          : "Not deployed yet"),
+                    ],
+                  )
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: <Widget>[
+                  if (account.accountType != AccountType.ACTIVE)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        //
+                      },
+                      icon: Icon(Icons.api),
+                      label: Text("Deploy Contract"),
+                    ),
+                  Spacer(),
+                  if (account.accountType == AccountType.ACTIVE)
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        //
+                      },
+                      icon: Icon(Icons.send),
+                      label: Text("Send"),
+                    ),
+                ],
+              ),
+            ),
+            if (account.accountType != AccountType.ACTIVE &&
+                account.balance == "0.000000000")
+              Text(
+                "Note: Contract deployment include a litte fee. So you need positive balance on the account.",
+                style: TextStyle(color: Colors.red),
+              ),
+          ],
+        ),
       ),
     );
   }
+}
+
+String _trimPublicKey(String publicKey) {
+  if (publicKey.length > 16) {
+    final String head = publicKey.substring(0, 6);
+    final String tail = publicKey.substring(publicKey.length - 6);
+    return "${head}...${tail}";
+  }
+  return publicKey;
+}
+
+String _trimAddress(String accountAddress) {
+  if (accountAddress.length > 18) {
+    final String head = accountAddress.substring(0, 10);
+    final String tail = accountAddress.substring(accountAddress.length - 8);
+    return "${head}...${tail}";
+  }
+  return accountAddress;
 }
