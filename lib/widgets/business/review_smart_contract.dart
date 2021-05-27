@@ -14,17 +14,27 @@
 
 import "package:flutter/material.dart"
     show
+        Border,
         BuildContext,
         Colors,
         Column,
         Container,
+        Decoration,
         EdgeInsets,
         ElevatedButton,
         Expanded,
+        FixedColumnWidth,
+        FlexColumnWidth,
         FontWeight,
+        InkWell,
+        IntrinsicColumnWidth,
         Padding,
         SizedBox,
         StatelessWidget,
+        Table,
+        TableBorder,
+        TableColumnWidth,
+        TableRow,
         Text,
         TextStyle,
         Widget;
@@ -39,6 +49,7 @@ import "package:flutter/widgets.dart"
         TextStyle,
         Widget;
 import "package:flutter_markdown/flutter_markdown.dart" show Markdown;
+import 'package:url_launcher/url_launcher.dart';
 import "../layout/my_scaffold.dart" show MyScaffold;
 
 import "../../services/blockchain/smart_contract.dart"
@@ -65,20 +76,94 @@ class ReviewSmartContractWidget extends StatelessWidget {
     this.opts = null,
   });
 
+  void _launchURL(String url) async =>
+      await canLaunch(url) ? await launch(url) : throw "Could not launch $url";
+
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
         body: Column(
       children: <Widget>[
-        SizedBox(
-          height: 20,
+        Padding(
+          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
+          child: Text(
+            this.smartContractBlob.name,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.blue,
+              fontSize: 24,
+            ),
+          ),
         ),
-        Text(
-          this.smartContractBlob.name,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-            fontSize: 24,
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            vertical: 10,
+            horizontal: 15,
+          ),
+          child: Table(
+            border: TableBorder.all(),
+            columnWidths: const <int, TableColumnWidth>{
+              0: IntrinsicColumnWidth(),
+              1: IntrinsicColumnWidth(),
+            },
+            children: <TableRow>[
+              TableRow(children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "Namespace",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    this.smartContractBlob.name,
+                  ),
+                ),
+              ]),
+              TableRow(children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "Version",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    this.smartContractBlob.version,
+                  ),
+                ),
+              ]),
+              TableRow(children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    "Link",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: () => this._launchURL(
+                    this.smartContractBlob.referenceUri.toString(),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(
+                      this.smartContractBlob.referenceUri.toString(),
+                    ),
+                  ),
+                ),
+              ]),
+            ],
           ),
         ),
         Expanded(
