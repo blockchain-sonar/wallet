@@ -173,17 +173,11 @@ class _HomeChartWidgetState extends State<HomeChartWidget> {
                 ),
                 lineBarsData: <LineChartBarData>[
                   LineChartBarData(
+                    isCurved: true,
                     spots: this
                         .chartData
                         .map((ChartDataRow e) => e.chartData)
                         .toList(),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      colors: <Color>[
-                        Colors.blue.withAlpha(85),
-                        Colors.cyan.withAlpha(85),
-                      ],
-                    ),
                     colors: <Color>[
                       Colors.blue,
                       Colors.cyan,
