@@ -12,10 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart"
-    show BuildContext, StatelessWidget, Text, Widget;
+    show
+        BuildContext,
+        Column,
+        FontWeight,
+        SizedBox,
+        StatelessWidget,
+        Text,
+        TextStyle,
+        Widget;
+import 'package:flutter_markdown/flutter_markdown.dart';
 
-import "../../services/blockchain/smart_contract.dart" show SmartContract, SmartContractBlob;
+import "../../services/blockchain/smart_contract.dart"
+    show SmartContract, SmartContractBlob;
 
 typedef _CompleteCallback = Future<void> Function();
 
@@ -40,6 +51,49 @@ class ReviewSmartContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(this.smartContractBlob.name);
+    return Scaffold(
+        body: Column(
+      children: <Widget>[
+        SizedBox(
+          height: 20,
+        ),
+        Text(
+          this.smartContractBlob.name,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+            fontSize: 24,
+          ),
+        ),
+        Expanded(
+          flex: 1,
+          child: Markdown(
+            data: this.smartContractBlob.abi.descriptionLongMarkdown,
+          ),
+        ),
+        Expanded(
+          flex: 4,
+          child: Markdown(
+            data: this.smartContractBlob.descriptionLongMarkdown,
+          ),
+        ),
+        Container(
+          child: this.opts == null
+              ? null
+              : ElevatedButton(
+                  onPressed: () {
+                    this.opts?.onComplete();
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Text(this.opts?.completeButtonText ?? "Ok"),
+                  ),
+                ),
+        ),
+        SizedBox(
+          height: 20,
+        ),
+      ],
+    ));
   }
 }
