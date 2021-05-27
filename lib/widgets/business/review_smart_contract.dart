@@ -12,7 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart"
+    show
+        BuildContext,
+        Colors,
+        Column,
+        Container,
+        EdgeInsets,
+        ElevatedButton,
+        Expanded,
+        FontWeight,
+        Padding,
+        SizedBox,
+        StatelessWidget,
+        Text,
+        TextStyle,
+        Widget;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -23,7 +38,8 @@ import "package:flutter/widgets.dart"
         Text,
         TextStyle,
         Widget;
-import 'package:flutter_markdown/flutter_markdown.dart';
+import "package:flutter_markdown/flutter_markdown.dart" show Markdown;
+import "../layout/my_scaffold.dart" show MyScaffold;
 
 import "../../services/blockchain/smart_contract.dart"
     show SmartContract, SmartContractBlob;
@@ -51,7 +67,7 @@ class ReviewSmartContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return MyScaffold(
         body: Column(
       children: <Widget>[
         SizedBox(
@@ -66,32 +82,27 @@ class ReviewSmartContractWidget extends StatelessWidget {
           ),
         ),
         Expanded(
-          flex: 1,
           child: Markdown(
-            data: this.smartContractBlob.abi.descriptionLongMarkdown,
-          ),
-        ),
-        Expanded(
-          flex: 4,
-          child: Markdown(
-            data: this.smartContractBlob.descriptionLongMarkdown,
-          ),
+              data: "# ABI inforation\n" +
+                  this.smartContractBlob.abi.descriptionLongMarkdown +
+                  "\n# TVC information\n" +
+                  this.smartContractBlob.descriptionLongMarkdown),
         ),
         Container(
           child: this.opts == null
               ? null
-              : ElevatedButton(
-                  onPressed: () {
-                    this.opts?.onComplete();
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.all(10),
-                    child: Text(this.opts?.completeButtonText ?? "Ok"),
+              : Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: ElevatedButton(
+                    onPressed: () {
+                      this.opts?.onComplete();
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Text(this.opts?.completeButtonText ?? "Ok"),
+                    ),
                   ),
                 ),
-        ),
-        SizedBox(
-          height: 20,
         ),
       ],
     ));
