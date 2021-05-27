@@ -1,6 +1,7 @@
 import "package:freemework/freemework.dart" show ExecutionContext;
 
 import 'models/account_info.dart';
+import 'models/fees.dart';
 import "models/key_pair.dart";
 import '../contract.dart' show AbstractTonClient, SeedType;
 
@@ -27,9 +28,9 @@ class TonClient extends AbstractTonClient {
 
   @override
   Future<String> getDeployData(
-    String publicKey,
-    String smartContractABI,
-    String smartContractTVCBase64,
+    final String keyPublic,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
   ) async {
     // DeployData deployData = DeployData(
     //   accountId: "accountId",
@@ -41,13 +42,21 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<dynamic> calcDeployFees(KeyPair keys) {
+  Future<Fees> calcDeployFees(
+    final KeyPair keypair,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
+  ) {
     // TODO: implement calcDeployFees
     throw UnimplementedError();
   }
 
   @override
-  Future<dynamic> deployContract(KeyPair keys) {
+  Future<dynamic> deployContract(
+    final KeyPair keypair,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
+  ) {
     // TODO: implement deployContract
     throw UnimplementedError();
   }

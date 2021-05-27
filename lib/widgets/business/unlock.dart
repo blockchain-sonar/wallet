@@ -20,7 +20,6 @@ import "package:flutter/material.dart"
         InputDecoration,
         CircularProgressIndicator,
         OutlineInputBorder,
-        Scaffold,
         TextField;
 import "package:flutter/widgets.dart"
     show
@@ -44,11 +43,16 @@ import 'package:freemework/freemework.dart';
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
-    show DialogActionContentWidget, DialogCallback, DialogHostCallback, DialogWidget;
+    show
+        DialogActionContentWidget,
+        DialogCallback,
+        DialogHostCallback,
+        DialogWidget;
 
 class UnlockContext {
   final String password;
@@ -110,7 +114,7 @@ class _UnlockWidget extends DialogActionContentWidget<UnlockContext> {
     Widget body, {
     required FloatingActionButton floatingActionButton,
   }) {
-    return Scaffold(
+    return MyScaffold(
       body: Center(
         child: Column(
           children: <Widget>[

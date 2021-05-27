@@ -12,11 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/src/animation/animation.dart';
+import "package:flutter/src/animation/animation.dart" show Animation;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
-        Navigator,
         Page,
         PageRouteBuilder,
         Route,
@@ -25,8 +24,9 @@ import "package:flutter/widgets.dart"
         Text,
         ValueKey,
         Widget,
-        WidgetsBinding,
         WidgetsFlutterBinding;
+
+import "../widgets/layout/my_scaffold.dart" show MyScaffold;
 
 import "app_route_data.dart" show AppRouteDataMain;
 
@@ -86,6 +86,8 @@ class _RedirectScreenState extends State<_RedirectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Text("Redirecting...");
+    return MyScaffold(
+      body: Text("Redirecting..."),
+    );
   }
 }

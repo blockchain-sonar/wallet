@@ -17,8 +17,9 @@ import 'dart:async';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:freeton_wallet/misc/void_callback_host.dart';
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import "main_wallets.dart"
-    show MainWalletsDeployContractCallback, MainWalletsWidget;
+    show DeployContractCallback, MainWalletsWidget, SendMoneyCallback;
 
 import "../../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../../services/job.dart" show JobService;
@@ -75,7 +76,8 @@ class MainWidget extends StatelessWidget {
   final void Function() onSelectWallets;
   final void Function() onSelectSettings;
   final void Function() onAddNewKey;
-  final MainWalletsDeployContractCallback onDeployContract;
+  final DeployContractCallback onDeployContract;
+  final SendMoneyCallback onSendMoney;
 
   MainWidget(
     this._appState,
@@ -87,6 +89,7 @@ class MainWidget extends StatelessWidget {
     required this.onSelectSettings,
     required this.onAddNewKey,
     required this.onDeployContract,
+    required this.onSendMoney,
   }) : this._selectedIndex = _tabOptions
             .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab);
 
@@ -112,15 +115,14 @@ class MainWidget extends StatelessWidget {
           jobService: this.jobService,
           onAddNewKey: this.onAddNewKey,
           onDeployContract: this.onDeployContract,
+          onSendMoney: this.onSendMoney,
         );
       default:
         break;
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(appTitle),
-      ),
+    return MyScaffold(
+      appBarTitle: appTitle,
       body: Container(
         constraints: BoxConstraints(
           minWidth: 320,

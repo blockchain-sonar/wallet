@@ -4,11 +4,12 @@ library tonclient;
 import "dart:js_util" show getProperty, hasProperty, newObject, promiseToFuture;
 import "package:freemework/freemework.dart"
     show ExecutionContext, InvalidOperationException;
+import 'package:freeton_wallet/clients/tonclient/src/models/fees.dart';
 import "package:js/js.dart";
 import "package:js/js_util.dart"
     show getProperty, hasProperty, newObject, promiseToFuture, setProperty;
 import "../contract.dart";
-import "models/account_info.dart" show AccountInfo;
+import "models/account_info.dart" show AccountInfo, DeployedAccountInfo;
 import "models/key_pair.dart" show KeyPair;
 import "../contract.dart"
     show AbstractTonClient, InteropContractException, TonClientException;
@@ -18,16 +19,26 @@ import "../contract.dart"
 class _TONClientFacadeInterop {
   external _TONClientFacadeInterop();
   external dynamic init();
-  external dynamic generateMnemonicPhraseSeed(int wordsCount);
+  external dynamic calcDeployFees(
+    String keyPublic,
+    String keySecret,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
+  external dynamic deployContract(
+    String keyPublic,
+    String keySecret,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
   external dynamic deriveKeyPair(String seedMnemonicPhrase, int wordsCount);
+  external dynamic fetchAccountInformation(String accountAddress);
   external dynamic getDeployData(
-    String publicKey,
+    String keyPublic,
     String smartContractABI,
     String smartContractTVCBase64,
   );
-  external dynamic calcDeployFees(dynamic keys);
-  external dynamic deployContract(dynamic keys);
-  external dynamic fetchAccountInformation(String accountAddress);
+  external dynamic generateMnemonicPhraseSeed(int wordsCount);
 }
 
 class TonClient extends AbstractTonClient {
@@ -46,6 +57,14 @@ class TonClient extends AbstractTonClient {
   static const String _DEPLOY_ADDRESS_PROPERTY_NAME = "address";
   static const String _DEPLOY_DATA_PROPERTY_NAME = "dataBase64";
   static const String _DEPLOY_IMAGE_PROPERTY_NAME = "imageBase64";
+
+  static const String __FEES__GAS_FEE__PROPERTY_NAME = "gasFee";
+  static const String __FEES__IN_MSG_FWD_FEE__PROPERTY_NAME = "inMsgFwdFee";
+  static const String __FEES__OUT_MSG_FWD_FEE__PROPERTY_NAME = "outMsgsFwdFee";
+  static const String __FEES__STORAGE_FEE__PROPERTY_NAME = "storageFee";
+  static const String __FEES__TOTAL_ACCOUNT_FEES__PROPERTY_NAME =
+      "totalAccountFees";
+  static const String __FEES__TOTAL_OUTPUT__PROPERTY_NAME = "totalOutput";
 
   static const String _EXCEPTION_MESSAGE_PROPERTY_NAME = "message";
 
@@ -83,9 +102,9 @@ class TonClient extends AbstractTonClient {
 
   @override
   Future<String> getDeployData(
-    String publicKey,
-    String smartContractABI,
-    String smartContractTVCBase64,
+    final String keyPublic,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
   ) async {
     // dynamic nativeJsObject = newObject();
     // setProperty(
@@ -94,9 +113,9 @@ class TonClient extends AbstractTonClient {
     //     nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
     try {
       final String jsData = await promiseToFuture(this._wrap.getDeployData(
-            publicKey,
-            smartContractABI,
-            smartContractTVCBase64,
+            keyPublic,
+            smartContractAbiSpec,
+            smartContractBlobTvcBase64,
           ));
 
       // if (!hasProperty(jsData, TonClient._DEPLOY_ACCOUNTID_PROPERTY_NAME)) {
@@ -132,16 +151,45 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<dynamic> calcDeployFees(KeyPair keys) async {
-    dynamic nativeJsObject = newObject();
-    setProperty(
-        nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
-    setProperty(
-        nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
+  Future<Fees> calcDeployFees(
+    KeyPair keypair,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
+  ) async {
+    // dynamic nativeJsObject = newObject();
+    // setProperty(
+    //     nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
+    // setProperty(
+    //     nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
     try {
-      final dynamic jsData =
-          await promiseToFuture(this._wrap.calcDeployFees(nativeJsObject));
-      return jsData;
+      final dynamic jsData = await promiseToFuture(this._wrap.calcDeployFees(
+            keypair.public,
+            keypair.secret,
+            smartContractAbiSpec,
+            smartContractBlobTvcBase64,
+          ));
+
+      final String gasFee =
+          getProperty(jsData, TonClient.__FEES__GAS_FEE__PROPERTY_NAME);
+      final String inMsgFwdFee =
+          getProperty(jsData, TonClient.__FEES__IN_MSG_FWD_FEE__PROPERTY_NAME);
+      final String outMsgsFwdFee =
+          getProperty(jsData, TonClient.__FEES__OUT_MSG_FWD_FEE__PROPERTY_NAME);
+      final String storageFee =
+          getProperty(jsData, TonClient.__FEES__STORAGE_FEE__PROPERTY_NAME);
+      final String totalAccountFees = getProperty(
+          jsData, TonClient.__FEES__TOTAL_ACCOUNT_FEES__PROPERTY_NAME);
+      final String totalOutput =
+          getProperty(jsData, TonClient.__FEES__TOTAL_OUTPUT__PROPERTY_NAME);
+
+      return Fees(
+        gasFee: gasFee,
+        inMsgFwdFee: inMsgFwdFee,
+        outMsgsFwdFee: outMsgsFwdFee,
+        storageFee: storageFee,
+        totalAccountFees: totalAccountFees,
+        totalOutput: totalOutput,
+      );
     } catch (e) {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
@@ -149,16 +197,23 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<dynamic> deployContract(KeyPair keys) async {
-    dynamic nativeJsObject = newObject();
-    setProperty(
-        nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
-    setProperty(
-        nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
+  Future<dynamic> deployContract(
+    final KeyPair keypair,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
+  ) async {
+    // dynamic nativeJsObject = newObject();
+    // setProperty(
+    //     nativeJsObject, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME, keys.public);
+    // setProperty(
+    //     nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
     try {
-      final dynamic jsData =
-          await promiseToFuture(this._wrap.deployContract(nativeJsObject));
-      return jsData;
+      await promiseToFuture(this._wrap.deployContract(
+            keypair.public,
+            keypair.secret,
+            smartContractAbiSpec,
+            smartContractBlobTvcBase64,
+          ));
     } catch (e) {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
@@ -171,16 +226,20 @@ class TonClient extends AbstractTonClient {
       final dynamic jsData = await promiseToFuture(
           this._wrap.fetchAccountInformation(accountAddress));
 
-      if(jsData == null) {
+      if (jsData == null) {
         return null;
       }
 
       final String balance =
           getProperty(jsData, TonClient._ACCOUNTINFO_BALANCE_PROPERTY_NAME);
-      final String codeHash =
+      final String? codeHash =
           getProperty(jsData, TonClient._ACCOUNTINFO_CODEHASH_PROPERTY_NAME);
 
-      return AccountInfo(balance, codeHash);
+      if (codeHash != null) {
+        return DeployedAccountInfo(balance, codeHash);
+      } else {
+        return AccountInfo(balance);
+      }
     } catch (e) {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));

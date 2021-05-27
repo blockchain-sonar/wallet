@@ -13,7 +13,7 @@
 // limitations under the License.
 
 import "package:flutter/material.dart"
-    show CircularProgressIndicator, Colors, Icons, Scaffold;
+    show CircularProgressIndicator, Colors, Icons;
 import "package:flutter/widgets.dart"
     show
         BorderRadius,
@@ -36,6 +36,7 @@ import "package:flutter/widgets.dart"
         Widget;
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 
 import '../reusable/button_widget.dart'
     show FWButton, FWCancelFloatingActionButton;
@@ -77,8 +78,8 @@ class _ImportModeSelectorWidget
     BuildContext context, {
     required DialogCallback<ImportModeSelectorContext> onComplete,
   }) {
-    return Container(
-      child: Column(
+    return MyScaffold(
+      body: Column(
         children: <Widget>[
           this._buildItem(
             Icons.add_rounded,
@@ -105,7 +106,7 @@ class _ImportModeSelectorWidget
     required CancellationTokenSource cancellationTokenSource,
     Widget? feedbackInfoWidget,
   }) {
-    return Scaffold(
+    return MyScaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

@@ -26,7 +26,7 @@ import "package:flutter/material.dart"
         InkWell,
         MediaQuery,
         RoundedRectangleBorder,
-        Scaffold,
+        
         SizedBox,
         SliverGridDelegateWithFixedCrossAxisCount;
 
@@ -52,6 +52,7 @@ import "package:flutter/widgets.dart"
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
     show
@@ -96,7 +97,7 @@ class _ConfirmMnemonicWidget extends DialogActionContentWidget<void> {
     required CancellationTokenSource cancellationTokenSource,
     Widget? feedbackInfoWidget,
   }) {
-    return Scaffold(
+    return MyScaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -121,7 +122,7 @@ class _ConfirmMnemonicWidget extends DialogActionContentWidget<void> {
     Widget body, {
     required FloatingActionButton floatingActionButton,
   }) {
-    return Scaffold(
+    return MyScaffold(
       body: Column(
         children: <Widget>[
           Padding(

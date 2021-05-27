@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-class AccountInfo {
-  final String balance;
-  const AccountInfo(this.balance);
-}
+import "package:flutter/widgets.dart"
+    show BuildContext, Container, StatelessWidget, Text, Widget;
 
-class DeployedAccountInfo extends AccountInfo {
-  final String codeHash;
-  const DeployedAccountInfo(String balance, this.codeHash) : super(balance);
+class SendMoneyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Text("Send Money TBD..."),
+    );
+  }
 }

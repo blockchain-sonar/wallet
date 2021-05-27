@@ -12,75 +12,221 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:flutter/material.dart';
+import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
     show BuildContext, Container, State, StatefulWidget, Widget;
-import 'package:freeton_wallet/services/blockchain/blockchain.dart';
-import 'package:freeton_wallet/widgets/reusable/smart_contact.dart';
+import "package:freemework/freemework.dart" show FreemeworkException;
 
-import "../../services//encrypted_db_service.dart" show Account;
+import "../../services/blockchain/blockchain.dart";
+import "../../services/encrypted_db_service.dart" show Account;
 
-abstract class DeployContractApi {
-  Future<void> calculateDeploymentFee();
+import "../layout/my_scaffold.dart" show MyScaffold;
+import "../reusable/smart_contact.dart" show SmartContractWidget;
+
+abstract class DeployContractWidgetApi
+    implements _AccountLoader, _BlockchainApi {}
+
+abstract class _AccountLoader {
+  Future<Account> get account;
 }
 
-class DeployContractWidget extends StatefulWidget {
-  final DeployContractApi api;
-  final Account account;
-
-  DeployContractWidget(this.api, this.account);
-
-  @override
-  _DeployContractState createState() => _DeployContractState();
+abstract class _BlockchainApi implements _DeployerApi {
+  Future<String> calculateDeploymentFee();
 }
 
-class _DeployContractState extends State<DeployContractWidget> {
-  String? _deploymentFeeAmount = null;
+abstract class _DeployerApi {
+  Future<void> deploy();
+}
 
-  @override
-  void initState() {
-    super.initState();
+class DeployContractWidget extends StatelessWidget {
+  final DeployContractWidgetApi api;
 
-    this.widget.api.calculateDeploymentFee().then((_) {
-      setState(() {
-        this._deploymentFeeAmount = "0.0";
-      });
-      //
-    }).catchError(() {
-      //
-    });
-  }
+  DeployContractWidget(this.api);
 
   @override
   Widget build(BuildContext context) {
-    final String? deploymentFeeAmount = this._deploymentFeeAmount;
-    final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
-        .getByFullQualifiedName(
-            this.widget.account.smartContractFullQualifiedName);
+    return FutureBuilder<Account>(
+      initialData: null,
+      future: this.api.account,
+      builder: this._buildSnapshotRouter,
+    );
+  }
 
-    return Container(
-      child: Column(
-        children: [
-          Text("Deployment Fee"),
-          if (deploymentFeeAmount != null) Text(deploymentFeeAmount),
-          if (deploymentFeeAmount != null)
-            ElevatedButton.icon(
-              onPressed: this._onDeployClick,
-              icon: Icon(Icons.all_inclusive_sharp),
-              label: Text("Deploy Contract"),
-            ),
-          if (deploymentFeeAmount == null)
-            LinearProgressIndicator(
-              semanticsLabel: "Linear progress indicator",
-            ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
+  Widget _buildSnapshotRouter(
+    final BuildContext context,
+    final AsyncSnapshot<Account> snapshot,
+  ) {
+    if (snapshot.connectionState == ConnectionState.waiting) {
+      return _buildLoadingProgress(context);
+    } else if (snapshot.hasError) {
+      return _buildFailure(context, snapshot.error);
+    }
+    assert(snapshot.data != null);
+    final Account account = snapshot.data!;
+
+    return _DeployContractWidget(this.api, account);
+  }
+
+  Widget _buildLoadingProgress(
+    final BuildContext context,
+  ) {
+    return MyScaffold(
+      appBarTitle: "Deploy Contract",
+      body: Column(
+        children: <Widget>[
+          LinearProgressIndicator(
+            semanticsLabel: "Linear progress indicator",
           ),
-          SmartContractWidget(smartContractBlob)
+          Text("Checking account..."),
         ],
       ),
     );
   }
 
-  void _onDeployClick() {}
+  Widget _buildFailure(final BuildContext context, final Object? error) {
+    print(error);
+    return MyScaffold(
+      body: Text("Cannot load account information..."),
+    );
+  }
+}
+
+class _DeployContractWidget extends StatefulWidget {
+  final _BlockchainApi api;
+  final Account account;
+
+  _DeployContractWidget(this.api, this.account);
+
+  @override
+  _DeployContractState createState() => _DeployContractState();
+}
+
+class _StateData {}
+
+class _StateDataDeployFeeCalculated extends _StateData {
+  final String deploymentFeeAmount;
+  _StateDataDeployFeeCalculated(this.deploymentFeeAmount);
+}
+
+class _StateDataDeployFeeCalculationFailure extends _StateData {
+  final FreemeworkException ex;
+  _StateDataDeployFeeCalculationFailure(this.ex);
+}
+
+class _StateDataDeploying extends _StateData {}
+
+class _StateDataDeployed extends _StateData {}
+
+class _StateDataDeploymentFailure extends _StateData {
+  final FreemeworkException ex;
+  _StateDataDeploymentFailure(this.ex);
+}
+
+class _DeployContractState extends State<_DeployContractWidget> {
+  _StateData? _stateData;
+
+  _DeployContractState() : this._stateData = null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    this.widget.api.calculateDeploymentFee().then((String deploymentFee) {
+      this.setState(() {
+        this._stateData = _StateDataDeployFeeCalculated(deploymentFee);
+      });
+    }).catchError((Object? error) {
+      //
+      print(error);
+      this.setState(() {
+        this._stateData = _StateDataDeployFeeCalculationFailure(
+            FreemeworkException.wrapIfNeeded(error));
+      });
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final _StateData? stateData = this._stateData;
+    final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
+        .getByFullQualifiedName(
+            this.widget.account.smartContractFullQualifiedName);
+
+    return MyScaffold(
+      appBarTitle: "Deploy Contract",
+      body: Container(
+        color: Colors.amber,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            if (stateData == null) ...<Widget>[
+              LinearProgressIndicator(
+                semanticsLabel: "Linear progress indicator",
+              ),
+              Text("Calculating deployment fee..."),
+            ],
+            if (stateData != null &&
+                stateData is _StateDataDeployFeeCalculated) ...<Widget>[
+              Row(
+                children: <Widget>[
+                  Text("Deployment Fee:"),
+                  Text(stateData.deploymentFeeAmount),
+                ],
+              ),
+              ElevatedButton.icon(
+                onPressed: this._onDeployClick,
+                icon: Icon(Icons.all_inclusive_sharp),
+                label: Text("Deploy"),
+              ),
+            ],
+            if (stateData != null &&
+                stateData is _StateDataDeployFeeCalculationFailure) ...<Widget>[
+              Text("Something went wrong..."),
+              Text(stateData.ex.toString()),
+            ],
+            if (stateData != null &&
+                stateData is _StateDataDeploying) ...<Widget>[
+              LinearProgressIndicator(
+                semanticsLabel: "Linear progress indicator",
+              ),
+              Text("Deploying smart contact into blockchain..."),
+            ],
+            if (stateData != null &&
+                stateData is _StateDataDeployed) ...<Widget>[
+              Text("The Smart Contact was deployed successfully!"),
+            ],
+            if (stateData != null &&
+                stateData is _StateDataDeploymentFailure) ...<Widget>[
+              Text("Something went wrong..."),
+              Text(stateData.ex.toString()),
+            ],
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+            ),
+            Text("Contract Information"),
+            Center(child: SmartContractWidget(smartContractBlob))
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _onDeployClick() async {
+    this.setState(() {
+      this._stateData = _StateDataDeploying();
+    });
+
+    try {
+      await this.widget.api.deploy();
+
+      this.setState(() {
+        this._stateData = _StateDataDeployed();
+      });
+    } catch (e) {
+      this.setState(() {
+        this._stateData =
+            _StateDataDeploymentFailure(FreemeworkException.wrapIfNeeded(e));
+      });
+    }
+  }
 }

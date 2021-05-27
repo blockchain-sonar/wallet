@@ -26,7 +26,6 @@ import "package:flutter/material.dart"
         FontWeight,
         InkWell,
         Padding,
-        Scaffold,
         SizedBox,
         StatelessWidget,
         Text,
@@ -34,6 +33,7 @@ import "package:flutter/material.dart"
         Widget;
 import "package:flutter/widgets.dart"
     show BuildContext, Column, StatelessWidget, Text, Widget;
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import "package:url_launcher/url_launcher.dart" show launch;
 
 import "../../services/blockchain/smart_contract.dart" show SmartContractBlob;
@@ -51,10 +51,8 @@ class SelectSmartContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Smart contracts"),
-      ),
+    return MyScaffold(
+      appBarTitle: "Smart contracts",
       body: Column(
         children: <Widget>[
           ...this.smartContracts.map(

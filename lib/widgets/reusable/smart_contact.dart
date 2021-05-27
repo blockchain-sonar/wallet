@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart"
     show
         AssetImage,
@@ -35,13 +36,17 @@ class SmartContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: <Widget>[
-          Text(this.smartContractBlob.abi.descriptionShort),
-          Text(this.smartContractBlob.descriptionShort),
-        ],
+    return Container(
+      color: Colors.purpleAccent,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Text(this.smartContractBlob.abi.descriptionShort),
+            Text(this.smartContractBlob.descriptionShort),
+          ],
+        ),
       ),
     );
   }

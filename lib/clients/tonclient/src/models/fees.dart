@@ -12,12 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-class AccountInfo {
-  final String balance;
-  const AccountInfo(this.balance);
-}
+class Fees {
+  final String gasFee;
+  final String inMsgFwdFee;
+  final String outMsgsFwdFee;
+  final String storageFee;
+  final String totalAccountFees;
+  final String totalOutput;
 
-class DeployedAccountInfo extends AccountInfo {
-  final String codeHash;
-  const DeployedAccountInfo(String balance, this.codeHash) : super(balance);
+  Fees({
+    required this.gasFee,
+    required this.inMsgFwdFee,
+    required this.outMsgsFwdFee,
+    required this.storageFee,
+    required this.totalAccountFees,
+    required this.totalOutput,
+  });
 }

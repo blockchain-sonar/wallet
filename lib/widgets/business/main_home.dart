@@ -27,7 +27,6 @@ import "package:fl_chart/fl_chart.dart"
         SideTitles;
 import "package:flutter/material.dart"
     show
-        AppBar,
         BuildContext,
         Color,
         Colors,
@@ -36,10 +35,8 @@ import "package:flutter/material.dart"
         Expanded,
         FontWeight,
         MainAxisAlignment,
-        MaterialColor,
         Padding,
         Row,
-        Scaffold,
         SizedBox,
         State,
         StatefulWidget,
@@ -50,14 +47,12 @@ import "package:flutter/material.dart"
 import "package:http/http.dart" as http;
 import "package:flutter/material.dart"
     show
-        AppBar,
         BuildContext,
         Colors,
         Column,
         EdgeInsets,
         Padding,
         Row,
-        Scaffold,
         SizedBox,
         State,
         StatefulWidget,

@@ -1,6 +1,7 @@
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
 import "src/models/account_info.dart" show AccountInfo;
+import "src/models/fees.dart" show Fees;
 import "src/models/key_pair.dart" show KeyPair;
 
 enum SeedType {
@@ -11,18 +12,24 @@ enum SeedType {
 abstract class AbstractTonClient {
   Future<void> init(ExecutionContext executionContext);
 
-  Future<String> generateMnemonicPhraseSeed(SeedType seedType);
-
+  Future<dynamic> deployContract(
+    KeyPair keypair,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
   Future<KeyPair> deriveKeys(String mnemonicPhraseSeed, SeedType seedType);
-
-  // Future<DeployData> getDeployData(KeyPair keys);
-  Future<String> getDeployData(String publicKey, String smartContractABI, String smartContractTVCBase64);
-
-  Future<dynamic> calcDeployFees(KeyPair keys);
-
-  Future<dynamic> deployContract(KeyPair keys);
-
+  Future<Fees> calcDeployFees(
+    KeyPair keypair,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
   Future<AccountInfo?> fetchAccountInformation(String accountAddress);
+  Future<String> getDeployData(
+    String keyPublic,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
+  Future<String> generateMnemonicPhraseSeed(SeedType seedType);
 }
 
 ///

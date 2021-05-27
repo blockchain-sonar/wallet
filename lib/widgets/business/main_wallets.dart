@@ -46,11 +46,11 @@ import "package:flutter/material.dart"
         FloatingActionButton,
         Icons,
         InkWell,
-        ListTile,
-        Scaffold;
+        ListTile;
 import "package:flutter/services.dart" show Clipboard, ClipboardData;
 
 import "package:freemework/freemework.dart";
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
 
 import "../../services/blockchain/blockchain.dart"
@@ -65,13 +65,15 @@ import "../../services/job.dart" show AccountsActivationJob, JobService;
 
 import "../../states/app_state.dart" show AppState;
 
-typedef MainWalletsDeployContractCallback = void Function(String keypairName);
+typedef DeployContractCallback = void Function(Account account);
+typedef SendMoneyCallback = void Function(Account account);
 
 class MainWalletsWidget extends StatefulWidget {
   final AppState _appState;
   final JobService jobService;
   final void Function() onAddNewKey;
-  final MainWalletsDeployContractCallback onDeployContract;
+  final DeployContractCallback onDeployContract;
+  final SendMoneyCallback onSendMoney;
   final BottomNavigationBar bottomNavigationBar;
 
   MainWalletsWidget(
@@ -80,6 +82,7 @@ class MainWalletsWidget extends StatefulWidget {
     required this.jobService,
     required this.onAddNewKey,
     required this.onDeployContract,
+    required this.onSendMoney,
     Key? key,
   }) : super(key: key);
 
@@ -128,23 +131,12 @@ class _MainWalletsState extends State<MainWalletsWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Wallets"),
-      ),
-      body: Container(
-        constraints: BoxConstraints(
-          minWidth: 320,
-          maxWidth: 800,
-          minHeight: 480,
-          maxHeight: 1080,
-        ),
-        alignment: Alignment.topCenter,
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: _buildPanel(),
-          ),
+    return MyScaffold(
+      appBarTitle: "Wallets",
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: _buildPanel(),
         ),
       ),
       bottomNavigationBar: this.widget.bottomNavigationBar,
@@ -190,6 +182,8 @@ class _MainWalletsState extends State<MainWalletsWidget> {
                   KeypairBundleContentWidget(
                     item.keypairBundle,
                     jobService: this.widget.jobService,
+                    onDeployContract: this.widget.onDeployContract,
+                    onSendMoney: this.widget.onSendMoney,
                   ),
                   // SizedBox.fromSize(
                   //   size: Size(92, 92), // button width and height
@@ -247,10 +241,14 @@ class _KeypairBundleExpansionPanelViewModel {
 class KeypairBundleContentWidget extends StatefulWidget {
   final KeypairBundle data;
   final JobService jobService;
+  final DeployContractCallback onDeployContract;
+  final SendMoneyCallback onSendMoney;
 
   KeypairBundleContentWidget(
     this.data, {
     required this.jobService,
+    required this.onDeployContract,
+    required this.onSendMoney,
   });
 
   @override
@@ -322,15 +320,24 @@ class _KeypairBundleContentState extends State<KeypairBundleContentWidget> {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: AccountsWidget(
-          this.widget.data.accounts.values.toList(growable: false)),
+        this.widget.data.accounts.values.toList(growable: false),
+        onDeployContract: this.widget.onDeployContract,
+        onSendMoney: this.widget.onSendMoney,
+      ),
     );
   }
 }
 
 class AccountsWidget extends StatefulWidget {
   final List<Account> accounts;
+  final DeployContractCallback onDeployContract;
+  final SendMoneyCallback onSendMoney;
 
-  AccountsWidget(this.accounts);
+  AccountsWidget(
+    this.accounts, {
+    required this.onDeployContract,
+    required this.onSendMoney,
+  });
 
   @override
   _AccountsState createState() => _AccountsState();
@@ -410,7 +417,11 @@ class _AccountsState extends State<AccountsWidget> {
                   ],
                 ),
               ),
-              body: _AccountWidget(item.account),
+              body: _AccountWidget(
+                item.account,
+                onDeployContract: this.widget.onDeployContract,
+                onSendMoney: this.widget.onSendMoney,
+              ),
               isExpanded: item.isExpanded,
             ),
           )
@@ -437,8 +448,14 @@ class _AccountExpansionPanelViewModel {
 
 class _AccountWidget extends StatelessWidget {
   final Account account;
+  final DeployContractCallback onDeployContract;
+  final SendMoneyCallback onSendMoney;
 
-  _AccountWidget(this.account);
+  _AccountWidget(
+    this.account, {
+    required this.onDeployContract,
+    required this.onSendMoney,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -517,7 +534,9 @@ class _AccountWidget extends StatelessWidget {
                 children: <Widget>[
                   if (account.accountType != AccountType.ACTIVE)
                     ElevatedButton.icon(
-                      onPressed: this._onDeployContractClick,
+                      onPressed: account.balance == "0.000000000"
+                          ? null
+                          : this._onDeployContractClick,
                       icon: Icon(Icons.api),
                       label: Text("Deploy Contract"),
                     ),
@@ -525,7 +544,7 @@ class _AccountWidget extends StatelessWidget {
                   if (account.accountType == AccountType.ACTIVE)
                     ElevatedButton.icon(
                       onPressed: () {
-                        //
+                        this.onSendMoney(account);
                       },
                       icon: Icon(Icons.send),
                       label: Text("Send"),
@@ -546,17 +565,17 @@ class _AccountWidget extends StatelessWidget {
   }
 
   void _onDeployContractClick() {
-    //this.account.
+    this.onDeployContract(account);
   }
 }
 
-String _trimPublicKey(String publicKey) {
-  if (publicKey.length > 16) {
-    final String head = publicKey.substring(0, 6);
-    final String tail = publicKey.substring(publicKey.length - 6);
+String _trimPublicKey(String keyPublic) {
+  if (keyPublic.length > 16) {
+    final String head = keyPublic.substring(0, 6);
+    final String tail = keyPublic.substring(keyPublic.length - 6);
     return "${head}...${tail}";
   }
-  return publicKey;
+  return keyPublic;
 }
 
 String _trimAddress(String accountAddress) {

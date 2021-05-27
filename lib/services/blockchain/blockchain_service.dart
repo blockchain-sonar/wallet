@@ -23,11 +23,23 @@ import "../../data/mnemonic_phrase.dart"
     show MnemonicPhrase, MnemonicPhraseLength;
 
 abstract class BlockchainService {
-  Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
+  Future<String> calculateDeploymentFee(
+    String keyPublic,
+    String keySecret,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
+  Future<void> deployContract(
+    String keyPublic,
+    String keySecret,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
   Future<AccountInfo> fetchAccountInformation(String accountAddress);
+  Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
   Future<String> resolveAccountAddress(
-    String publicKey,
+    String keyPublic,
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   );
@@ -39,22 +51,35 @@ class BlockchainServiceImpl extends BlockchainService {
   BlockchainServiceImpl(this._tonClient);
 
   @override
-  Future<MnemonicPhrase> generateMnemonicPhrase(
-      MnemonicPhraseLength length) async {
-    TON.SeedType seedType;
-    switch (length) {
-      case MnemonicPhraseLength.LONG:
-        seedType = TON.SeedType.LONG;
-        break;
-      case MnemonicPhraseLength.SHORT:
-        seedType = TON.SeedType.SHORT;
-        break;
-      default:
-        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
-    }
-    final String mnemonicSentence =
-        await this._tonClient.generateMnemonicPhraseSeed(seedType);
-    return MnemonicPhrase(mnemonicSentence.split(" "), length);
+  Future<String> calculateDeploymentFee(
+    String keyPublic,
+    String keySecret,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  ) async {
+    final TON.Fees fees = await this._tonClient.calcDeployFees(
+          TON.KeyPair(public: keyPublic, secret: keySecret),
+          smartContractAbiSpec,
+          smartContractBlobTvcBase64,
+        );
+
+    final String deploymentFeeEstimatedAmount = fees.totalAccountFees;
+
+    return deploymentFeeEstimatedAmount;
+  }
+
+  @override
+  Future<void> deployContract(
+    String keyPublic,
+    String keySecret,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  ) async {
+    await this._tonClient.deployContract(
+          TON.KeyPair(public: keyPublic, secret: keySecret),
+          smartContractAbiSpec,
+          smartContractBlobTvcBase64,
+        );
   }
 
   @override
@@ -81,20 +106,44 @@ class BlockchainServiceImpl extends BlockchainService {
     final TON.AccountInfo? accountInfo =
         await this._tonClient.fetchAccountInformation(accountAddress);
     if (accountInfo != null) {
-      return AccountInfo(accountInfo.balance, true);
+      return AccountInfo(
+        accountInfo.balance,
+        accountInfo is TON.DeployedAccountInfo,
+      );
     }
     return AccountInfo.EMPTY;
   }
 
   @override
+  Future<MnemonicPhrase> generateMnemonicPhrase(
+      MnemonicPhraseLength length) async {
+    TON.SeedType seedType;
+    switch (length) {
+      case MnemonicPhraseLength.LONG:
+        seedType = TON.SeedType.LONG;
+        break;
+      case MnemonicPhraseLength.SHORT:
+        seedType = TON.SeedType.SHORT;
+        break;
+      default:
+        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
+    }
+    final String mnemonicSentence =
+        await this._tonClient.generateMnemonicPhraseSeed(seedType);
+    return MnemonicPhrase(mnemonicSentence.split(" "), length);
+  }
+
+  @override
   Future<String> resolveAccountAddress(
-    String publicKey,
+    String keyPublic,
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   ) async {
-    final String address = await this
-        ._tonClient
-        .getDeployData(publicKey, smartContractAbiSpec, smartContractBlobTvcBase64);
+    final String address = await this._tonClient.getDeployData(
+          keyPublic,
+          smartContractAbiSpec,
+          smartContractBlobTvcBase64,
+        );
     return address;
   }
 }

@@ -20,7 +20,6 @@ import "package:flutter/material.dart"
         Icons,
         InputDecoration,
         OutlineInputBorder,
-        Scaffold,
         TextField;
 
 import "package:flutter/widgets.dart"
@@ -34,10 +33,8 @@ import "package:flutter/widgets.dart"
         Container,
         EdgeInsets,
         Expanded,
-        Flexible,
         FontWeight,
         Icon,
-        IconData,
         Key,
         MainAxisAlignment,
         Padding,
@@ -53,6 +50,7 @@ import "package:flutter/widgets.dart"
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
 
+import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
     show
@@ -102,7 +100,7 @@ class _RestoreByMnemonicPhraseWidget
     required CancellationTokenSource cancellationTokenSource,
     Widget? feedbackInfoWidget,
   }) {
-    return Scaffold(
+    return MyScaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -127,7 +125,7 @@ class _RestoreByMnemonicPhraseWidget
     Widget body, {
     required FloatingActionButton floatingActionButton,
   }) {
-    return Scaffold(
+    return MyScaffold(
       body: Column(
         children: <Widget>[
           Padding(

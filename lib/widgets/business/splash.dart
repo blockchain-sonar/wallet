@@ -23,6 +23,7 @@ import "package:flutter/widgets.dart"
         Text,
         Widget;
 import 'package:freemework_cancellation/freemework_cancellation.dart';
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 
 class SplashWidget extends StatefulWidget {
   SplashWidget();
@@ -62,8 +63,10 @@ class _SplashState extends State<SplashWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text("Loading"),
+    return MyScaffold(
+      body: Center(
+        child: Text("Loading"),
+      ),
     );
   }
 

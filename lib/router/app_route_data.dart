@@ -55,11 +55,10 @@ class AppRouteDataMain extends AppRouteData {
   static const String PATH = "/";
   static const String _PATH_WALLET = "/wallet";
   static const String _PATH_WALLET_DEPLOY = "/wallet/deploy";
+  static const String _PATH_WALLET_SENDMONEY = "/wallet/send";
   static const String _PATH_WALLET_NEW = "/wallet/new";
 
   static AppRouteDataMain? test(Uri routeUri) {
-    print("testing: ${routeUri.path}");
-    print("testing: ${routeUri.toString()}");
     if (routeUri.path == PATH) {
       return AppRouteDataMain._(MainTab.HOME);
     } else if (routeUri.path == _PATH_WALLET) {
@@ -70,15 +69,12 @@ class AppRouteDataMain extends AppRouteData {
       return AppRouteDataMain._(MainTab.SETTINGS);
     } else if (routeUri.path.startsWith(_PATH_WALLET_DEPLOY) &&
         routeUri.pathSegments.length == 3) {
-      final String keypairName = routeUri.pathSegments[2];
-      return AppRouteDataMainWallets(keypairName);
-    } else if (routeUri.path.startsWith(_PATH_WALLET_DEPLOY) &&
-        routeUri.pathSegments.length == 4) {
-      final String keypairName = routeUri.pathSegments[2];
-      final String smartContractId = routeUri.pathSegments[3];
-      // final SmartContract smartContract =
-      //     SmartContract.getById(smartContractId);
-      return AppRouteDataMainWallets(keypairName, "smartContract");
+      final String accountAddress = routeUri.pathSegments[2];
+      return AppRouteDataMainWalletsDeployContract(accountAddress);
+    } else if (routeUri.path.startsWith(_PATH_WALLET_SENDMONEY) &&
+        routeUri.pathSegments.length == 3) {
+      final String accountAddress = routeUri.pathSegments[2];
+      return AppRouteDataMainWalletsSendMoney(accountAddress);
     }
     return null;
   }
@@ -97,19 +93,17 @@ class AppRouteDataMain extends AppRouteData {
         return "/";
       case MainTab.WALLETS:
         final AppRouteDataMain _this = this;
-        print("Read location for ${_this}");
-        if (_this is AppRouteDataMainWallets) {
-          final String? keyNameToDeployContract = _this.keyNameToDeployContract;
-          if (_this.keyNameToDeployContract != null) {
-            // final SmartContract? deployContract = _this.deployContract;
-            // if (deployContract != null) {
-            //   return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}/${deployContract.name}";
-            // } else {
-            return "${_PATH_WALLET_DEPLOY}/${keyNameToDeployContract}";
-            // }
+        if (_this is AppRouteDataMainWalletsDeployContract) {
+          final String? accountAddress = _this.accountAddress;
+          if (accountAddress != null) {
+            return "${_PATH_WALLET_DEPLOY}/${accountAddress}";
+          }
+        } else if (_this is AppRouteDataMainWalletsSendMoney) {
+          final String? accountAddress = _this.accountAddress;
+          if (accountAddress != null) {
+            return "${_PATH_WALLET_DEPLOY}/${accountAddress}";
           }
         }
-
         return _PATH_WALLET;
       case MainTab.SETTINGS:
         return "/settings";
@@ -120,13 +114,29 @@ class AppRouteDataMain extends AppRouteData {
 }
 
 class AppRouteDataMainWallets extends AppRouteDataMain {
-  final String? keyNameToDeployContract;
-  final dynamic? deployContract;
+  AppRouteDataMainWallets() : super._(MainTab.WALLETS);
 
-  AppRouteDataMainWallets([
-    this.keyNameToDeployContract = null,
-    this.deployContract = null,
-  ]) : super._(MainTab.WALLETS);
+  // @override
+  // String get location => AppRouteDataMain._PATH_WALLET;
+}
+
+class AppRouteDataMainWalletsDeployContract extends AppRouteDataMain {
+  final String accountAddress;
+
+  AppRouteDataMainWalletsDeployContract(
+    this.accountAddress,
+  ) : super._(MainTab.WALLETS);
+
+  // @override
+  // String get location => AppRouteDataMain._PATH_WALLET;
+}
+
+class AppRouteDataMainWalletsSendMoney extends AppRouteDataMain {
+  final String accountAddress;
+
+  AppRouteDataMainWalletsSendMoney(
+    this.accountAddress,
+  ) : super._(MainTab.WALLETS);
 
   // @override
   // String get location => AppRouteDataMain._PATH_WALLET;

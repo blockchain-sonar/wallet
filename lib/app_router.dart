@@ -16,13 +16,12 @@ import "dart:async" show Future;
 import "dart:typed_data" show Uint8List;
 
 import "package:flutter/material.dart"
-    show AppBar, Colors, MaterialApp, MaterialPage, Scaffold, ThemeData;
+    show Colors, MaterialApp, MaterialPage, ThemeData;
 import "package:flutter/src/widgets/framework.dart";
 import "package:flutter/src/widgets/navigator.dart";
 import "package:flutter/widgets.dart"
     show
         Alignment,
-        AsyncSnapshot,
         BoxConstraints,
         BuildContext,
         Center,
@@ -49,6 +48,10 @@ import "package:flutter/widgets.dart"
         ValueKey,
         Widget;
 import "package:freemework/freemework.dart";
+import 'package:freeton_wallet/widgets/business/deploy_contract.dart';
+import 'package:freeton_wallet/widgets/business/send_modey.dart';
+import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
+import 'adapter/deploy_contract_adapter.dart';
 import "router/main_page.dart" show MainPage;
 import "router/redirect_page.dart" show RedirectPage;
 import "widgets/business/main_tab.dart" show MainTab;
@@ -62,10 +65,14 @@ import "states/app_state.dart" show AppState;
 import "package:provider/provider.dart" show Consumer;
 
 import "services/encrypted_db_service.dart"
-    show DataSet, EncryptedDbService, KeypairBundle, KeypairBundlePlain;
+    show
+        Account,
+        DataSet,
+        EncryptedDbService,
+        KeypairBundle,
+        KeypairBundlePlain;
 import "services/job.dart" show JobService;
-import "widgets/business/main_wallets.dart"
-    show MainWalletsDeployContractCallback;
+import "widgets/business/main_wallets.dart" show DeployContractCallback;
 import "widgets/business/select_smart_contract.dart"
     show SelectSmartContractWidget;
 import "widgets/business/setup_master_password.dart"
@@ -128,12 +135,12 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
   final GlobalKey<NavigatorState> _navigatorKey;
   final EncryptedDbService _encryptedDbService;
   final JobService _jobService;
-  final BlockchainService _walletService;
+  final BlockchainService _blockchainService;
 
   AppRouteData _currentConfiguration;
 
   _AppRouterDelegate(
-      this._encryptedDbService, this._walletService, this._jobService)
+      this._encryptedDbService, this._blockchainService, this._jobService)
       : this._navigatorKey = GlobalKey<NavigatorState>(),
         this._currentConfiguration = AppRouteDataMain.home();
 
@@ -166,7 +173,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           consumerContext,
           appState,
           this._encryptedDbService,
-          this._walletService,
+          this._blockchainService,
         );
       else if (currentConfiguration is AppRouteDataMain)
         pagesStack = _mainPagesStack(
@@ -174,6 +181,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           consumerContext,
           appState,
           this._encryptedDbService,
+          this._blockchainService,
         );
       else if (currentConfiguration is AppRouterDataSignin)
         pagesStack = _signinPagesStack(
@@ -214,31 +222,11 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     this._currentConfiguration = configuration;
   }
 
-  Widget _buildPageLayoutWidget({required Widget child}) {
-    // child: MaterialApp(
-    //   title: "Free TON Wallet (Alpha)",
-    //   theme: ThemeData(
-    //     primarySwatch: Colors.blue,
-    //   ),
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Container(
-          alignment: Alignment.center,
-          constraints: BoxConstraints(minWidth: 196, maxWidth: 480),
-          child: child,
-        ),
-      ],
-    );
-    // ),
-  }
-
   MaterialPage<WizzardWalletWidget> _buildWizzardWalletPage(AppState appState) {
     return MaterialPage<WizzardWalletWidget>(
       key: ValueKey<Object>(WizzardWalletWidget),
       child: WizzardWalletWidget(
-        this._walletService,
+        this._blockchainService,
         onComplete: (
           String walletName,
           KeyPair keyPair,
@@ -264,10 +252,11 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       <Page<dynamic>>[CrashPage()];
 
   List<Page<dynamic>> _mainPagesStack(
-    AppRouteDataMain configuration,
-    BuildContext context,
-    AppState appState,
-    EncryptedDbService encryptedDbService,
+    final AppRouteDataMain configuration,
+    final BuildContext context,
+    final AppState appState,
+    final EncryptedDbService encryptedDbService,
+    final BlockchainService blockchainService,
   ) {
     if (!encryptedDbService.isInitialized) {
       return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
@@ -297,9 +286,14 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainWalletsNew();
       this.notifyListeners();
     };
-    final MainWalletsDeployContractCallback onDeployContract =
-        (final String keypairName) {
-      this._currentConfiguration = AppRouteDataMainWallets(keypairName);
+    final DeployContractCallback onDeployContract = (final Account account) {
+      this._currentConfiguration =
+          AppRouteDataMainWalletsDeployContract(account.blockchainAddress);
+      this.notifyListeners();
+    };
+    final DeployContractCallback onSendMoney = (final Account account) {
+      this._currentConfiguration =
+          AppRouteDataMainWalletsSendMoney(account.blockchainAddress);
       this.notifyListeners();
     };
 
@@ -318,6 +312,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           onSelectSetting: onSelectSetting,
           onWalletNew: onWalletNew,
           onDeployContract: onDeployContract,
+          onSendMoney: onSendMoney,
         ),
       MainPage(
         configuration,
@@ -329,13 +324,24 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         onSelectSetting: onSelectSetting,
         onWalletNew: onWalletNew,
         onDeployContract: onDeployContract,
+        onSendMoney: onSendMoney,
       ),
       if (currentConfiguration is AppRouteDataMainWalletsNew)
         _buildWizzardWalletPage(appState)
-      // else if (currentConfiguration is AppRouteDataMainWallets &&
-      //     currentConfiguration.keyNameToDeployContract != null)
-      //   ..._wizzardDeployContractPagesStack(
-      //       currentConfiguration.keyNameToDeployContract!)
+      else if (currentConfiguration is AppRouteDataMainWalletsDeployContract)
+        ..._wizzardDeployContractPagesStack(
+          appState,
+          encryptedDbService,
+          blockchainService,
+          currentConfiguration.accountAddress,
+        )
+      else if (currentConfiguration is AppRouteDataMainWalletsSendMoney)
+        ..._wizzardSendMoneyPagesStack(
+          appState,
+          encryptedDbService,
+          blockchainService,
+          currentConfiguration.accountAddress,
+        )
     ];
   }
 
@@ -409,11 +415,11 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       ];
 
   List<Page<dynamic>> _wizzardNewbePagesStack(
-    AppRouteDataNewbeWizzard configuration,
-    BuildContext context,
-    AppState appState,
-    EncryptedDbService encryptedDbService,
-    BlockchainService blockchainService,
+    final AppRouteDataNewbeWizzard configuration,
+    final BuildContext context,
+    final AppState appState,
+    final EncryptedDbService encryptedDbService,
+    final BlockchainService blockchainService,
   ) {
     if (encryptedDbService.isInitialized) {
       if (!appState.isLogged) {
@@ -458,26 +464,41 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     ];
   }
 
-  // List<Page<dynamic>> _wizzardDeployContractPagesStack(
-  //     final String keyNameToDeployContract) {
-  //   return <Page<dynamic>>[
-  //     MaterialPage<SelectSmartContractWidget>(
-  //       key: ValueKey<Object>(SelectSmartContractWidget),
-  //       child: SelectSmartContractWidget(
-  //         SmartContract.ALL,
-  //         onComplete: (final SmartContract? selectedSmartContract) {
-  //           if (selectedSmartContract != null) {
-  //             this._currentConfiguration = AppRouteDataMainWallets(
-  //                 keyNameToDeployContract, selectedSmartContract);
-  //           } else {
-  //             this._currentConfiguration = AppRouteDataMainWallets();
-  //           }
-  //           this.notifyListeners();
-  //         },
-  //       ),
-  //     )
-  //   ];
-  // }
+  List<Page<dynamic>> _wizzardDeployContractPagesStack(
+    final AppState appState,
+    final EncryptedDbService encryptedDbService,
+    final BlockchainService blockchainService,
+    final String accountAddress,
+  ) {
+    final DeployContractWidgetApi deployContractWidgetApi =
+        DeployContractWidgetApiAdapter(
+      appState,
+      blockchainService,
+      encryptedDbService,
+      accountAddress,
+    );
+
+    return <Page<dynamic>>[
+      MaterialPage<DeployContractWidget>(
+        key: ValueKey<Object>(DeployContractWidget),
+        child: DeployContractWidget(deployContractWidgetApi),
+      )
+    ];
+  }
+
+  List<Page<dynamic>> _wizzardSendMoneyPagesStack(
+    final AppState appState,
+    final EncryptedDbService encryptedDbService,
+    final BlockchainService blockchainService,
+    final String accountAddress,
+  ) {
+    return <Page<dynamic>>[
+      MaterialPage<SendMoneyWidget>(
+        key: ValueKey<Object>(SendMoneyWidget),
+        child: SendMoneyWidget(),
+      )
+    ];
+  }
 
   List<Page<dynamic>> _redirectPagesStack(String location, [String? state]) {
     return <Page<dynamic>>[
@@ -497,8 +518,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 class _UnknownScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(),
+    return MyScaffold(
       body: Center(
         child: Text("404!"),
       ),
