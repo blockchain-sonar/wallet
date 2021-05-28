@@ -39,6 +39,14 @@ class _TONClientFacadeInterop {
     String smartContractTVCBase64,
   );
   external dynamic generateMnemonicPhraseSeed(int wordsCount);
+  external dynamic sendTransaction(
+    String keyPublic,
+    String keySecret,
+    String sourceAddress,
+    String destinationAddress,
+    String amount,
+    String comment,
+  );
 }
 
 class TonClient extends AbstractTonClient {
@@ -152,7 +160,7 @@ class TonClient extends AbstractTonClient {
 
   @override
   Future<Fees> calcDeployFees(
-    KeyPair keypair,
+    final KeyPair keypair,
     final String smartContractAbiSpec,
     final String smartContractBlobTvcBase64,
   ) async {
@@ -240,6 +248,29 @@ class TonClient extends AbstractTonClient {
       } else {
         return AccountInfo(balance);
       }
+    } catch (e) {
+      throw TonClientException(
+          getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));
+    }
+  }
+
+  @override
+  Future<void> sendTransaction(
+    final KeyPair keypair,
+    final String sourceAddress,
+    final String destinationAddress,
+    final String amount,
+    final String comment,
+  ) async {
+    try {
+      await promiseToFuture(this._wrap.sendTransaction(
+            keypair.public,
+            keypair.secret,
+            sourceAddress,
+            destinationAddress,
+            amount,
+            comment,
+          ));
     } catch (e) {
       throw TonClientException(
           getProperty(e, TonClient._EXCEPTION_MESSAGE_PROPERTY_NAME));

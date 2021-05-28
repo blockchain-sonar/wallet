@@ -43,6 +43,14 @@ abstract class BlockchainService {
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   );
+  Future<void> sendTransaction(
+    String keyPublic,
+    String keySecret,
+    String sourceAddress,
+    String destinationAddress,
+    String amount,
+    String comment,
+  );
 }
 
 class BlockchainServiceImpl extends BlockchainService {
@@ -145,5 +153,23 @@ class BlockchainServiceImpl extends BlockchainService {
           smartContractBlobTvcBase64,
         );
     return address;
+  }
+
+  @override
+  Future<void> sendTransaction(
+    String keyPublic,
+    String keySecret,
+    String sourceAddress,
+    String destinationAddress,
+    String amount,
+    String comment,
+  ) async {
+    await this._tonClient.sendTransaction(
+          TON.KeyPair(public: keyPublic, secret: keySecret),
+          sourceAddress,
+          destinationAddress,
+          amount,
+          comment,
+        );
   }
 }

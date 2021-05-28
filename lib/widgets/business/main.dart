@@ -124,12 +124,12 @@ class MainWidget extends StatelessWidget {
     return MyScaffold(
       appBarTitle: appTitle,
       body: Container(
-        constraints: BoxConstraints(
-          minWidth: 320,
-          maxWidth: 800,
-          minHeight: 480,
-          maxHeight: 1080,
-        ),
+        // constraints: BoxConstraints(
+        //   minWidth: 320,
+        //   maxWidth: 800,
+        //   minHeight: 480,
+        //   maxHeight: 1080,
+        // ),
         alignment: Alignment.topCenter,
         child: Builder(builder: this._buildContent),
       ),

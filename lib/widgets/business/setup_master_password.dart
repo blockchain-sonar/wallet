@@ -45,7 +45,7 @@ import "package:flutter/widgets.dart"
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
+import "../layout/my_scaffold.dart" show MyScaffold;
 
 import '../reusable/button_widget.dart' show FWCancelFloatingActionButton;
 import '../reusable/logo_widget.dart' show FWLogo128Widget;
@@ -165,7 +165,7 @@ class _SetupMasterPasswordActiveWidgetState
       TextEditingController();
   final TextEditingController _retryPasswordTextEditingController =
       TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {

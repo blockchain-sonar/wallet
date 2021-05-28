@@ -52,6 +52,7 @@ import 'package:freeton_wallet/widgets/business/deploy_contract.dart';
 import 'package:freeton_wallet/widgets/business/send_modey.dart';
 import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import 'adapter/deploy_contract_adapter.dart';
+import 'adapter/send_money_dapter.dart';
 import "router/main_page.dart" show MainPage;
 import "router/redirect_page.dart" show RedirectPage;
 import "widgets/business/main_tab.dart" show MainTab;
@@ -205,7 +206,15 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           if (!route.didPop(result)) {
             return false;
           }
+          print("onPopPage");
           if (pagesStack.length > 1) {
+            if (this._currentConfiguration
+                    is AppRouteDataMainWalletsDeployContract ||
+                this._currentConfiguration is AppRouteDataMainWalletsNew ||
+                this._currentConfiguration
+                    is AppRouteDataMainWalletsSendMoney) {
+              this._currentConfiguration = AppRouteDataMainWallets();
+            }
           } else {
             this._currentConfiguration = AppRouterDataUnknown();
           }
@@ -470,7 +479,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     final BlockchainService blockchainService,
     final String accountAddress,
   ) {
-    final DeployContractWidgetApi deployContractWidgetApi =
+    final DeployContractWidgetApi widgetApi =
         DeployContractWidgetApiAdapter(
       appState,
       blockchainService,
@@ -481,7 +490,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     return <Page<dynamic>>[
       MaterialPage<DeployContractWidget>(
         key: ValueKey<Object>(DeployContractWidget),
-        child: DeployContractWidget(deployContractWidgetApi),
+        child: DeployContractWidget(widgetApi),
       )
     ];
   }
@@ -492,10 +501,18 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     final BlockchainService blockchainService,
     final String accountAddress,
   ) {
+    final SendMoneyWidgetApi widgetApi =
+        SendMoneyWidgetApiAdapter(
+      appState,
+      blockchainService,
+      encryptedDbService,
+      accountAddress,
+    );
+
     return <Page<dynamic>>[
       MaterialPage<SendMoneyWidget>(
         key: ValueKey<Object>(SendMoneyWidget),
-        child: SendMoneyWidget(),
+        child: SendMoneyWidget(widgetApi),
       )
     ];
   }

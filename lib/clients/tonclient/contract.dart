@@ -30,6 +30,13 @@ abstract class AbstractTonClient {
     String smartContractBlobTvcBase64,
   );
   Future<String> generateMnemonicPhraseSeed(SeedType seedType);
+  Future<void> sendTransaction(
+    KeyPair keypair,
+    String sourceAddress,
+    String destinationAddress,
+    String amount,
+    String comment,
+  );
 }
 
 ///
