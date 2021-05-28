@@ -124,6 +124,7 @@ class _StateDataDeploymentFailure extends _StateData {
 
 class _DeployContractState extends State<_DeployContractWidget> {
   _StateData? _stateData;
+  String? test;
 
   _DeployContractState() : this._stateData = null;
 
@@ -145,6 +146,12 @@ class _DeployContractState extends State<_DeployContractWidget> {
     });
   }
 
+  void testt(String data) {
+    this.setState(() {
+      this.test = data;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final _StateData? stateData = this._stateData;
@@ -159,6 +166,10 @@ class _DeployContractState extends State<_DeployContractWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            Text(this.test ?? ""),
+            SafeMultisigSmartContractDeploy((String text) {
+              testt(text);
+            }),
             if (stateData == null) ...<Widget>[
               LinearProgressIndicator(
                 semanticsLabel: "Linear progress indicator",
@@ -229,4 +240,31 @@ class _DeployContractState extends State<_DeployContractWidget> {
       });
     }
   }
+}
+
+class SafeMultisigSmartContractDeploy extends StatelessWidget {
+  final Function onChange;
+  SafeMultisigSmartContractDeploy(this.onChange);
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        TextField(
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+          ),
+          onChanged: (String text) => this.onChange(text),
+        )
+      ],
+    );
+  }
+}
+
+class SmartContractDeployData {}
+
+class SafeMultisigSmartContractDeployData {
+  final List<String> owners;
+  final int reqConfirms;
+
+  SafeMultisigSmartContractDeployData(this.owners, this.reqConfirms);
 }
