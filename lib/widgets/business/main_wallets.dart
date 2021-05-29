@@ -60,13 +60,13 @@ import "../../services/blockchain/blockchain.dart"
         SmartContractBlob,
         SmartContractKeeper;
 import "../../services/encrypted_db_service.dart"
-    show Account, AccountType, KeypairBundle;
+    show DataAccount, AccountType, KeypairBundle;
 import "../../services/job.dart" show AccountsActivationJob, JobService;
 
 import "../../states/app_state.dart" show AppState;
 
-typedef DeployContractCallback = void Function(Account account);
-typedef SendMoneyCallback = void Function(Account account);
+typedef DeployContractCallback = void Function(DataAccount account);
+typedef SendMoneyCallback = void Function(DataAccount account);
 
 class MainWalletsWidget extends StatefulWidget {
   final AppState _appState;
@@ -329,7 +329,7 @@ class _KeypairBundleContentState extends State<KeypairBundleContentWidget> {
 }
 
 class AccountsWidget extends StatefulWidget {
-  final List<Account> accounts;
+  final List<DataAccount> accounts;
   final DeployContractCallback onDeployContract;
   final SendMoneyCallback onSendMoney;
 
@@ -352,7 +352,7 @@ class _AccountsState extends State<AccountsWidget> {
     _accountViewModels = this
         .widget
         .accounts
-        .map((Account account) => _AccountExpansionPanelViewModel(account))
+        .map((DataAccount account) => _AccountExpansionPanelViewModel(account))
         .toList();
   }
 
@@ -434,7 +434,7 @@ class _AccountsState extends State<AccountsWidget> {
 /// stores ExpansionPanel state information
 ///
 class _AccountExpansionPanelViewModel {
-  final Account account;
+  final DataAccount account;
 
   _AccountExpansionPanelViewModel(this.account) : this.isExpanded = false {
     if (account.accountType == AccountType.ACTIVE ||
@@ -447,7 +447,7 @@ class _AccountExpansionPanelViewModel {
 }
 
 class _AccountWidget extends StatelessWidget {
-  final Account account;
+  final DataAccount account;
   final DeployContractCallback onDeployContract;
   final SendMoneyCallback onSendMoney;
 

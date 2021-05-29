@@ -49,10 +49,10 @@ import "package:flutter/widgets.dart"
         Widget;
 import "package:freemework/freemework.dart";
 import 'package:freeton_wallet/widgets/business/deploy_contract.dart';
-import 'package:freeton_wallet/widgets/business/send_modey.dart';
+import 'package:freeton_wallet/widgets/business/send_money.dart';
 import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import 'adapter/deploy_contract_adapter.dart';
-import 'adapter/send_money_dapter.dart';
+import 'adapter/send_money_adapter.dart';
 import "router/main_page.dart" show MainPage;
 import "router/redirect_page.dart" show RedirectPage;
 import "widgets/business/main_tab.dart" show MainTab;
@@ -67,7 +67,7 @@ import "package:provider/provider.dart" show Consumer;
 
 import "services/encrypted_db_service.dart"
     show
-        Account,
+        DataAccount,
         DataSet,
         EncryptedDbService,
         KeypairBundle,
@@ -295,12 +295,12 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainWalletsNew();
       this.notifyListeners();
     };
-    final DeployContractCallback onDeployContract = (final Account account) {
+    final DeployContractCallback onDeployContract = (final DataAccount account) {
       this._currentConfiguration =
           AppRouteDataMainWalletsDeployContract(account.blockchainAddress);
       this.notifyListeners();
     };
-    final DeployContractCallback onSendMoney = (final Account account) {
+    final DeployContractCallback onSendMoney = (final DataAccount account) {
       this._currentConfiguration =
           AppRouteDataMainWalletsSendMoney(account.blockchainAddress);
       this.notifyListeners();

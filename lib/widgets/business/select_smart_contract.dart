@@ -36,7 +36,7 @@ import "package:flutter/widgets.dart"
 import "package:url_launcher/url_launcher.dart" show launch;
 
 import "../layout/my_scaffold.dart" show MyScaffold;
-import "../../services/blockchain/smart_contract.dart" show SmartContractBlob;
+import '../../services/blockchain/smart_contract/smart_contract.dart' show SmartContractBlob;
 
 typedef _CompleteCallback = void Function(SmartContractBlob? selectedContract);
 

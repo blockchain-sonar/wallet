@@ -58,7 +58,7 @@ abstract class DataSet extends ChangeNotifier {
   DataSet._(); // internal
 }
 
-abstract class Account extends ChangeNotifier {
+abstract class DataAccount extends ChangeNotifier {
   final String blockchainAddress;
   final String smartContractFullQualifiedName;
   final String balance;
@@ -66,7 +66,7 @@ abstract class Account extends ChangeNotifier {
 
   KeypairBundle get parentKeypairBundle;
 
-  Account._(
+  DataAccount._(
     this.blockchainAddress,
     this.smartContractFullQualifiedName,
     this.accountType,
@@ -88,12 +88,12 @@ abstract class KeypairBundle extends ChangeNotifier {
   final String keyPublic;
 
   /// The map of accounts. Key of the map is a SmartContract Identifier
-  UnmodifiableMapView<String, Account> get accounts =>
+  UnmodifiableMapView<String, DataAccount> get accounts =>
       this._accountsView ??
       (this._accountsView =
-          UnmodifiableMapView<String, Account>(this._accounts));
+          UnmodifiableMapView<String, DataAccount>(this._accounts));
 
-  Account setAccount(
+  DataAccount setAccount(
     String smartContractId,
     String blockchainAddress,
     AccountType accountType,
@@ -186,7 +186,7 @@ abstract class KeypairBundle extends ChangeNotifier {
 
     final Map<String, dynamic> accountJson = <String, dynamic>{};
 
-    for (final MapEntry<String, Account> kv in this.accounts.entries) {
+    for (final MapEntry<String, DataAccount> kv in this.accounts.entries) {
       final String smartContractId = kv.key;
       final _Account account = kv.value as _Account;
       accountJson[smartContractId] = account.toJson();
@@ -209,8 +209,8 @@ abstract class KeypairBundle extends ChangeNotifier {
   static const String _KEYPAIR_NAME__PROPERTY = "name";
   static const String _ACCOUNTS__PROPERTY = "accounts";
 
-  UnmodifiableMapView<String, Account>? _accountsView;
-  final Map<String, Account> _accounts;
+  UnmodifiableMapView<String, DataAccount>? _accountsView;
+  final Map<String, DataAccount> _accounts;
 
   KeypairBundle._(
     this.id,
@@ -228,7 +228,7 @@ class KeypairBundlePlain extends KeypairBundle {
     final int id,
     final String keypairName,
     final String keyPublic,
-    final Map<String, Account> accounts,
+    final Map<String, DataAccount> accounts,
     final Map<String, dynamic> rawJson,
   ) {
     final String? keySecret = rawJson[_KEY_SECRET__PROPERTY];
@@ -282,7 +282,7 @@ class KeypairBundlePlain extends KeypairBundle {
     int id,
     String keypairName,
     String keyPublic,
-    Map<String, Account> accounts,
+    Map<String, DataAccount> accounts,
     this.keySecret,
     this.mnemonicPhrase,
   ) : super._(id, keypairName, keyPublic, accounts);
@@ -584,7 +584,7 @@ class _DataSet extends DataSet {
       maxId + 1,
       keypairName,
       keyPair.public,
-      <String, Account>{},
+      <String, DataAccount>{},
       keyPair.secret,
       mnemonicPhrase,
     );
@@ -633,7 +633,7 @@ class _DataSet extends DataSet {
   _DataSet(this._encryptionKey, this._keypairBundles) : super._();
 }
 
-class _Account extends Account {
+class _Account extends DataAccount {
   KeypairBundle? _parentKeypairBundle;
 
   @override

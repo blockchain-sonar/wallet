@@ -1,8 +1,12 @@
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
+
 import "src/models/account_info.dart" show AccountInfo;
 import "src/models/fees.dart" show Fees;
 import "src/models/key_pair.dart" show KeyPair;
+import "src/models/processing_state.dart" show ProcessingState;
+import "src/models/run_message.dart" show RunMessage;
+import "src/models/transaction.dart" show Transaction;
 
 enum SeedType {
   SHORT,
@@ -10,32 +14,48 @@ enum SeedType {
 }
 
 abstract class AbstractTonClient {
-  Future<void> init(ExecutionContext executionContext);
-
-  Future<dynamic> deployContract(
-    KeyPair keypair,
-    String smartContractAbiSpec,
-    String smartContractBlobTvcBase64,
+  Future<void> init(
+    ExecutionContext executionContext,
   );
-  Future<KeyPair> deriveKeys(String mnemonicPhraseSeed, SeedType seedType);
+
   Future<Fees> calcDeployFees(
     KeyPair keypair,
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   );
-  Future<AccountInfo?> fetchAccountInformation(String accountAddress);
+  Future<RunMessage> createRunMessage(
+    KeyPair keypair,
+    String accountAddress,
+    String smartContractAbiSpec,
+    String methodName,
+    Map<String, dynamic> args,
+  );
+  Future<dynamic> deployContract(
+    KeyPair keypair,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  );
+  Future<KeyPair> deriveKeys(
+    String mnemonicPhraseSeed,
+    SeedType seedType,
+  );
+  Future<String> generateMnemonicPhraseSeed(
+    SeedType seedType,
+  );
   Future<String> getDeployData(
     String keyPublic,
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   );
-  Future<String> generateMnemonicPhraseSeed(SeedType seedType);
-  Future<void> sendTransaction(
-    KeyPair keypair,
-    String sourceAddress,
-    String destinationAddress,
-    String amount,
-    String comment,
+  Future<AccountInfo?> fetchAccountInformation(
+    String accountAddress,
+  );
+  Future<ProcessingState> sendMessage(
+    String messageSendToken,
+  );
+  Future<Transaction> waitForRunTransaction(
+    String messageSendToken,
+    String processingStateToken,
   );
 }
 
@@ -48,12 +68,33 @@ class TonClientException extends FreemeworkException {
 }
 
 ///
-/// Interop Contract Violation show integrity issue, like use non-compatible underlaying library.
+/// Interop Violation show integrity issue, like use non-compatible underlaying library.
 /// Normally this exception should never happens in production build.
 ///
-class InteropContractException extends TonClientException {
+abstract class InteropViolationException extends TonClientException {
+  InteropViolationException(
+      [String? message, FreemeworkException? innerException])
+      : super(message, innerException);
+}
+
+///
+/// Interop Violation Result show integrity issue, like use non-compatible underlaying library.
+/// Normally this exception should never happens in production build.
+///
+class InteropViolationResultException extends InteropViolationException {
+  final Object underlayingResult;
+  InteropViolationResultException(this.underlayingResult,
+      [String? message, FreemeworkException? innerException])
+      : super(message, innerException);
+}
+
+///
+/// Interop Violation Data show integrity issue, like use non-compatible underlaying library.
+/// Normally this exception should never happens in production build.
+///
+class InteropViolationDataException extends InteropViolationException {
   final String property;
-  InteropContractException(
+  InteropViolationDataException(
     this.property, [
     String? message,
     FreemeworkException? innerException,

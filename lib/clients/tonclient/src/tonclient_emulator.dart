@@ -3,7 +3,10 @@ import "package:freemework/freemework.dart" show ExecutionContext;
 import "models/account_info.dart" show AccountInfo;
 import "models/fees.dart" show Fees;
 import "models/key_pair.dart";
+import 'models/processing_state.dart';
+import "models/run_message.dart" show RunMessage;
 import "../contract.dart" show AbstractTonClient, SeedType;
+import 'models/transaction.dart';
 
 class TonClient extends AbstractTonClient {
   @override
@@ -68,14 +71,27 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<void> sendTransaction(
-    final KeyPair keypair,
-    final String sourceAddress,
-    final String destinationAddress,
-    final String amount,
-    final String comment,
+  Future<RunMessage> createRunMessage(
+    KeyPair keypair,
+    String accountAddress,
+    String smartContractAbiSpec,
+    String methodName,
+    Map<String, dynamic> args,
   ) {
-    // TODO: implement sendTransaction
+    // TODO: implement createRunMessage
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProcessingState> sendMessage(String messageSendToken) {
+    // TODO: implement sendMessage
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Transaction> waitForRunTransaction(
+      String messageSendToken, String processingStateToken) {
+    // TODO: implement waitForRunTransaction
     throw UnimplementedError();
   }
 }

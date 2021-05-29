@@ -15,12 +15,12 @@
 import 'dart:convert';
 
 import 'package:freemework/freemework.dart';
-import 'package:freeton_wallet/services/blockchain/smart_contract.dart';
+import 'package:freeton_wallet/services/blockchain/smart_contract/smart_contract.dart';
 
 import "../services/blockchain/blockchain.dart"
     show BlockchainService, SmartContractKeeper;
 import "../services/encrypted_db_service.dart"
-    show Account, EncryptedDbService, KeypairBundle, KeypairBundlePlain;
+    show DataAccount, EncryptedDbService, KeypairBundle, KeypairBundlePlain;
 import "../states/app_state.dart" show AppState;
 
 import "../widgets/business/deploy_contract.dart" show DeployContractWidgetApi;
@@ -31,7 +31,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
   final BlockchainService blockchainService;
   final String accountAddress;
 
-  Future<Account>? _account;
+  Future<DataAccount>? _account;
 
   DeployContractWidgetApiAdapter(
     this.appState,
@@ -41,7 +41,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
   ) : this._account = null;
 
   @override
-  Future<Account> get account {
+  Future<DataAccount> get account {
     if (this._account == null) {
       this._account = _loadAccount();
     }
@@ -52,7 +52,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
   Future<String> calculateDeploymentFee() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final Account account = await this.account;
+    final DataAccount account = await this.account;
 
     final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
         .getByFullQualifiedName(account.smartContractFullQualifiedName);
@@ -84,7 +84,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
   Future<void> deploy() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final Account account = await this.account;
+    final DataAccount account = await this.account;
 
     final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
         .getByFullQualifiedName(account.smartContractFullQualifiedName);
@@ -109,14 +109,14 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
         );
   }
 
-  Future<Account> _loadAccount() async {
+  Future<DataAccount> _loadAccount() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final List<Account> accounts = appState.keypairBundles
+    final List<DataAccount> accounts = appState.keypairBundles
         .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
         .toList();
-    final Account account = accounts.singleWhere(
-        (Account account) => account.blockchainAddress == accountAddress);
+    final DataAccount account = accounts.singleWhere(
+        (DataAccount account) => account.blockchainAddress == accountAddress);
 
     return account;
   }

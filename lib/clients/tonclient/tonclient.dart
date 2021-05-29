@@ -6,3 +6,6 @@ export "src/tonclient_emulator.dart" // Default emulator implementation
 export "src/models/account_info.dart";
 export "src/models/key_pair.dart";
 export "src/models/fees.dart";
+export "src/models/processing_state.dart";
+export "src/models/run_message.dart";
+export "src/models/transaction.dart";

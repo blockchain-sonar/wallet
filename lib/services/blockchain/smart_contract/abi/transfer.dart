@@ -12,5 +12,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export "./io.tonlabs.safemultisigwallet.20200501.dart";
-export "./io.tonlabs.setcodemultisigwallet.20200506.dart";
+//
+// wget -qO- ????? >> transfer.dart
+//
+const String ABI__TRANSFER = """{
+  "ABI version": 2,
+  "functions": [
+    {
+      "name": "transfer",
+      "id": "0x00000000",
+      "inputs": [
+        {
+          "name": "comment",
+          "type": "bytes"
+        }
+      ],
+      "outputs": []
+    }
+  ],
+  "events": [],
+  "data": []
+}""";

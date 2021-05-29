@@ -18,7 +18,7 @@ import "package:flutter/widgets.dart"
 import "package:freemework/freemework.dart" show FreemeworkException;
 
 import "../../services/blockchain/blockchain.dart";
-import "../../services/encrypted_db_service.dart" show Account;
+import "../../services/encrypted_db_service.dart" show DataAccount;
 
 import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/smart_contact.dart" show SmartContractWidget;
@@ -27,7 +27,7 @@ abstract class DeployContractWidgetApi
     implements _AccountLoader, _BlockchainApi {}
 
 abstract class _AccountLoader {
-  Future<Account> get account;
+  Future<DataAccount> get account;
 }
 
 abstract class _BlockchainApi implements _DeployerApi {
@@ -45,7 +45,7 @@ class DeployContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Account>(
+    return FutureBuilder<DataAccount>(
       initialData: null,
       future: this.api.account,
       builder: this._buildSnapshotRouter,
@@ -54,7 +54,7 @@ class DeployContractWidget extends StatelessWidget {
 
   Widget _buildSnapshotRouter(
     final BuildContext context,
-    final AsyncSnapshot<Account> snapshot,
+    final AsyncSnapshot<DataAccount> snapshot,
   ) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return _buildLoadingProgress(context);
@@ -62,7 +62,7 @@ class DeployContractWidget extends StatelessWidget {
       return _buildFailure(context, snapshot.error);
     }
     assert(snapshot.data != null);
-    final Account account = snapshot.data!;
+    final DataAccount account = snapshot.data!;
 
     return _DeployContractWidget(this.api, account);
   }
@@ -93,7 +93,7 @@ class DeployContractWidget extends StatelessWidget {
 
 class _DeployContractWidget extends StatefulWidget {
   final _BlockchainApi api;
-  final Account account;
+  final DataAccount account;
 
   _DeployContractWidget(this.api, this.account);
 

@@ -101,7 +101,7 @@ class AppRouteDataMain extends AppRouteData {
         } else if (_this is AppRouteDataMainWalletsSendMoney) {
           final String? accountAddress = _this.accountAddress;
           if (accountAddress != null) {
-            return "${_PATH_WALLET_DEPLOY}/${accountAddress}";
+            return "${_PATH_WALLET_SENDMONEY}/${accountAddress}";
           }
         }
         return _PATH_WALLET;

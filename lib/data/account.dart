@@ -12,5 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export "blockchain_service.dart";
-export "smart_contract/smart_contract.dart";
+import "key_pair.dart" show KeyPair;
+import "../services/blockchain/smart_contract/smart_contract.dart"
+    show SmartContractAbi;
+
+class Account {
+  final KeyPair keyPair;
+  final String blockchainAddress;
+  final SmartContractAbi smartContractAbi;
+
+  const Account(
+    this.keyPair,
+    this.blockchainAddress,
+    this.smartContractAbi,
+  );
+}

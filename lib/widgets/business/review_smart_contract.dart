@@ -52,7 +52,7 @@ import "package:flutter_markdown/flutter_markdown.dart" show Markdown;
 import 'package:url_launcher/url_launcher.dart';
 import "../layout/my_scaffold.dart" show MyScaffold;
 
-import "../../services/blockchain/smart_contract.dart"
+import '../../services/blockchain/smart_contract/smart_contract.dart'
     show SmartContract, SmartContractBlob;
 
 typedef _CompleteCallback = Future<void> Function();

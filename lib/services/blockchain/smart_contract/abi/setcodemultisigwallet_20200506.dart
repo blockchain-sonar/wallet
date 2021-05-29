@@ -13,9 +13,9 @@
 // limitations under the License.
 
 //
-// wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/776bc3d614ded58330577167313a9b4f80767f41/solidity/safemultisig/SafeMultisigWallet.abi.json >> abi.dart
+// wget -qO- https://raw.githubusercontent.com/tonlabs/ton-labs-contracts/b79bf98b89ae95b714fbcf55eb43ea22516c4788/solidity/setcodemultisig/SetcodeMultisigWallet.abi.json >> setcodemultisigwallet_20200506.dart
 //
-const String ABI__SAFE_MULTISIG_20200501 = """{
+const String ABI__SETCODE_MULTISIG_20200506 = """{
 	"ABI version": 2,
 	"header": ["pubkey", "time", "expire"],
 	"functions": [
@@ -88,7 +88,8 @@ const String ABI__SAFE_MULTISIG_20200501 = """{
 				{"name":"maxCustodianCount","type":"uint8"},
 				{"name":"expirationTime","type":"uint64"},
 				{"name":"minValue","type":"uint128"},
-				{"name":"requiredTxnConfirms","type":"uint8"}
+				{"name":"requiredTxnConfirms","type":"uint8"},
+				{"name":"requiredUpdConfirms","type":"uint8"}
 			]
 		},
 		{
@@ -122,6 +123,42 @@ const String ABI__SAFE_MULTISIG_20200501 = """{
 			],
 			"outputs": [
 				{"components":[{"name":"index","type":"uint8"},{"name":"pubkey","type":"uint256"}],"name":"custodians","type":"tuple[]"}
+			]
+		},
+		{
+			"name": "submitUpdate",
+			"inputs": [
+				{"name":"codeHash","type":"uint256"},
+				{"name":"owners","type":"uint256[]"},
+				{"name":"reqConfirms","type":"uint8"}
+			],
+			"outputs": [
+				{"name":"updateId","type":"uint64"}
+			]
+		},
+		{
+			"name": "confirmUpdate",
+			"inputs": [
+				{"name":"updateId","type":"uint64"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "executeUpdate",
+			"inputs": [
+				{"name":"updateId","type":"uint64"},
+				{"name":"code","type":"cell"}
+			],
+			"outputs": [
+			]
+		},
+		{
+			"name": "getUpdateRequests",
+			"inputs": [
+			],
+			"outputs": [
+				{"components":[{"name":"id","type":"uint64"},{"name":"index","type":"uint8"},{"name":"signs","type":"uint8"},{"name":"confirmationsMask","type":"uint32"},{"name":"creator","type":"uint256"},{"name":"codeHash","type":"uint256"},{"name":"custodians","type":"uint256[]"},{"name":"reqConfirms","type":"uint8"}],"name":"updates","type":"tuple[]"}
 			]
 		}
 	],

@@ -14,6 +14,8 @@
 
 import "package:freemework/errors/InvalidOperationException.dart"
     show InvalidOperationException;
+import 'package:freemework/freemework.dart';
+import 'package:freeton_wallet/data/account.dart';
 
 import "../../clients/tonclient/tonclient.dart" as TON;
 
@@ -21,8 +23,10 @@ import "../../data/account_info.dart" show AccountInfo;
 import "../../data/key_pair.dart" show KeyPair;
 import "../../data/mnemonic_phrase.dart"
     show MnemonicPhrase, MnemonicPhraseLength;
+import "smart_contract/abi.dart"
+    show ProcessingState, RunMessage, SmartContactRuntime, Transaction;
 
-abstract class BlockchainService {
+abstract class BlockchainService implements SmartContactRuntime {
   Future<String> calculateDeploymentFee(
     String keyPublic,
     String keySecret,
@@ -43,14 +47,6 @@ abstract class BlockchainService {
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   );
-  Future<void> sendTransaction(
-    String keyPublic,
-    String keySecret,
-    String sourceAddress,
-    String destinationAddress,
-    String amount,
-    String comment,
-  );
 }
 
 class BlockchainServiceImpl extends BlockchainService {
@@ -60,10 +56,10 @@ class BlockchainServiceImpl extends BlockchainService {
 
   @override
   Future<String> calculateDeploymentFee(
-    String keyPublic,
-    String keySecret,
-    String smartContractAbiSpec,
-    String smartContractBlobTvcBase64,
+    final String keyPublic,
+    final String keySecret,
+    final String smartContractAbiSpec,
+    final String smartContractBlobTvcBase64,
   ) async {
     final TON.Fees fees = await this._tonClient.calcDeployFees(
           TON.KeyPair(public: keyPublic, secret: keySecret),
@@ -74,6 +70,73 @@ class BlockchainServiceImpl extends BlockchainService {
     final String deploymentFeeEstimatedAmount = fees.totalAccountFees;
 
     return deploymentFeeEstimatedAmount;
+  }
+
+  @override
+  Future<RunMessage> createRunMessage(
+    final ExecutionContext ectx,
+    final Account account,
+    final String methodName,
+    final Map<String, dynamic> args,
+  ) async {
+    final KeyPair accountKeyPair = account.keyPair;
+
+    final TON.KeyPair tonKeyPair = TON.KeyPair(
+      public: accountKeyPair.public,
+      secret: accountKeyPair.secret,
+    );
+
+    final String accountSmartContractAbiSpec = account.smartContractAbi.spec;
+
+    final TON.RunMessage tonRunMessage = await this._tonClient.createRunMessage(
+          tonKeyPair,
+          account.blockchainAddress,
+          accountSmartContractAbiSpec,
+          methodName,
+          args,
+        );
+
+    final RunMessage friendlyRunMessage = RunMessage(
+      tonRunMessage.address,
+      tonRunMessage.messageId,
+      tonRunMessage.messageBodyBase64,
+      tonRunMessage.expire,
+      tonRunMessage.messageSendToken,
+    );
+
+    return friendlyRunMessage;
+  }
+
+  @override
+  Future<ProcessingState> sendMessage(
+    final ExecutionContext ectx, {
+    required final String messageSendToken,
+  }) async {
+    final TON.ProcessingState tonProcessingState =
+        await this._tonClient.sendMessage(messageSendToken);
+
+    final ProcessingState friendlyProcessingState = ProcessingState(
+      tonProcessingState.lastBlockId,
+      tonProcessingState.sendingTime,
+      tonProcessingState.processingStateToken,
+    );
+
+    return friendlyProcessingState;
+  }
+
+  @override
+  Future<Transaction> waitForRunTransaction(
+    final ExecutionContext ectx, {
+    required final String messageSendToken,
+    required final String processingStateToken,
+  }) async {
+    final TON.Transaction tonTransaction = await this._tonClient.waitForRunTransaction(
+          messageSendToken,
+          processingStateToken,
+        );
+
+    final Transaction firendlyTransaction = Transaction(tonTransaction.transactionId);
+    return firendlyTransaction;
   }
 
   @override
@@ -155,21 +218,23 @@ class BlockchainServiceImpl extends BlockchainService {
     return address;
   }
 
-  @override
-  Future<void> sendTransaction(
-    String keyPublic,
-    String keySecret,
-    String sourceAddress,
-    String destinationAddress,
-    String amount,
-    String comment,
-  ) async {
-    await this._tonClient.sendTransaction(
-          TON.KeyPair(public: keyPublic, secret: keySecret),
-          sourceAddress,
-          destinationAddress,
-          amount,
-          comment,
-        );
-  }
+  // @override
+  // Future<void> sendTransaction(
+  //   String keyPublic,
+  //   String keySecret,
+  //   String smartContractAbiSpec,
+  //   String sourceAddress,
+  //   String destinationAddress,
+  //   String amount,
+  //   String comment,
+  // ) async {
+  //   await this._tonClient.sendTransaction(
+  //         TON.KeyPair(public: keyPublic, secret: keySecret),
+  //         smartContractAbiSpec,
+  //         sourceAddress,
+  //         destinationAddress,
+  //         amount,
+  //         comment,
+  //       );
+  // }
 }

@@ -12,5 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-export "./safemultisigwallet_20200501.dart";
-export "./setcodemultisigwallet_20200506.dart";
+class ProcessingState {
+  // {"lastBlockId":"f210f3b713208c0c7430becd793fe601b156aadd10767bd3ef058afcd94cfc6d","sendingTime":1622227939}
+
+  final String lastBlockId;
+  final int sendingTime;
+  final String processingStateToken;
+
+  ProcessingState(
+      this.lastBlockId, this.sendingTime, this.processingStateToken);
+}

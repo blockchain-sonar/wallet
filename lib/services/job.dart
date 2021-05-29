@@ -24,7 +24,7 @@ import "blockchain/blockchain.dart"
         SmartContractBlob,
         SmartContractKeeper;
 import "encrypted_db_service.dart"
-    show Account, AccountType, EncryptedDbService, KeypairBundle;
+    show DataAccount, AccountType, EncryptedDbService, KeypairBundle;
 
 abstract class Job extends ChangeNotifier {
   Future<void>? _future;
