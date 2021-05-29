@@ -55,7 +55,7 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<dynamic> deployContract(
+  Future<void> deployContract(
     final KeyPair keypair,
     final String smartContractAbiSpec,
     final String smartContractBlobTvcBase64,

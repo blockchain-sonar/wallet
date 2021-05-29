@@ -13,6 +13,7 @@
 // limitations under the License.
 
 import "package:flutter/material.dart";
+import "package:flutter/services.dart" show Clipboard, ClipboardData;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -28,10 +29,10 @@ import "package:flutter/widgets.dart"
         Text,
         TextEditingController,
         Widget;
-import 'package:freemework/freemework.dart';
-import 'package:url_launcher/url_launcher.dart';
+import "package:freemework/freemework.dart" show ExecutionContext, FreemeworkException;
+import "package:url_launcher/url_launcher.dart" show launch;
 
-import '../layout/my_scaffold.dart' show MyScaffold;
+import "../layout/my_scaffold.dart" show MyScaffold;
 
 ///
 /// API usage flow:
@@ -263,72 +264,74 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                 semanticsLabel: "Linear progress indicator",
               ),
             ],
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Form(
-                key: this._formKey,
-                child: Column(
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: TextFormField(
-                        enabled: this._stateData is _StateDataAskUser,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Destination Address",
-                        ),
-                        validator: (String? value) {
-                          final String destinationAddress =
-                              this._destinationAddressController.text;
+            if (this._stateData is _StateDataAskUser)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Form(
+                  key: this._formKey,
+                  child: Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: TextFormField(
+                          enabled: this._stateData is _StateDataAskUser,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: "Destination Address",
+                          ),
+                          validator: (String? value) {
+                            final String destinationAddress =
+                                this._destinationAddressController.text;
 
-                          final String pattern = r"^0:[0-9a-f]{64}$";
-                          final RegExp regExp = RegExp(pattern);
-                          if (regExp.hasMatch(destinationAddress)) {
-                            return null;
-                          }
-                          return "Malformed destination address.";
-                        },
-                        controller: _destinationAddressController,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: TextFormField(
-                        enabled: this._stateData is _StateDataAskUser,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Transfer Amount",
+                            final String pattern = r"^0:[0-9a-f]{64}$";
+                            final RegExp regExp = RegExp(pattern);
+                            if (regExp.hasMatch(destinationAddress)) {
+                              return null;
+                            }
+                            return "Malformed destination address.";
+                          },
+                          controller: _destinationAddressController,
                         ),
-                        validator: (String? value) {
-                          final String amountStr = this._amountController.text;
-
-                          final String pattern =
-                              r"^(0|[1-9][0-9]*)(\.[0-9]+)?$";
-                          final RegExp regExp = RegExp(pattern);
-                          if (regExp.hasMatch(amountStr)) {
-                            return null;
-                          }
-
-                          return "Wrong amount value.";
-                        },
-                        controller: _amountController,
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: TextFormField(
-                        enabled: this._stateData is _StateDataAskUser,
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: "Comment",
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: TextFormField(
+                          enabled: this._stateData is _StateDataAskUser,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: "Transfer Amount",
+                          ),
+                          validator: (String? value) {
+                            final String amountStr =
+                                this._amountController.text;
+
+                            final String pattern =
+                                r"^(0|[1-9][0-9]*)(\.[0-9]+)?$";
+                            final RegExp regExp = RegExp(pattern);
+                            if (regExp.hasMatch(amountStr)) {
+                              return null;
+                            }
+
+                            return "Wrong amount value.";
+                          },
+                          controller: _amountController,
                         ),
-                        controller: _commentController,
                       ),
-                    ),
-                  ],
+                      // Padding(
+                      //   padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      //   child: TextFormField(
+                      //     enabled: this._stateData is _StateDataAskUser,
+                      //     decoration: InputDecoration(
+                      //       border: OutlineInputBorder(),
+                      //       hintText: "Comment",
+                      //     ),
+                      //     controller: _commentController,
+                      //   ),
+                      // ),
+                    ],
+                  ),
                 ),
               ),
-            ),
             if (!(this._stateData is _StateDataAskUser)) ...<Widget>[
               Padding(
                 padding: const EdgeInsets.all(8.0),
@@ -437,11 +440,17 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                 ),
               ),
               if (stateData is _StateDataMixinTransactionInBlockchain)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Center(
                     child: InkWell(
-                      child: Text(stateData.transactionId),
+                      child: Text(
+                        stateData.transactionId,
+                        style: TextStyle(
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
                       onTap: () {
                         final Uri baseUrl = Uri.parse(
                           "https://net.ton.live/transactions/transactionDetails",
@@ -456,6 +465,21 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                             accountDetailsUrl.toString()); // TODO missing await
                       },
                     ),
+                  ),
+                ),
+              if (stateData is _StateDataMixinTransactionInBlockchain)
+                Center(
+                  child: InkWell(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0, vertical: 2.0),
+                      child: Icon(Icons.content_copy),
+                    ),
+                    onTap: () {
+                      Clipboard.setData(
+                        ClipboardData(text: stateData.transactionId),
+                      ); // TODO missing await
+                    },
                   ),
                 ),
             ],
@@ -720,7 +744,12 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
   }
 
   static FreemeworkException _logTraceException(final FreemeworkException ex) {
-    print(ex.message);
+    final String? message = ex.message;
+    if (message != null) {
+      print(message);
+    } else {
+      print(ex.runtimeType);
+    }
     final FreemeworkException? innerException = ex.innerException;
     if (innerException != null) {
       _logTraceException(innerException);

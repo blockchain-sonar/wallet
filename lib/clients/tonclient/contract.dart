@@ -30,7 +30,7 @@ abstract class AbstractTonClient {
     String methodName,
     Map<String, dynamic> args,
   );
-  Future<dynamic> deployContract(
+  Future<void> deployContract(
     KeyPair keypair,
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,

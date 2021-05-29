@@ -137,11 +137,19 @@ class _HomeChartWidgetState extends State<HomeChartWidget> {
           height: 20,
         ),
         Text(
-          "Current ${this.currentPair} - ${this.currentLastPrice}",
+          "TON Crystal/USD",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.blue,
             fontSize: 24,
+          ),
+        ),
+        Text(
+          this.currentLastPrice.toString(),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+            fontSize: 36,
           ),
         ),
         SizedBox(
@@ -192,44 +200,44 @@ class _HomeChartWidgetState extends State<HomeChartWidget> {
         SizedBox(
           height: 30,
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            TextButton(
-              onPressed: () => this.setPair("TON", "USD"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 5,
-                  horizontal: 10,
-                ),
-                child: Text(
-                  "TON/USD",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => this.setPair("TON", "USDT"),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 5,
-                  horizontal: 10,
-                ),
-                child: Text(
-                  "TON/USDT",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(
-          height: 20,
-        ),
+        // Row(
+        //   mainAxisAlignment: MainAxisAlignment.spaceAround,
+        //   children: <Widget>[
+        //     TextButton(
+        //       onPressed: () => this.setPair("TON", "USD"),
+        //       child: Padding(
+        //         padding: EdgeInsets.symmetric(
+        //           vertical: 5,
+        //           horizontal: 10,
+        //         ),
+        //         child: Text(
+        //           "TON/USD",
+        //           style: TextStyle(
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //     TextButton(
+        //       onPressed: () => this.setPair("TON", "USDT"),
+        //       child: Padding(
+        //         padding: EdgeInsets.symmetric(
+        //           vertical: 5,
+        //           horizontal: 10,
+        //         ),
+        //         child: Text(
+        //           "TON/USDT",
+        //           style: TextStyle(
+        //             fontWeight: FontWeight.bold,
+        //           ),
+        //         ),
+        //       ),
+        //     ),
+        //   ],
+        // ),
+        // SizedBox(
+        //   height: 20,
+        // ),
       ],
     );
   }
