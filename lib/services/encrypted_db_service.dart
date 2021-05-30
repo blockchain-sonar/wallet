@@ -303,7 +303,7 @@ class KeypairBundlePlain extends KeypairBundle {
 class NodeBundle {
   final String name;
   final String url;
-  final String color;
+  final int? color;
 
   factory NodeBundle.fromJson(Map<String, dynamic> rawJson) {
     final name = rawJson[NodeBundle._NAME_PROPERTY];
@@ -318,8 +318,8 @@ class NodeBundle {
           "A field '${NodeBundle._URL_PROPERTY}' is null");
     }
     if (color == null) {
-      throw SerializationException(
-          "A field '${NodeBundle._COLOR_PROPERTY}' is null");
+      // throw SerializationException(
+      //     "A field '${NodeBundle._COLOR_PROPERTY}' is null");
     }
     return NodeBundle(name, url, color);
   }

@@ -1,8 +1,11 @@
+import 'dart:collection';
 import "dart:typed_data" show Uint8List;
 import "dart:ui" show FontWeight, TextAlign;
 import "package:flutter/material.dart"
     show
+        AlertDialog,
         BuildContext,
+        Color,
         Colors,
         Column,
         ElevatedButton,
@@ -14,12 +17,14 @@ import "package:flutter/material.dart"
         InputDecoration,
         ListTile,
         ListView,
+        Navigator,
         State,
         StatefulWidget,
         Text,
         TextFormField,
         UnderlineInputBorder,
-        Widget;
+        Widget,
+        showDialog;
 import "package:flutter/src/widgets/basic.dart"
     show
         Column,
@@ -32,6 +37,7 @@ import "package:flutter/src/widgets/basic.dart"
         Row,
         TextAlign,
         TextStyle;
+import 'package:material_color_picker_wns/material_color_picker_wns.dart';
 import "../layout/my_scaffold.dart" show MyScaffold;
 import "../../services/encrypted_db_service.dart"
     show DataSet, EncryptedDbService, NodeBundle;
@@ -135,32 +141,29 @@ class NodesManagerSettings extends StatefulWidget {
 }
 
 class _NodesManagerSettingsState extends State<NodesManagerSettings> {
-  String nodeName;
-  String nodeUrl;
-  String nodeColor;
-
-  _NodesManagerSettingsState()
-      : this.nodeName = "",
-        this.nodeUrl = "",
-        this.nodeColor = "";
+  _StateSettingsNode _stateNode;
+  _NodesManagerSettingsState() : this._stateNode = _StateSettingsNode("", "");
 
   bool get newNodeDataIsEntered =>
       this
           .widget
           ._nodes
-          .where((NodeBundle node) => node.url == this.nodeUrl)
+          .where((NodeBundle node) => node.url == this._stateNode.nodeUrl)
           .isEmpty &&
-      this.nodeName.isNotEmpty &&
-      this.nodeUrl.isNotEmpty &&
-      this.nodeColor.isNotEmpty;
+      this._stateNode.isDataEntered;
 
   void _addNode() {
-    NodeBundle node = NodeBundle(this.nodeName, this.nodeUrl, this.nodeColor);
+    NodeBundle node = NodeBundle(
+      this._stateNode.nodeName,
+      this._stateNode.nodeUrl,
+      this._stateNode.nodeColor?.value,
+    );
     this.widget._addNode(node);
   }
 
   Widget tileWidget(NodeBundle node) {
     return ListTile(
+      tileColor: node.color == null ? Colors.white : Color(node.color!),
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
@@ -208,6 +211,29 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
     );
   }
 
+  void _showColorSelectDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => MyScaffold(
+        appBarTitle: "Select node color",
+        body: AlertDialog(
+          contentPadding: const EdgeInsets.all(5.0),
+          content: MaterialColorPicker(
+              allowShades: false,
+              circleSize: 100,
+              colors: fullMaterialColors,
+              onMainColorChange: (Color color) {
+                setState(() {
+                  this._stateNode.nodeColor = color;
+                });
+                Navigator.of(context).pop();
+              },
+              selectedColor: Colors.red),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
@@ -249,7 +275,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 child: TextFormField(
                   onChanged: (String val) {
                     setState(() {
-                      this.nodeName = val;
+                      this._stateNode.nodeName = val;
                     });
                   },
                   decoration: InputDecoration(
@@ -265,7 +291,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 child: TextFormField(
                   onChanged: (String val) {
                     setState(() {
-                      this.nodeUrl = val;
+                      this._stateNode.nodeUrl = val;
                     });
                   },
                   decoration: InputDecoration(
@@ -276,33 +302,36 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
-                ),
-                child: TextFormField(
-                  onChanged: (String val) {
-                    setState(() {
-                      this.nodeColor = val;
-                    });
-                  },
-                  decoration: InputDecoration(
-                    border: UnderlineInputBorder(),
-                    labelText: "Node color",
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
                   vertical: 10,
                 ),
-                child: ElevatedButton(
-                  onPressed: this.newNodeDataIsEntered ? this._addNode : null,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 10,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        primary: this._stateNode.nodeColor,
+                      ),
+                      onPressed: this._showColorSelectDialog,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        child: Text("Select color"),
+                      ),
                     ),
-                    child: Text("Add"),
-                  ),
+                    ElevatedButton(
+                      onPressed:
+                          this.newNodeDataIsEntered ? this._addNode : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        child: Text("Add"),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -311,4 +340,14 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
       ),
     );
   }
+}
+
+class _StateSettingsNode {
+  String nodeName;
+  String nodeUrl;
+  Color? nodeColor;
+
+  bool get isDataEntered => this.nodeName.isNotEmpty && this.nodeUrl.isNotEmpty;
+
+  _StateSettingsNode(this.nodeName, this.nodeUrl, {this.nodeColor});
 }
