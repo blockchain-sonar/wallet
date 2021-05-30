@@ -47,9 +47,11 @@ abstract class EncryptedDbService {
 }
 
 abstract class DataSet extends ChangeNotifier {
-  Uint8List get encryptionKey;
-
   String get activeNodeUrl;
+
+  bool get autoLock;
+
+  Uint8List get encryptionKey;
 
   KeypairBundlePlain addKeypairBundlePlain(
     String title,
@@ -62,6 +64,8 @@ abstract class DataSet extends ChangeNotifier {
   void deleteNodeByUrl(String nodeUrl);
 
   void setActiveNode(NodeBundle node);
+
+  void switchAutoLock(bool value);
 
   UnmodifiableSetView<KeypairBundle> get keypairBundles;
 
@@ -317,10 +321,10 @@ class NodeBundle {
       throw SerializationException(
           "A field '${NodeBundle._URL_PROPERTY}' is null");
     }
-    if (color == null) {
-      // throw SerializationException(
-      //     "A field '${NodeBundle._COLOR_PROPERTY}' is null");
-    }
+    // if (color == null) {
+    // throw SerializationException(
+    //     "A field '${NodeBundle._COLOR_PROPERTY}' is null");
+    // }
     return NodeBundle(name, url, color);
   }
 
@@ -477,6 +481,7 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
       Set<KeypairBundle>(),
       <NodeBundle>[],
       "",
+      false,
     );
 
     LocalStorageEncryptedDbService._backupDto();
@@ -621,12 +626,16 @@ class _DataSet extends DataSet {
   final Set<KeypairBundle> _keypairBundles;
   final List<NodeBundle> _nodes;
   String _nodeUrl;
+  bool _autoLock;
 
   @override
   Uint8List get encryptionKey => this._encryptionKey;
 
   @override
   String get activeNodeUrl => this._nodeUrl;
+
+  @override
+  bool get autoLock => this._autoLock;
 
   @override
   KeypairBundlePlain addKeypairBundlePlain(
@@ -671,6 +680,11 @@ class _DataSet extends DataSet {
   }
 
   @override
+  void switchAutoLock(bool value) {
+    this._autoLock = value;
+  }
+
+  @override
   UnmodifiableSetView<KeypairBundle> get keypairBundles =>
       UnmodifiableSetView<KeypairBundle>(this._keypairBundles);
 
@@ -685,6 +699,7 @@ class _DataSet extends DataSet {
     final List<dynamic>? walletsJson = rawJson[_WALLETS__PROPERTY];
     final List<dynamic>? nodesJson = rawJson[_NODES__PROPERTY];
     final String? nodeUrlJson = rawJson[_NODES_URL__PROPERTY];
+    final bool? autoLockJson = rawJson[_AUTOLOCK__PROPERTY];
 
     if (walletsJson == null) {
       throw SerializationException("A field '$_WALLETS__PROPERTY' is null");
@@ -698,6 +713,10 @@ class _DataSet extends DataSet {
       throw SerializationException("A field '$_NODES_URL__PROPERTY' is null");
     }
 
+    if (autoLockJson == null) {
+      throw SerializationException("A field '$_AUTOLOCK__PROPERTY' is null");
+    }
+
     Set<KeypairBundle> wallets = Set<KeypairBundle>();
     for (final dynamic walletJson in walletsJson) {
       wallets.add(KeypairBundle._fromJson(walletJson));
@@ -708,7 +727,8 @@ class _DataSet extends DataSet {
       nodes.add(NodeBundle.fromJson(nodeJson));
     }
 
-    _DataSet dataSet = _DataSet(encryptionKey, wallets, nodes, nodeUrlJson);
+    _DataSet dataSet =
+        _DataSet(encryptionKey, wallets, nodes, nodeUrlJson, autoLockJson);
     return dataSet;
   }
 
@@ -721,6 +741,7 @@ class _DataSet extends DataSet {
       _NODES__PROPERTY:
           this._nodes.map((NodeBundle node) => node.toJson()).toList(),
       _NODES_URL__PROPERTY: this._nodeUrl,
+      _AUTOLOCK__PROPERTY: this._autoLock,
     };
 
     return rawJson;
@@ -729,10 +750,15 @@ class _DataSet extends DataSet {
   static const String _WALLETS__PROPERTY = "wallets";
   static const String _NODES__PROPERTY = "nodes";
   static const String _NODES_URL__PROPERTY = "nodeUrl";
+  static const String _AUTOLOCK__PROPERTY = "autoLock";
 
   _DataSet(
-      this._encryptionKey, this._keypairBundles, this._nodes, this._nodeUrl)
-      : super._();
+    this._encryptionKey,
+    this._keypairBundles,
+    this._nodes,
+    this._nodeUrl,
+    this._autoLock,
+  ) : super._();
 }
 
 class _Account extends DataAccount {
