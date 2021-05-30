@@ -16,6 +16,7 @@ import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
     show BuildContext, Container, State, StatefulWidget, Widget;
 import "package:freemework/freemework.dart" show FreemeworkException;
+import 'package:freeton_wallet/misc/ton_decimal.dart';
 
 import "../../services/blockchain/blockchain.dart";
 import "../../services/encrypted_db_service.dart" show DataAccount;
@@ -31,7 +32,7 @@ abstract class _AccountLoader {
 }
 
 abstract class _BlockchainApi implements _DeployerApi {
-  Future<String> calculateDeploymentFee();
+  Future<TonDecimal> calculateDeploymentFee();
 }
 
 abstract class _DeployerApi {
@@ -104,7 +105,7 @@ class _DeployContractWidget extends StatefulWidget {
 class _StateData {}
 
 class _StateDataDeployFeeCalculated extends _StateData {
-  final String deploymentFeeAmount;
+  final TonDecimal deploymentFeeAmount;
   _StateDataDeployFeeCalculated(this.deploymentFeeAmount);
 }
 
@@ -132,7 +133,7 @@ class _DeployContractState extends State<_DeployContractWidget> {
   void initState() {
     super.initState();
 
-    this.widget.api.calculateDeploymentFee().then((String deploymentFee) {
+    this.widget.api.calculateDeploymentFee().then((TonDecimal deploymentFee) {
       this.setState(() {
         this._stateData = _StateDataDeployFeeCalculated(deploymentFee);
       });
@@ -181,7 +182,7 @@ class _DeployContractState extends State<_DeployContractWidget> {
               Row(
                 children: <Widget>[
                   Text("Deployment Fee:"),
-                  Text(stateData.deploymentFeeAmount),
+                  Text(stateData.deploymentFeeAmount.value),
                 ],
               ),
               ElevatedButton.icon(

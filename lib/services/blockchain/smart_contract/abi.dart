@@ -12,17 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:decimal/decimal.dart';
-import 'package:freemework/ExecutionContext.dart';
-import 'package:freemework/freemework.dart';
+//import "package:decimal/decimal.dart";
+import 'dart:convert';
 
-import '../../../data/account.dart' show Account;
-import "../../../data/key_pair.dart" show KeyPair;
+import "package:freemework/ExecutionContext.dart";
+import "package:freemework/freemework.dart";
+import 'package:freeton_wallet/misc/ton_decimal.dart';
+
+import "../../../data/account.dart" show Account;
 
 import "abi/safemultisigwallet_20200501.dart" show ABI__SAFE_MULTISIG_20200501;
 import "abi/setcodemultisigwallet_20200506.dart"
     show ABI__SETCODE_MULTISIG_20200506;
-import "abi/transfer.dart" show ABI__TRANSFER;
 
 abstract class SmartContactRuntime {
   Future<RunMessage> createRunMessage(
@@ -171,20 +172,18 @@ mixin WalletAbi on SmartContractAbi {
     final SmartContactRuntime contactRuntime,
     final Account account, {
     required final String dest,
-    required final String value,
+    required final TonDecimal value,
     required final bool bounce,
     required final int flags,
     required final dynamic payload,
   }) async {
     final CancellationToken cancellationToken = ectx.cancellationToken;
 
-    final Decimal decValue = Decimal.parse(value);
-    final Decimal pow = Decimal.fromInt(10).pow(9);
-    final Decimal nanoValue = decValue * pow;
+    final String nanoValue = value.nanoDec;
 
     final Map<String, dynamic> args = <String, dynamic>{
       "dest": dest,
-      "value": nanoValue.toString(),
+      "value": nanoValue,
       "bounce": bounce,
       "payload": payload,
       "allBalance": false, // required by underlaying lib

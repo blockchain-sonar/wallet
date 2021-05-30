@@ -12,48 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "package:flutter/material.dart"
-    show
-        Border,
-        BuildContext,
-        Colors,
-        Column,
-        Container,
-        Decoration,
-        EdgeInsets,
-        ElevatedButton,
-        Expanded,
-        FixedColumnWidth,
-        FlexColumnWidth,
-        FontWeight,
-        InkWell,
-        IntrinsicColumnWidth,
-        Padding,
-        SizedBox,
-        StatelessWidget,
-        Table,
-        TableBorder,
-        TableColumnWidth,
-        TableRow,
-        Text,
-        TextStyle,
-        Widget;
+import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
     show
         BuildContext,
         Column,
         FontWeight,
-        SizedBox,
         StatelessWidget,
         Text,
         TextStyle,
         Widget;
 import "package:flutter_markdown/flutter_markdown.dart" show Markdown;
-import 'package:url_launcher/url_launcher.dart';
+import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
 import "../layout/my_scaffold.dart" show MyScaffold;
 
-import '../../services/blockchain/smart_contract/smart_contract.dart'
-    show SmartContract, SmartContractBlob;
+import "../../services/blockchain/smart_contract/smart_contract.dart"
+    show SmartContractBlob;
 
 typedef _CompleteCallback = Future<void> Function();
 

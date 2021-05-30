@@ -20,8 +20,7 @@ import "data/mnemonic_phrase.dart" show MnemonicPhrase, MnemonicPhraseLength;
 import "services/blockchain/blockchain.dart" show BlockchainService;
 import "widgets/business/show_mnemonic_widget.dart"
     show ShowMnemonicContext, ShowMnemonicWidget;
-import "widgets/business/confirm_mnemonic.dart"
-    show ConfirmMnemonicContext, ConfirmMnemonicWidget;
+import "widgets/business/confirm_mnemonic.dart" show ConfirmMnemonicWidget;
 import "widgets/business/enter_wallet_name.dart"
     show EnterWalletNameContext, EnterWalletNameWidget;
 

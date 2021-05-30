@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert' show base64Encode;
+import "dart:convert" show base64Encode;
 
 import "package:flutter/widgets.dart" show ChangeNotifier;
-import 'package:freeton_wallet/data/account_info.dart';
+import "../data/account_info.dart" show AccountInfo;
+import "../misc/ton_decimal.dart" show TonDecimal;
 
 import "blockchain/blockchain.dart"
     show
@@ -24,7 +25,7 @@ import "blockchain/blockchain.dart"
         SmartContractBlob,
         SmartContractKeeper;
 import "encrypted_db_service.dart"
-    show DataAccount, AccountType, EncryptedDbService, KeypairBundle;
+    show AccountType, EncryptedDbService, KeypairBundle;
 
 abstract class Job extends ChangeNotifier {
   Future<void>? _future;
@@ -43,13 +44,13 @@ abstract class Job extends ChangeNotifier {
   void _run() async {
     assert(this._future == null, "Cannot start job ${this.runtimeType} twice");
 
-    print("${this.runtimeType} started");
+    // print("${this.runtimeType} started");
     Future<void> future = _doJob();
     future.then((_) {
-      print("${this.runtimeType} completed");
+      // print("${this.runtimeType} completed");
     }).onError((Object error, StackTrace stackTrace) {
       this._failureError = error;
-      print("${this.runtimeType} failure");
+      // print("${this.runtimeType} failure");
     }).whenComplete(() {});
 
     this._future = future;
@@ -66,7 +67,7 @@ abstract class Job extends ChangeNotifier {
 class AccountsActivationJob extends Job {
   final KeypairBundle keypairBundle;
   final BlockchainService _blockchainService;
-  final EncryptedDbService _encryptedDbService;
+  //final EncryptedDbService _encryptedDbService;
 
   @override
   Future<void> _doJob() async {
@@ -90,7 +91,7 @@ class AccountsActivationJob extends Job {
           ? AccountType.ACTIVE
           : AccountType.UNINITIALIZED;
 
-      final String balance = accountData.balance;
+      final TonDecimal balance = accountData.balance;
 
       keypairBundle.setAccount(
         smartContractBlob.fullQualifiedName,
@@ -106,7 +107,7 @@ class AccountsActivationJob extends Job {
     required BlockchainService blockchainService,
     required EncryptedDbService encryptedDbService,
   })   : this._blockchainService = blockchainService,
-        this._encryptedDbService = encryptedDbService,
+        //this._encryptedDbService = encryptedDbService,
         super._();
 }
 

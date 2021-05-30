@@ -12,22 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
+import 'dart:async';
 
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
-import 'package:freeton_wallet/data/account.dart';
-import 'package:freeton_wallet/data/key_pair.dart';
 
-//import "../services/blockchain/smart_contract/smart_contract.dart" show SmartContractAbi, SmartContractBlob, SmartContractKeeper;
-
+import "../misc/ton_decimal.dart" show TonDecimal;
+import "../services/job.dart" show AccountsActivationJob, JobService;
+import "../data/account.dart" show Account;
+import "../data/key_pair.dart" show KeyPair;
 import "../services/blockchain/blockchain.dart"
     show
         BlockchainService,
         ProcessingState,
         RunMessage,
-        SafeMultisigWalletAbi,
-        SetcodeMultisigWalletAbi,
         SmartContactRuntime,
         SmartContractAbi,
         SmartContractBlob,
@@ -35,37 +33,39 @@ import "../services/blockchain/blockchain.dart"
         Transaction,
         WalletAbi;
 import "../services/encrypted_db_service.dart"
-    show DataAccount, EncryptedDbService, KeypairBundle, KeypairBundlePlain;
+    show DataAccount, KeypairBundle, KeypairBundlePlain;
 import "../states/app_state.dart" show AppState;
-
-import '../widgets/business/send_money.dart' show SendMoneyWidgetApi;
+import "../widgets/business/send_money.dart" show SendMoneyWidgetApi;
 
 class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
-  final AppState appState;
-  final EncryptedDbService encryptedDbService;
-  final BlockchainService blockchainService;
-  final String accountAddress;
+  final AppState _appState;
+  //final EncryptedDbService encryptedDbService;
+  final BlockchainService _blockchainService;
+  final JobService _jobService;
+  final DataAccount _dataAccount;
+  // final String accountAddress;
 
   SendMoneyWidgetApiAdapter(
-    this.appState,
-    this.blockchainService,
-    this.encryptedDbService,
-    this.accountAddress,
+    this._dataAccount,
+    this._appState,
+    this._blockchainService,
+    this._jobService,
+    //this.encryptedDbService,
+    //this.accountAddress,
   );
 
   @override
   Future<String> createTransaction(
     ExecutionContext ectx,
     String destinationAddress,
-    String amount,
+    TonDecimal amount,
     String comment,
   ) async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final DataAccount accountData = await this._loadAccount();
-
     final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
-        .getByFullQualifiedName(accountData.smartContractFullQualifiedName);
+        .getByFullQualifiedName(
+            this._dataAccount.smartContractFullQualifiedName);
     final SmartContractAbi smartContractAbi = smartContractBlob.abi;
 
     if (!(smartContractAbi is WalletAbi)) {
@@ -74,7 +74,7 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
 
     String keySecret;
 
-    final KeypairBundle keypairBundle = accountData.parentKeypairBundle;
+    final KeypairBundle keypairBundle = this._dataAccount.parentKeypairBundle;
     if (keypairBundle is KeypairBundlePlain) {
       keySecret = keypairBundle.keySecret;
     } else {
@@ -82,10 +82,10 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
           "${KeypairBundlePlain} only supported right now.");
     }
 
-    final SmartContactRuntime contactRuntime = this.blockchainService;
+    final SmartContactRuntime contactRuntime = this._blockchainService;
     final Account account = Account(
       KeyPair(public: keypairBundle.keyPublic, secret: keySecret),
-      accountData.blockchainAddress,
+      this._dataAccount.blockchainAddress,
       smartContractAbi,
     );
 
@@ -109,7 +109,7 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
     ExecutionContext ectx,
     String transactionToken,
   ) async {
-    final SmartContactRuntime contactRuntime = this.blockchainService;
+    final SmartContactRuntime contactRuntime = this._blockchainService;
 
     final ProcessingState processingState = await contactRuntime.sendMessage(
       ectx,
@@ -125,7 +125,7 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
     String transactionToken,
     String submitToken,
   ) async {
-    final SmartContactRuntime contactRuntime = this.blockchainService;
+    final SmartContactRuntime contactRuntime = this._blockchainService;
 
     final Transaction transaction = await contactRuntime.waitForRunTransaction(
       ectx,
@@ -134,17 +134,5 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
     );
 
     return transaction.transactionId;
-  }
-
-  Future<DataAccount> _loadAccount() async {
-    await Future<void>.delayed(Duration(seconds: 1));
-
-    final List<DataAccount> accounts = appState.keypairBundles
-        .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
-        .toList();
-    final DataAccount account = accounts.singleWhere(
-        (DataAccount account) => account.blockchainAddress == accountAddress);
-
-    return account;
   }
 }

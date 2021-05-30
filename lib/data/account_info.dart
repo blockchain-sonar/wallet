@@ -12,10 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-class AccountInfo {
-  static const AccountInfo EMPTY = AccountInfo("0.000000000", false);
+import "../misc/ton_decimal.dart" show TonDecimal;
 
-  final String balance;
+class AccountInfo {
+  static AccountInfo EMPTY = AccountInfo(TonDecimal.parse("0"), false);
+
+  final TonDecimal balance;
   final bool isSmartContractDeployed;
 
   const AccountInfo(this.balance, this.isSmartContractDeployed);

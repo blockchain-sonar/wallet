@@ -12,10 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:convert';
+import "dart:convert" show base64Encode;
 
-import 'package:freemework/freemework.dart';
-import 'package:freeton_wallet/services/blockchain/smart_contract/smart_contract.dart';
+import "package:freemework/freemework.dart" show FreemeworkException;
+import "../misc/ton_decimal.dart" show TonDecimal;
+import "../services/blockchain/smart_contract/smart_contract.dart" show SmartContractAbi, SmartContractBlob, SmartContractKeeper;
 
 import "../services/blockchain/blockchain.dart"
     show BlockchainService, SmartContractKeeper;
@@ -49,7 +50,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
   }
 
   @override
-  Future<String> calculateDeploymentFee() async {
+  Future<TonDecimal> calculateDeploymentFee() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
     final DataAccount account = await this.account;
@@ -69,7 +70,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
           "${KeypairBundlePlain} only supported right now.");
     }
 
-    final String deploymentFee =
+    final TonDecimal deploymentFee =
         await this.blockchainService.calculateDeploymentFee(
               account.parentKeypairBundle.keyPublic,
               keySecret,

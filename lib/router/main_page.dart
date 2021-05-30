@@ -13,10 +13,9 @@
 // limitations under the License.
 
 import "package:flutter/src/animation/animation.dart" show Animation;
-import 'package:flutter/src/widgets/framework.dart';
 import "package:flutter/widgets.dart"
-    show BuildContext, Page, PageRouteBuilder, Route, ValueKey;
-import 'package:provider/provider.dart';
+    show BuildContext, Page, PageRouteBuilder, Route, ValueKey, Widget;
+import "package:provider/provider.dart" show Consumer;
 
 import "../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../services/job.dart" show JobService;

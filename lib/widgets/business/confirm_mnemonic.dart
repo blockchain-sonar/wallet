@@ -52,7 +52,7 @@ import "package:flutter/widgets.dart"
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
+import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
     show

@@ -16,6 +16,7 @@ import "package:freemework/errors/InvalidOperationException.dart"
     show InvalidOperationException;
 import 'package:freemework/freemework.dart';
 import 'package:freeton_wallet/data/account.dart';
+import 'package:freeton_wallet/misc/ton_decimal.dart';
 
 import "../../clients/tonclient/tonclient.dart" as TON;
 
@@ -27,7 +28,7 @@ import "smart_contract/abi.dart"
     show ProcessingState, RunMessage, SmartContactRuntime, Transaction;
 
 abstract class BlockchainService implements SmartContactRuntime {
-  Future<String> calculateDeploymentFee(
+  Future<TonDecimal> calculateDeploymentFee(
     String keyPublic,
     String keySecret,
     String smartContractAbiSpec,
@@ -55,7 +56,7 @@ class BlockchainServiceImpl extends BlockchainService {
   BlockchainServiceImpl(this._tonClient);
 
   @override
-  Future<String> calculateDeploymentFee(
+  Future<TonDecimal> calculateDeploymentFee(
     final String keyPublic,
     final String keySecret,
     final String smartContractAbiSpec,
@@ -67,7 +68,7 @@ class BlockchainServiceImpl extends BlockchainService {
           smartContractBlobTvcBase64,
         );
 
-    final String deploymentFeeEstimatedAmount = fees.totalAccountFees;
+    final TonDecimal deploymentFeeEstimatedAmount = fees.totalAccountFees;
 
     return deploymentFeeEstimatedAmount;
   }

@@ -19,16 +19,7 @@ import "services/service_factory.dart"
 import "app.dart" show App;
 import "test_widgets.dart";
 
-import 'dart:html' as html;
-
 void main() {
-  // html.window.onBeforeUnload.listen((event) async {
-  //   print("onBeforeUnload");
-  // });
-  // html.window.onUnload.listen((event) async {
-  //   print("onUnload");
-  // });
-
   final ServiceFactory serviceFactory = ServiceFactoryProductive();
   runApp(App(serviceFactory));
 

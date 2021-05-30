@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import "../../../../misc/ton_decimal.dart" show TonDecimal;
+
 class AccountInfo {
-  final String balance;
+  final TonDecimal balance;
   const AccountInfo(this.balance);
 }
 
 class DeployedAccountInfo extends AccountInfo {
   final String codeHash;
-  const DeployedAccountInfo(String balance, this.codeHash) : super(balance);
+  const DeployedAccountInfo(TonDecimal balance, this.codeHash) : super(balance);
 }

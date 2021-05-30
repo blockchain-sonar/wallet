@@ -1,22 +1,27 @@
 @JS()
 library tonclient;
 
-import 'dart:convert';
-import "dart:js_util" show getProperty, hasProperty, newObject, promiseToFuture;
+import "dart:convert" show jsonDecode, jsonEncode;
+import "dart:js_util" show getProperty, hasProperty, promiseToFuture;
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException, InvalidOperationException;
-import 'package:freeton_wallet/clients/tonclient/src/models/fees.dart';
-import 'package:freeton_wallet/clients/tonclient/src/models/run_message.dart';
-import 'package:freeton_wallet/clients/tonclient/src/models/transaction.dart';
-import "package:js/js.dart";
-import "package:js/js_util.dart"
-    show getProperty, hasProperty, newObject, promiseToFuture, setProperty;
-import "../contract.dart";
-import "models/account_info.dart" show AccountInfo, DeployedAccountInfo;
-import "models/key_pair.dart" show KeyPair;
+import "package:js/js.dart" show JS;
+
 import "../contract.dart"
-    show AbstractTonClient, InteropViolationDataException, TonClientException;
-import 'models/processing_state.dart';
+    show
+        AbstractTonClient,
+        InteropViolationDataException,
+        InteropViolationResultException,
+        SeedType,
+        TonClientException;
+import "../../../misc/ton_decimal.dart" show TonDecimal;
+
+import "models/account_info.dart" show AccountInfo, DeployedAccountInfo;
+import "models/fees.dart" show Fees;
+import "models/key_pair.dart" show KeyPair;
+import "models/processing_state.dart" show ProcessingState;
+import "models/run_message.dart" show RunMessage;
+import "models/transaction.dart" show Transaction;
 
 // The `TONClientFacade` constructor invokes JavaScript `new window.TONClientFacade()`
 @JS("TONClientFacade")
@@ -144,12 +149,12 @@ class TonClient extends AbstractTonClient {
         jsData, TonClient.__FEES__TOTAL_OUTPUT__PROPERTY_NAME);
 
     return Fees(
-      gasFee: gasFee,
-      inMsgFwdFee: inMsgFwdFee,
-      outMsgsFwdFee: outMsgsFwdFee,
-      storageFee: storageFee,
-      totalAccountFees: totalAccountFees,
-      totalOutput: totalOutput,
+      gasFee: TonDecimal.parseNanoHex(gasFee),
+      inMsgFwdFee: TonDecimal.parseNanoHex(inMsgFwdFee),
+      outMsgsFwdFee: TonDecimal.parseNanoHex(outMsgsFwdFee),
+      storageFee: TonDecimal.parseNanoHex(storageFee),
+      totalAccountFees: TonDecimal.parseNanoHex(totalAccountFees),
+      totalOutput: TonDecimal.parseNanoHex(totalOutput),
     );
   }
 
@@ -283,9 +288,9 @@ class TonClient extends AbstractTonClient {
         jsData, TonClient._ACCOUNTINFO_CODEHASH_PROPERTY_NAME);
 
     if (codeHash != null) {
-      return DeployedAccountInfo(balance, codeHash);
+      return DeployedAccountInfo(TonDecimal.parseNanoDec(balance), codeHash);
     } else {
-      return AccountInfo(balance);
+      return AccountInfo(TonDecimal.parseNanoDec(balance));
     }
   }
 
@@ -319,11 +324,11 @@ class TonClient extends AbstractTonClient {
         ._wrap
         .waitForRunTransaction(messageSendToken, processingStateToken));
 
-    final dynamic feesInteropData =
-        _getInteropDataProperty(interopData, "fees");
+    // final dynamic feesInteropData =
+    //     _getInteropDataProperty(interopData, "fees");
 
-    final dynamic outputInteropData =
-        _getInteropDataProperty(interopData, "output");
+    // final dynamic outputInteropData =
+    //     _getInteropDataProperty(interopData, "output");
 
     final dynamic transactionInteropData =
         _getInteropDataProperty(interopData, "transaction");

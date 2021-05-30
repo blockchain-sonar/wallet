@@ -14,16 +14,11 @@
 
 import "package:flutter/material.dart" show MaterialApp;
 import "package:flutter/widgets.dart"
-    show
-        BuildContext,
-        Center,
-        State,
-        StatefulWidget,
-        StatelessWidget,
-        Text,
-        Widget;
-import 'package:freemework_cancellation/freemework_cancellation.dart';
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
+    show BuildContext, Center, State, StatefulWidget, Text, Widget;
+import "package:freemework_cancellation/freemework_cancellation.dart"
+    show ManualCancellationTokenSource;
+
+import "../layout/my_scaffold.dart" show MyScaffold;
 
 class SplashWidget extends StatefulWidget {
   SplashWidget();
@@ -69,21 +64,6 @@ class _SplashState extends State<SplashWidget> {
       ),
     );
   }
-
-  // Future<String> _loadRoutePath() async {
-  //   await Future<void>.delayed(Duration(seconds: 1));
-  //   final bool isInitialized = this.widget.encryptedDbService.isInitialized;
-  //   if (!isInitialized) {
-  //     return AppRouteDataNewbeWizzard.PATH;
-  //   } else {
-  //     final bool isLogged = this.widget.appState.isLogged;
-  //     if (isLogged) {
-  //       return AppRouterDataUnknown.PATH;
-  //     } else {
-  //       return AppRouterDataSignin.PATH;
-  //     }
-  //   }
-  // }
 }
 
 class SplashStandalone extends MaterialApp {

@@ -21,38 +21,27 @@ import "package:flutter/src/widgets/framework.dart";
 import "package:flutter/src/widgets/navigator.dart";
 import "package:flutter/widgets.dart"
     show
-        Alignment,
-        BoxConstraints,
         BuildContext,
         Center,
         ChangeNotifier,
-        Container,
         GlobalKey,
-        MainAxisAlignment,
-        MainAxisSize,
         Navigator,
         NavigatorState,
         Page,
-        PageRouteBuilder,
         PopNavigatorRouterDelegateMixin,
         RouteInformation,
         RouteInformationParser,
-        RouteTransitionRecord,
         RouterDelegate,
-        Row,
-        StatefulWidget,
         StatelessWidget,
-        StreamBuilder,
         Text,
-        TransitionDelegate,
         ValueKey,
         Widget;
 import "package:freemework/freemework.dart";
-import 'package:freeton_wallet/widgets/business/deploy_contract.dart';
-import 'package:freeton_wallet/widgets/business/send_money.dart';
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
-import 'adapter/deploy_contract_adapter.dart';
-import 'adapter/send_money_adapter.dart';
+import "widgets/business/deploy_contract.dart" show DeployContractWidget, DeployContractWidgetApi;
+import "widgets/business/send_money.dart" show SendMoneyWidget, SendMoneyWidgetApi;
+import "widgets/layout/my_scaffold.dart" show MyScaffold;
+import "adapter/deploy_contract_adapter.dart" show DeployContractWidgetApiAdapter;
+import "adapter/send_money_adapter.dart" show SendMoneyWidgetApiAdapter;
 import "router/main_page.dart" show MainPage;
 import "router/redirect_page.dart" show RedirectPage;
 import "widgets/business/main_tab.dart" show MainTab;
@@ -61,7 +50,7 @@ import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "router/app_route_data.dart";
 import "router/crash_page.dart" show CrashPage;
 import "services/blockchain/blockchain.dart"
-    show BlockchainService, SmartContract;
+    show BlockchainService;
 import "states/app_state.dart" show AppState;
 import "package:provider/provider.dart" show Consumer;
 
@@ -74,8 +63,6 @@ import "services/encrypted_db_service.dart"
         KeypairBundlePlain;
 import "services/job.dart" show JobService;
 import "widgets/business/main_wallets.dart" show DeployContractCallback;
-import "widgets/business/select_smart_contract.dart"
-    show SelectSmartContractWidget;
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
@@ -164,7 +151,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 
       List<Page<dynamic>> pagesStack;
 
-      print(this._currentConfiguration);
+      // print(this._currentConfiguration);
 
       if (currentConfiguration is AppRouteDataCrash)
         pagesStack = _crashPagesStack(currentConfiguration);
@@ -196,7 +183,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       else
         pagesStack = _unknownPagesStack(currentConfiguration);
 
-      print(pagesStack);
+      // print(pagesStack);
 
       return Navigator(
         key: navigatorKey,
@@ -206,7 +193,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           if (!route.didPop(result)) {
             return false;
           }
-          print("onPopPage");
+          // print("onPopPage");
           if (pagesStack.length > 1) {
             if (this._currentConfiguration
                     is AppRouteDataMainWalletsDeployContract ||
@@ -227,7 +214,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 
   @override
   Future<void> setNewRoutePath(AppRouteData configuration) async {
-    print("_AppRouterDelegate#setNewRoutePath: ${configuration}");
+    // print("_AppRouterDelegate#setNewRoutePath: ${configuration}");
     this._currentConfiguration = configuration;
   }
 
@@ -295,7 +282,8 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainWalletsNew();
       this.notifyListeners();
     };
-    final DeployContractCallback onDeployContract = (final DataAccount account) {
+    final DeployContractCallback onDeployContract =
+        (final DataAccount account) {
       this._currentConfiguration =
           AppRouteDataMainWalletsDeployContract(account.blockchainAddress);
       this.notifyListeners();
@@ -349,6 +337,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           appState,
           encryptedDbService,
           blockchainService,
+          this._jobService,
           currentConfiguration.accountAddress,
         )
     ];
@@ -479,8 +468,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     final BlockchainService blockchainService,
     final String accountAddress,
   ) {
-    final DeployContractWidgetApi widgetApi =
-        DeployContractWidgetApiAdapter(
+    final DeployContractWidgetApi widgetApi = DeployContractWidgetApiAdapter(
       appState,
       blockchainService,
       encryptedDbService,
@@ -499,14 +487,20 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     final AppState appState,
     final EncryptedDbService encryptedDbService,
     final BlockchainService blockchainService,
+    final JobService jobService,
     final String accountAddress,
   ) {
-    final SendMoneyWidgetApi widgetApi =
-        SendMoneyWidgetApiAdapter(
+    final List<DataAccount> accounts = appState.keypairBundles
+        .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
+        .toList();
+    final DataAccount account = accounts.singleWhere(
+        (DataAccount account) => account.blockchainAddress == accountAddress);
+
+    final SendMoneyWidgetApi widgetApi = SendMoneyWidgetApiAdapter(
+      account,
       appState,
       blockchainService,
-      encryptedDbService,
-      accountAddress,
+      jobService,
     );
 
     return <Page<dynamic>>[

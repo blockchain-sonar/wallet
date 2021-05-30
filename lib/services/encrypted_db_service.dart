@@ -22,6 +22,7 @@ import "dart:math" show max;
 import "package:flutter/widgets.dart" show ChangeNotifier;
 import "package:freemework/freemework.dart"
     show FreemeworkException, InvalidOperationException;
+import 'package:freeton_wallet/misc/ton_decimal.dart';
 
 import "../data/key_pair.dart" show KeyPair;
 import "../data/mnemonic_phrase.dart" show MnemonicPhrase;
@@ -61,7 +62,7 @@ abstract class DataSet extends ChangeNotifier {
 abstract class DataAccount extends ChangeNotifier {
   final String blockchainAddress;
   final String smartContractFullQualifiedName;
-  final String balance;
+  final TonDecimal balance;
   final AccountType accountType;
 
   KeypairBundle get parentKeypairBundle;
@@ -97,7 +98,7 @@ abstract class KeypairBundle extends ChangeNotifier {
     String smartContractId,
     String blockchainAddress,
     AccountType accountType,
-    String balance,
+    TonDecimal balance,
   ) {
     final _Account account = _Account._(
       blockchainAddress,
@@ -386,7 +387,7 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
     final String dataSerialized;
     try {
       dataSerialized = encrypter.decryptStringFromBas64(encryptedData);
-      print(dataSerialized);
+      // print(dataSerialized);
     } catch (e) {
       throw WrongMasterPasswordException(
         "Cannot decrypt data.",
@@ -673,7 +674,7 @@ class _Account extends DataAccount {
       blockchainAddress,
       smartContractId,
       accountType,
-      balance,
+      TonDecimal.parseNanoHex(balance),
     );
   }
 
@@ -682,7 +683,7 @@ class _Account extends DataAccount {
       _Account._SMART_CONTRACT_ID__PROPERTY: this.smartContractFullQualifiedName,
       _Account.__BLOCKCHAIN_ADDRESS__PROPERTY: this.blockchainAddress,
       _Account.__ACCOUNT_TYPE__PROPERTY: this.accountType,
-      _Account.__BALANCE__PROPERTY: this.balance,
+      _Account.__BALANCE__PROPERTY: this.balance.nanoHex,
     };
 
     return rawJson;
@@ -697,7 +698,7 @@ class _Account extends DataAccount {
     String blockchainAddress,
     String smartContractId,
     AccountType accountType,
-    String balance,
+    TonDecimal balance,
   ) : super._(
           blockchainAddress,
           smartContractId,

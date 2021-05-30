@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import "../../../../misc/ton_decimal.dart" show TonDecimal;
+
 class Fees {
-  final String gasFee;
-  final String inMsgFwdFee;
-  final String outMsgsFwdFee;
-  final String storageFee;
-  final String totalAccountFees;
-  final String totalOutput;
+  final TonDecimal gasFee;
+  final TonDecimal inMsgFwdFee;
+  final TonDecimal outMsgsFwdFee;
+  final TonDecimal storageFee;
+  final TonDecimal totalAccountFees;
+  final TonDecimal totalOutput;
 
   Fees({
     required this.gasFee,

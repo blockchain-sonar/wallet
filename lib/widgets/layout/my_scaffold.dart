@@ -13,12 +13,12 @@
 // limitations under the License.
 
 import "package:flutter/material.dart" show AppBar, Colors, Scaffold;
-import 'package:flutter/src/widgets/basic.dart';
 import "package:flutter/widgets.dart"
     show
         Alignment,
         BoxConstraints,
         BuildContext,
+        Center,
         Container,
         StatelessWidget,
         Text,

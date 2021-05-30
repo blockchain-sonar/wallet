@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'package:freeton_wallet/services/blockchain/blockchain.dart';
-
 import "../widgets/business/main_tab.dart" show MainTab;
 
 abstract class AppRouteData {
   factory AppRouteData.fromUrl(Uri routeUri) {
-    print(
-        "AppRouteData.fromUrl routeUri: $routeUri, routeUri.path: ${routeUri.path}");
+    // print("AppRouteData.fromUrl routeUri: $routeUri, routeUri.path: ${routeUri.path}");
 
     AppRouteData? testResult = AppRouteDataMain.test(routeUri);
     if (testResult != null) {

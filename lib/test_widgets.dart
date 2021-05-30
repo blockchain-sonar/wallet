@@ -16,13 +16,11 @@ import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show runApp;
 import "package:freemework/freemework.dart" show ExecutionContext;
 import 'package:freeton_wallet/widgets/business/confirm_mnemonic.dart';
-import 'clients/tonclient/src/models/key_pair.dart';
 import 'clients/tonclient/tonclient.dart';
 import 'widgets/business/import_mode_selector.dart'
     show ImportModeSelectorContext, ImportModeSelectorWidget;
 import 'widgets/business/enter_wallet_name.dart'
     show EnterWalletNameContext, EnterWalletNameWidget;
-import 'widgets/business/restore_by_mnemonic_phrase.dart';
 import 'widgets/business/restore_by_private_key.dart'
     show RestoreByPrivateKeyContext, RestoreByPrivateKeyWidget;
 import 'widgets/business/restore_mode_selector.dart'
@@ -30,7 +28,6 @@ import 'widgets/business/restore_mode_selector.dart'
 import 'widgets/business/setup_master_password.dart';
 import 'widgets/business/show_mnemonic_widget.dart';
 import 'widgets/business/unlock.dart' show UnlockContext, UnlockWidget;
-import 'widgets/toolchain/dialog_widget.dart' show DialogWidget;
 
 import 'clients/tonclient/tonclient.dart' show TonClient;
 

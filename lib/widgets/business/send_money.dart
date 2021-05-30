@@ -29,9 +29,11 @@ import "package:flutter/widgets.dart"
         Text,
         TextEditingController,
         Widget;
-import "package:freemework/freemework.dart" show ExecutionContext, FreemeworkException;
+import "package:freemework/freemework.dart"
+    show ExecutionContext, FreemeworkException;
 import "package:url_launcher/url_launcher.dart" show launch;
 
+import "../../misc/ton_decimal.dart" show TonDecimal;
 import "../layout/my_scaffold.dart" show MyScaffold;
 
 ///
@@ -45,7 +47,7 @@ abstract class SendMoneyWidgetApi {
   Future<String> createTransaction(
     ExecutionContext ectx,
     String destinationAddress,
-    String amount,
+    TonDecimal amount,
     String comment,
   );
 
@@ -76,18 +78,29 @@ class _StateData {}
 
 class _StateDataAskUser extends _StateData {}
 
-class _StateDataDoubleCheck extends _StateData {
+class _StateDataDoubleCheck extends _StateData
+    with _StateDataMixinUserDataEntered {
+  @override
   final String destinationAddress;
-  final String amount;
+
+  @override
+  final TonDecimal amount;
+
+  @override
   final String comment;
 
   _StateDataDoubleCheck(this.destinationAddress, this.amount, this.comment);
 }
 
 class _StateDataProcessingObtainTransactionToken extends _StateData
-    with _StateDataMixinTransactionOngoing {
+    with _StateDataMixinTransactionOngoing, _StateDataMixinUserDataEntered {
+  @override
   final String destinationAddress;
-  final String amount;
+
+  @override
+  final TonDecimal amount;
+
+  @override
   final String comment;
 
   _StateDataProcessingObtainTransactionToken(
@@ -99,7 +112,7 @@ class _StateDataProcessingObtainTransactionTokenProgress
     with _StateDataMixinProgressBar {
   _StateDataProcessingObtainTransactionTokenProgress(
     final String destinationAddress,
-    final String amount,
+    final TonDecimal amount,
     final String comment,
   ) : super(
           destinationAddress,
@@ -113,7 +126,7 @@ class _StateDataProcessingObtainTransactionTokenFailure
   final FreemeworkException ex;
   _StateDataProcessingObtainTransactionTokenFailure(
     final String destinationAddress,
-    final String amount,
+    final TonDecimal amount,
     final String comment,
     this.ex,
   ) : super(
@@ -124,11 +137,26 @@ class _StateDataProcessingObtainTransactionTokenFailure
 }
 
 class _StateDataProcessingObtainSubmitToken extends _StateData
-    with _StateDataMixinTransactionOngoing, _StateDataMixinTransactionCreated {
+    with
+        _StateDataMixinTransactionOngoing,
+        _StateDataMixinTransactionCreated,
+        _StateDataMixinUserDataEntered {
+  @override
+  final String destinationAddress;
+
+  @override
+  final TonDecimal amount;
+
+  @override
+  final String comment;
+
   @override
   final String transactionToken;
 
   _StateDataProcessingObtainSubmitToken(
+    this.destinationAddress,
+    this.amount,
+    this.comment,
     this.transactionToken,
   );
 }
@@ -136,29 +164,51 @@ class _StateDataProcessingObtainSubmitToken extends _StateData
 class _StateDataProcessingObtainSubmitTokenProcess
     extends _StateDataProcessingObtainSubmitToken
     with _StateDataMixinProgressBar {
-  _StateDataProcessingObtainSubmitTokenProcess(String transactionToken)
-      : super(transactionToken);
+  _StateDataProcessingObtainSubmitTokenProcess(
+    final String destinationAddress,
+    final TonDecimal amount,
+    final String comment,
+    String transactionToken,
+  ) : super(destinationAddress, amount, comment, transactionToken);
 }
 
 class _StateDataProcessingObtainSubmitTokenFailure
     extends _StateDataProcessingObtainSubmitToken {
   final FreemeworkException ex;
 
-  _StateDataProcessingObtainSubmitTokenFailure(String transactionToken, this.ex)
-      : super(transactionToken);
+  _StateDataProcessingObtainSubmitTokenFailure(
+    final String destinationAddress,
+    final TonDecimal amount,
+    final String comment,
+    final String transactionToken,
+    this.ex,
+  ) : super(destinationAddress, amount, comment, transactionToken);
 }
 
 class _StateDataProcessingWaitTransactionOnBlockchain extends _StateData
     with
         _StateDataMixinTransactionOngoing,
         _StateDataMixinTransactionCreated,
-        _StateDataMixinTransactionSent {
+        _StateDataMixinTransactionSent,
+        _StateDataMixinUserDataEntered {
+  @override
+  final String destinationAddress;
+
+  @override
+  final TonDecimal amount;
+
+  @override
+  final String comment;
+
   @override
   final String transactionToken;
   @override
   final String submitToken;
 
   _StateDataProcessingWaitTransactionOnBlockchain(
+    this.destinationAddress,
+    this.amount,
+    this.comment,
     this.transactionToken,
     this.submitToken,
   );
@@ -168,9 +218,15 @@ class _StateDataProcessingWaitTransactionOnBlockchainProcess
     extends _StateDataProcessingWaitTransactionOnBlockchain
     with _StateDataMixinProgressBar {
   _StateDataProcessingWaitTransactionOnBlockchainProcess(
-    String transactionToken,
-    String submitToken,
+    final String destinationAddress,
+    final TonDecimal amount,
+    final String comment,
+    final String transactionToken,
+    final String submitToken,
   ) : super(
+          destinationAddress,
+          amount,
+          comment,
           transactionToken,
           submitToken,
         );
@@ -181,8 +237,16 @@ class _StateDataProcessingWaitTransactionOnBlockchainFailure
   final FreemeworkException ex;
 
   _StateDataProcessingWaitTransactionOnBlockchainFailure(
-      String transactionToken, String submitToken, this.ex)
-      : super(
+    final String destinationAddress,
+    final TonDecimal amount,
+    final String comment,
+    final String transactionToken,
+    final String submitToken,
+    this.ex,
+  ) : super(
+          destinationAddress,
+          amount,
+          comment,
           transactionToken,
           submitToken,
         );
@@ -211,6 +275,11 @@ class _StateDataCompleted extends _StateData
 // }
 
 mixin _StateDataMixinProgressBar on _StateData {}
+mixin _StateDataMixinUserDataEntered on _StateData {
+  String get destinationAddress;
+  TonDecimal get amount;
+  String get comment;
+}
 mixin _StateDataMixinTransactionOngoing on _StateData {}
 mixin _StateDataMixinTransactionCreated on _StateDataMixinTransactionOngoing {
   String get transactionToken;
@@ -237,17 +306,17 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
   void initState() {
     super.initState();
 
-    this._destinationAddressController.text =
-        "0:8776013e6d2d9f93cfc4b9cd93e54002c6129051fd15bdbdb59c150ebf9168e2";
-    this._amountController.text = "0.1";
-    this._commentController.text = "test";
+    // this._destinationAddressController.text =
+    //     "0:8776013e6d2d9f93cfc4b9cd93e54002c6129051fd15bdbdb59c150ebf9168e2";
+    // this._amountController.text = "0.1";
+    // this._commentController.text = "test";
   }
 
-  @override
-  void setState(VoidCallback fn) {
-    super.setState(fn);
-    print(this._stateData);
-  }
+  // @override
+  // void setState(VoidCallback fn) {
+  //   super.setState(fn);
+  //   print(this._stateData);
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -259,12 +328,12 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            if (this._stateData is _StateDataMixinProgressBar) ...<Widget>[
+            if (stateData is _StateDataMixinProgressBar) ...<Widget>[
               LinearProgressIndicator(
                 semanticsLabel: "Linear progress indicator",
               ),
             ],
-            if (this._stateData is _StateDataAskUser)
+            if (stateData is _StateDataAskUser)
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Form(
@@ -332,7 +401,7 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                   ),
                 ),
               ),
-            if (!(this._stateData is _StateDataAskUser)) ...<Widget>[
+            if (stateData is _StateDataMixinUserDataEntered) ...<Widget>[
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text("Please double check your inputs..."),
@@ -340,6 +409,7 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Table(
+                  defaultVerticalAlignment: TableCellVerticalAlignment.middle,
                   columnWidths: <int, TableColumnWidth>{
                     0: FlexColumnWidth(1),
                     1: FlexColumnWidth(3),
@@ -348,39 +418,39 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                     TableRow(
                       children: <Widget>[
                         Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: Text(
                             "Destination Address:",
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        Text(this._destinationAddressController.text),
+                        Text(stateData.destinationAddress),
                       ],
                     ),
                     TableRow(
                       children: <Widget>[
                         Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
+                          padding: const EdgeInsets.all(8.0),
                           child: Text(
                             "Amount:",
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
-                        Text(this._amountController.text),
+                        Text(stateData.amount.value),
                       ],
                     ),
-                    TableRow(
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Text(
-                            "Comment:",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        Text(this._commentController.text),
-                      ],
-                    ),
+                    // TableRow(
+                    //   children: <Widget>[
+                    //     Padding(
+                    //       padding: const EdgeInsets.only(right: 8.0),
+                    //       child: Text(
+                    //         "Comment:",
+                    //         style: TextStyle(fontWeight: FontWeight.bold),
+                    //       ),
+                    //     ),
+                    //     Text(stateData.comment),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),
@@ -397,12 +467,24 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: <Widget>[
-                    Icon(
-                      Icons.check_circle_outlined,
-                      color: stateData is _StateDataMixinTransactionCreated
-                          ? Colors.green
-                          : null,
-                    ),
+                    stateData is _StateDataMixinTransactionCreated ||
+                            stateData
+                                is _StateDataProcessingObtainTransactionTokenFailure
+                        ? Icon(
+                            Icons.check_circle_outlined,
+                            color: stateData
+                                    is _StateDataProcessingObtainTransactionTokenFailure
+                                ? Colors.red
+                                : Colors.green,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: SizedBox(
+                              child: CircularProgressIndicator(),
+                              height: 12.0,
+                              width: 12.0,
+                            ),
+                          ),
                     Text("Transaction message created")
                   ],
                 ),
@@ -413,13 +495,25 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: <Widget>[
-                    Icon(
-                      Icons.check_circle_outlined,
-                      color: stateData is _StateDataMixinTransactionSent
-                          ? Colors.green
-                          : null,
-                    ),
-                    Text("Transaction send to the TON Node")
+                    stateData is _StateDataMixinTransactionSent ||
+                            stateData
+                                is _StateDataProcessingObtainSubmitTokenFailure
+                        ? Icon(
+                            Icons.check_circle_outlined,
+                            color: stateData
+                                    is _StateDataProcessingObtainSubmitTokenFailure
+                                ? Colors.red
+                                : Colors.green,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: SizedBox(
+                              child: CircularProgressIndicator(),
+                              height: 12.0,
+                              width: 12.0,
+                            ),
+                          ),
+                    Text("Transaction has been sent to the TON Node")
                   ],
                 ),
               )
@@ -429,12 +523,24 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                 padding: const EdgeInsets.all(8.0),
                 child: Row(
                   children: <Widget>[
-                    Icon(
-                      Icons.check_circle_outlined,
-                      color: stateData is _StateDataMixinTransactionInBlockchain
-                          ? Colors.green
-                          : null,
-                    ),
+                    stateData is _StateDataMixinTransactionInBlockchain ||
+                            stateData
+                                is _StateDataProcessingWaitTransactionOnBlockchainFailure
+                        ? Icon(
+                            Icons.check_circle_outlined,
+                            color: stateData
+                                    is _StateDataProcessingWaitTransactionOnBlockchainFailure
+                                ? Colors.red
+                                : Colors.green,
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: SizedBox(
+                              child: CircularProgressIndicator(),
+                              height: 12.0,
+                              width: 12.0,
+                            ),
+                          ),
                     Text("Transaction presents in blockchain")
                   ],
                 ),
@@ -589,7 +695,7 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
 
     if (stateData is _StateDataAskUser) {
       final String destinationAddress = this._destinationAddressController.text;
-      final String amount = this._amountController.text;
+      final TonDecimal amount = TonDecimal.parse(this._amountController.text);
       final String comment = this._commentController.text;
 
       this.setState(() {
@@ -629,6 +735,9 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
     } else if (stateData is _StateDataProcessingObtainSubmitTokenFailure) {
       this.setState(() {
         this._stateData = _StateDataProcessingObtainSubmitTokenProcess(
+          stateData.destinationAddress,
+          stateData.amount,
+          stateData.comment,
           stateData.transactionToken,
         );
       });
@@ -639,6 +748,9 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
       this.setState(() {
         this._stateData =
             _StateDataProcessingWaitTransactionOnBlockchainProcess(
+          stateData.destinationAddress,
+          stateData.amount,
+          stateData.comment,
           stateData.transactionToken,
           stateData.submitToken,
         );
@@ -657,7 +769,7 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
 
     if (stateData is _StateDataProcessingObtainTransactionToken) {
       final String destinationAddress = stateData.destinationAddress;
-      final String amount = stateData.amount;
+      final TonDecimal amount = stateData.amount;
       final String comment = stateData.comment;
 
       try {
@@ -669,8 +781,11 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
             );
 
         this.setState(() {
-          this._stateData =
-              _StateDataProcessingObtainSubmitTokenProcess(transationToken);
+          this._stateData = _StateDataProcessingObtainSubmitTokenProcess(
+              stateData.destinationAddress,
+              stateData.amount,
+              stateData.comment,
+              transationToken);
         });
 
         return _safeTransactionFlow(); // NO await!!!
@@ -696,6 +811,9 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
         this.setState(() {
           this._stateData =
               _StateDataProcessingWaitTransactionOnBlockchainProcess(
+            stateData.destinationAddress,
+            stateData.amount,
+            stateData.comment,
             transationToken,
             submitToken,
           );
@@ -705,6 +823,9 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
       } catch (e) {
         this.setState(() {
           this._stateData = _StateDataProcessingObtainSubmitTokenFailure(
+            stateData.destinationAddress,
+            stateData.amount,
+            stateData.comment,
             transationToken,
             _logTraceException(FreemeworkException.wrapIfNeeded(e)),
           );
@@ -732,6 +853,9 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
         this.setState(() {
           this._stateData =
               _StateDataProcessingWaitTransactionOnBlockchainFailure(
+            stateData.destinationAddress,
+            stateData.amount,
+            stateData.comment,
             transationToken,
             submitToken,
             _logTraceException(FreemeworkException.wrapIfNeeded(e)),
