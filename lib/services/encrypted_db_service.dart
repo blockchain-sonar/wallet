@@ -13,7 +13,8 @@
 // limitations under the License.
 
 import "dart:async" show Future;
-import "dart:collection" show UnmodifiableMapView, UnmodifiableSetView;
+import "dart:collection"
+    show UnmodifiableListView, UnmodifiableMapView, UnmodifiableSetView;
 import "dart:convert" show base64Decode, base64Encode, jsonDecode, jsonEncode;
 import "dart:html" show window;
 import "dart:typed_data" show Uint8List;
@@ -22,8 +23,7 @@ import "dart:math" show max;
 import "package:flutter/widgets.dart" show ChangeNotifier;
 import "package:freemework/freemework.dart"
     show FreemeworkException, InvalidOperationException;
-import 'package:freeton_wallet/misc/ton_decimal.dart';
-
+import "../misc/ton_decimal.dart" show TonDecimal;
 import "../data/key_pair.dart" show KeyPair;
 import "../data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "crypto_service.dart" show CryptoService, DerivateResult, Encypter;
@@ -49,12 +49,23 @@ abstract class EncryptedDbService {
 abstract class DataSet extends ChangeNotifier {
   Uint8List get encryptionKey;
 
+  String get activeNodeUrl;
+
   KeypairBundlePlain addKeypairBundlePlain(
     String title,
     KeyPair keyPair,
     MnemonicPhrase? mnemonicPhrase,
   );
+
+  void addNode(NodeBundle node);
+
+  void deleteNodeByUrl(String nodeUrl);
+
+  void setActiveNode(NodeBundle node);
+
   UnmodifiableSetView<KeypairBundle> get keypairBundles;
+
+  UnmodifiableListView<NodeBundle> get nodes;
 
   DataSet._(); // internal
 }
@@ -289,6 +300,45 @@ class KeypairBundlePlain extends KeypairBundle {
   ) : super._(id, keypairName, keyPublic, accounts);
 }
 
+class NodeBundle {
+  final String name;
+  final String url;
+  final String color;
+
+  factory NodeBundle.fromJson(Map<String, dynamic> rawJson) {
+    final name = rawJson[NodeBundle._NAME_PROPERTY];
+    final url = rawJson[NodeBundle._URL_PROPERTY];
+    final color = rawJson[NodeBundle._COLOR_PROPERTY];
+    if (name == null) {
+      throw SerializationException(
+          "A field '${NodeBundle._NAME_PROPERTY}' is null");
+    }
+    if (url == null) {
+      throw SerializationException(
+          "A field '${NodeBundle._URL_PROPERTY}' is null");
+    }
+    if (color == null) {
+      throw SerializationException(
+          "A field '${NodeBundle._COLOR_PROPERTY}' is null");
+    }
+    return NodeBundle(name, url, color);
+  }
+
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      NodeBundle._NAME_PROPERTY: this.name,
+      NodeBundle._URL_PROPERTY: this.url,
+      NodeBundle._COLOR_PROPERTY: this.color,
+    };
+  }
+
+  NodeBundle(this.name, this.url, this.color);
+
+  static const String _NAME_PROPERTY = "name";
+  static const String _URL_PROPERTY = "url";
+  static const String _COLOR_PROPERTY = "color";
+}
+
 // class KeyPairBundleDataEncrypted extends KeyPairBundleData {
 //   WalletDataEncrypted._(int id) : super._(id);
 // }
@@ -387,7 +437,7 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
     final String dataSerialized;
     try {
       dataSerialized = encrypter.decryptStringFromBas64(encryptedData);
-      // print(dataSerialized);
+      print(dataSerialized);
     } catch (e) {
       throw WrongMasterPasswordException(
         "Cannot decrypt data.",
@@ -425,6 +475,8 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
     final _DataSet emptyDataSet = _DataSet(
       derivateResult.derivatedKey,
       Set<KeypairBundle>(),
+      <NodeBundle>[],
+      "",
     );
 
     LocalStorageEncryptedDbService._backupDto();
@@ -567,9 +619,14 @@ class _DataServiceLocalStorageMeta {
 class _DataSet extends DataSet {
   final Uint8List _encryptionKey;
   final Set<KeypairBundle> _keypairBundles;
+  final List<NodeBundle> _nodes;
+  String _nodeUrl;
 
   @override
   Uint8List get encryptionKey => this._encryptionKey;
+
+  @override
+  String get activeNodeUrl => this._nodeUrl;
 
   @override
   KeypairBundlePlain addKeypairBundlePlain(
@@ -596,17 +653,49 @@ class _DataSet extends DataSet {
   }
 
   @override
+  void addNode(NodeBundle node) {
+    if (this._nodes.where((NodeBundle n) => n.url == node.url).isNotEmpty) {
+      throw Exception("Node '${node.url}' alreay exist.");
+    }
+    this._nodes.add(node);
+  }
+
+  @override
+  void deleteNodeByUrl(String nodeUrl) {
+    this._nodes.removeWhere((NodeBundle node) => node.url == nodeUrl);
+  }
+
+  @override
+  void setActiveNode(NodeBundle node) {
+    this._nodeUrl = node.url;
+  }
+
+  @override
   UnmodifiableSetView<KeypairBundle> get keypairBundles =>
       UnmodifiableSetView<KeypairBundle>(this._keypairBundles);
+
+  @override
+  UnmodifiableListView<NodeBundle> get nodes =>
+      UnmodifiableListView<NodeBundle>(this._nodes);
 
   factory _DataSet.fromJson(
     final Map<String, dynamic> rawJson, {
     required final Uint8List encryptionKey,
   }) {
     final List<dynamic>? walletsJson = rawJson[_WALLETS__PROPERTY];
+    final List<dynamic>? nodesJson = rawJson[_NODES__PROPERTY];
+    final String? nodeUrlJson = rawJson[_NODES_URL__PROPERTY];
 
     if (walletsJson == null) {
       throw SerializationException("A field '$_WALLETS__PROPERTY' is null");
+    }
+
+    if (nodesJson == null) {
+      throw SerializationException("A field '$_NODES__PROPERTY' is null");
+    }
+
+    if (nodeUrlJson == null) {
+      throw SerializationException("A field '$_NODES_URL__PROPERTY' is null");
     }
 
     Set<KeypairBundle> wallets = Set<KeypairBundle>();
@@ -614,7 +703,12 @@ class _DataSet extends DataSet {
       wallets.add(KeypairBundle._fromJson(walletJson));
     }
 
-    _DataSet dataSet = _DataSet(encryptionKey, wallets);
+    List<NodeBundle> nodes = <NodeBundle>[];
+    for (final dynamic nodeJson in nodesJson) {
+      nodes.add(NodeBundle.fromJson(nodeJson));
+    }
+
+    _DataSet dataSet = _DataSet(encryptionKey, wallets, nodes, nodeUrlJson);
     return dataSet;
   }
 
@@ -624,14 +718,21 @@ class _DataSet extends DataSet {
           ._keypairBundles
           .map((KeypairBundle walletData) => walletData._toJson())
           .toList(),
+      _NODES__PROPERTY:
+          this._nodes.map((NodeBundle node) => node.toJson()).toList(),
+      _NODES_URL__PROPERTY: this._nodeUrl,
     };
 
     return rawJson;
   }
 
   static const String _WALLETS__PROPERTY = "wallets";
+  static const String _NODES__PROPERTY = "nodes";
+  static const String _NODES_URL__PROPERTY = "nodeUrl";
 
-  _DataSet(this._encryptionKey, this._keypairBundles) : super._();
+  _DataSet(
+      this._encryptionKey, this._keypairBundles, this._nodes, this._nodeUrl)
+      : super._();
 }
 
 class _Account extends DataAccount {
@@ -680,7 +781,8 @@ class _Account extends DataAccount {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> rawJson = <String, dynamic>{
-      _Account._SMART_CONTRACT_ID__PROPERTY: this.smartContractFullQualifiedName,
+      _Account._SMART_CONTRACT_ID__PROPERTY:
+          this.smartContractFullQualifiedName,
       _Account.__BLOCKCHAIN_ADDRESS__PROPERTY: this.blockchainAddress,
       _Account.__ACCOUNT_TYPE__PROPERTY: this.accountType,
       _Account.__BALANCE__PROPERTY: this.balance.nanoHex,
