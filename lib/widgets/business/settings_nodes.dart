@@ -161,6 +161,12 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
     this.widget._addNode(node);
   }
 
+  void _setColor(Color color) {
+    setState(() {
+      this._stateNode.nodeColor = color;
+    });
+  }
+
   Widget tileWidget(NodeBundle node) {
     return ListTile(
       tileColor: node.color == null ? Colors.white : Color(node.color!),
@@ -207,29 +213,6 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
             ],
           )
         ],
-      ),
-    );
-  }
-
-  void _showColorSelectDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => MyScaffold(
-        appBarTitle: "Select node color",
-        body: AlertDialog(
-          contentPadding: const EdgeInsets.all(5.0),
-          content: MaterialColorPicker(
-              allowShades: false,
-              circleSize: 100,
-              colors: fullMaterialColors,
-              onMainColorChange: (Color color) {
-                setState(() {
-                  this._stateNode.nodeColor = color;
-                });
-                Navigator.of(context).pop();
-              },
-              selectedColor: Colors.red),
-        ),
       ),
     );
   }
@@ -302,36 +285,43 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
+                  horizontal: 60,
+                ),
+                child: MaterialColorPicker(
+                  circleSize: 80,
+                  shrinkWrap: true,
+                  onMainColorChange: (Color color) {
+                    setState(() {
+                      this._stateNode.nodeColor = color;
+                    });
+                  },
+                  colors: [
+                    Colors.redAccent,
+                    Colors.deepPurpleAccent,
+                    Colors.blueAccent,
+                    Colors.cyanAccent,
+                    Colors.lightGreenAccent,
+                    Colors.yellowAccent,
+                    Colors.orangeAccent,
+                    Colors.deepOrangeAccent,
+                  ],
+                  allowShades: false,
+                  selectedColor: this._stateNode.nodeColor ?? Colors.white,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
                   vertical: 10,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: this._stateNode.nodeColor,
-                      ),
-                      onPressed: this._showColorSelectDialog,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        child: Text("Select color"),
-                      ),
+                child: ElevatedButton(
+                  onPressed: this.newNodeDataIsEntered ? this._addNode : null,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 10,
                     ),
-                    ElevatedButton(
-                      onPressed:
-                          this.newNodeDataIsEntered ? this._addNode : null,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        child: Text("Add"),
-                      ),
-                    ),
-                  ],
+                    child: Text("Add"),
+                  ),
                 ),
               ),
             ],
