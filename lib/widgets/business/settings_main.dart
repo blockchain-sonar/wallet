@@ -107,7 +107,6 @@ class _KeysMenagerSettingsState extends State<KeysMenagerSettings> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     this.setState(() {
       this._autoLock = this.widget._autoLock;
@@ -125,7 +124,7 @@ class _KeysMenagerSettingsState extends State<KeysMenagerSettings> {
         children: ListTile.divideTiles(context: context, tiles: <ListTile>[
           ListTile(
             leading: Icon(
-              Icons.access_alarm,
+              Icons.list_alt,
             ),
             title: Text(
               "Node",

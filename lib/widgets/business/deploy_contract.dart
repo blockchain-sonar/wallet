@@ -16,11 +16,9 @@ import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
     show BuildContext, Container, State, StatefulWidget, Widget;
 import "package:freemework/freemework.dart" show FreemeworkException;
-import 'package:freeton_wallet/misc/ton_decimal.dart';
-
+import "../../misc/ton_decimal.dart" show TonDecimal;
 import "../../services/blockchain/blockchain.dart";
 import "../../services/encrypted_db_service.dart" show DataAccount;
-
 import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/smart_contact.dart" show SmartContractWidget;
 
@@ -147,12 +145,6 @@ class _DeployContractState extends State<_DeployContractWidget> {
     });
   }
 
-  void testt(String data) {
-    this.setState(() {
-      this.test = data;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final _StateData? stateData = this._stateData;
@@ -163,37 +155,70 @@ class _DeployContractState extends State<_DeployContractWidget> {
     return MyScaffold(
       appBarTitle: "Deploy Contract",
       body: Container(
-        color: Colors.amber,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Text(this.test ?? ""),
-            SafeMultisigSmartContractDeploy((String text) {
-              testt(text);
-            }),
             if (stateData == null) ...<Widget>[
               LinearProgressIndicator(
                 semanticsLabel: "Linear progress indicator",
               ),
-              Text("Calculating deployment fee..."),
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20.0,
+                ),
+                child: Text("Calculating deployment fee..."),
+              ),
             ],
             if (stateData != null &&
                 stateData is _StateDataDeployFeeCalculated) ...<Widget>[
-              Row(
-                children: <Widget>[
-                  Text("Deployment Fee:"),
-                  Text(stateData.deploymentFeeAmount.value),
-                ],
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: 20,
+                  bottom: 5,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      smartContractBlob.name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                        fontSize: 22,
+                      ),
+                    ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: this._onDeployClick,
+                      icon: Icon(
+                        Icons.all_inclusive_sharp,
+                      ),
+                      label: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                        ),
+                        child: Text("Deploy"),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
-                onPressed: this._onDeployClick,
-                icon: Icon(Icons.all_inclusive_sharp),
-                label: Text("Deploy"),
+              Text(
+                "Deployment Fee: ${stateData.deploymentFeeAmount.value}",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
             if (stateData != null &&
                 stateData is _StateDataDeployFeeCalculationFailure) ...<Widget>[
-              Text("Something went wrong..."),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Text("Something went wrong..."),
+              ),
               Text(stateData.ex.toString()),
             ],
             if (stateData != null &&
@@ -201,22 +226,30 @@ class _DeployContractState extends State<_DeployContractWidget> {
               LinearProgressIndicator(
                 semanticsLabel: "Linear progress indicator",
               ),
-              Text("Deploying smart contact into blockchain..."),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Text("Deploying smart contact into blockchain..."),
+              ),
             ],
             if (stateData != null &&
                 stateData is _StateDataDeployed) ...<Widget>[
-              Text("The Smart Contact was deployed successfully!"),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Text("The Smart Contact was deployed successfully!"),
+              ),
             ],
             if (stateData != null &&
                 stateData is _StateDataDeploymentFailure) ...<Widget>[
-              Text("Something went wrong..."),
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0),
+                child: Text("Something went wrong..."),
+              ),
               Text(stateData.ex.toString()),
             ],
             Padding(
               padding: const EdgeInsets.all(8.0),
             ),
-            Text("Contract Information"),
-            Center(child: SmartContractWidget(smartContractBlob))
+            Expanded(child: SmartContractWidget(smartContractBlob))
           ],
         ),
       ),

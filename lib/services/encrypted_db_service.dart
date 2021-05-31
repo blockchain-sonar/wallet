@@ -310,9 +310,9 @@ class NodeBundle {
   final int? color;
 
   factory NodeBundle.fromJson(Map<String, dynamic> rawJson) {
-    final name = rawJson[NodeBundle._NAME_PROPERTY];
-    final url = rawJson[NodeBundle._URL_PROPERTY];
-    final color = rawJson[NodeBundle._COLOR_PROPERTY];
+    final String? name = rawJson[NodeBundle._NAME_PROPERTY];
+    final String? url = rawJson[NodeBundle._URL_PROPERTY];
+    final String? colorStr = rawJson[NodeBundle._COLOR_PROPERTY];
     if (name == null) {
       throw SerializationException(
           "A field '${NodeBundle._NAME_PROPERTY}' is null");
@@ -321,10 +321,7 @@ class NodeBundle {
       throw SerializationException(
           "A field '${NodeBundle._URL_PROPERTY}' is null");
     }
-    // if (color == null) {
-    // throw SerializationException(
-    //     "A field '${NodeBundle._COLOR_PROPERTY}' is null");
-    // }
+    final int? color = colorStr == null ? null : int.parse(colorStr, radix: 16);
     return NodeBundle(name, url, color);
   }
 
@@ -332,7 +329,7 @@ class NodeBundle {
     return <String, dynamic>{
       NodeBundle._NAME_PROPERTY: this.name,
       NodeBundle._URL_PROPERTY: this.url,
-      NodeBundle._COLOR_PROPERTY: this.color,
+      NodeBundle._COLOR_PROPERTY: this.color?.toRadixString(16),
     };
   }
 

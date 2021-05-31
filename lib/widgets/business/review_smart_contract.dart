@@ -22,10 +22,8 @@ import "package:flutter/widgets.dart"
         Text,
         TextStyle,
         Widget;
-import "package:flutter_markdown/flutter_markdown.dart" show Markdown;
-import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
+import "../reusable/smart_contact.dart" show SmartContractWidget;
 import "../layout/my_scaffold.dart" show MyScaffold;
-
 import "../../services/blockchain/smart_contract/smart_contract.dart"
     show SmartContractBlob;
 
@@ -50,120 +48,28 @@ class ReviewSmartContractWidget extends StatelessWidget {
     this.opts = null,
   });
 
-  void _launchURL(String url) async =>
-      await canLaunch(url) ? await launch(url) : throw "Could not launch $url";
-
   @override
   Widget build(BuildContext context) {
     return MyScaffold(
-        body: Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.fromLTRB(0, 20, 0, 0),
-          child: Text(
-            this.smartContractBlob.name,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
-              fontSize: 24,
+      appBarTitle: "Contract Info",
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(top: 15),
+            child: Text(
+              smartContractBlob.name,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+                fontSize: 22,
+              ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: 15,
-          ),
-          child: Table(
-            border: TableBorder.all(),
-            columnWidths: const <int, TableColumnWidth>{
-              0: IntrinsicColumnWidth(),
-              1: IntrinsicColumnWidth(),
-            },
-            children: <TableRow>[
-              TableRow(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Namespace",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    this.smartContractBlob.name,
-                  ),
-                ),
-              ]),
-              TableRow(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Version",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    this.smartContractBlob.version,
-                  ),
-                ),
-              ]),
-              TableRow(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Link",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () => this._launchURL(
-                    this.smartContractBlob.referenceUri.toString(),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      this.smartContractBlob.referenceUri.toString(),
-                    ),
-                  ),
-                ),
-              ]),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Markdown(
-              data: "# ABI inforation\n" +
-                  this.smartContractBlob.abi.descriptionLongMarkdown +
-                  "\n# TVC information\n" +
-                  this.smartContractBlob.descriptionLongMarkdown),
-        ),
-        Container(
-          child: this.opts == null
-              ? null
-              : Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: ElevatedButton(
-                    onPressed: () {
-                      this.opts?.onComplete();
-                    },
-                    child: Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Text(this.opts?.completeButtonText ?? "Ok"),
-                    ),
-                  ),
-                ),
-        ),
-      ],
-    ));
+          Expanded(
+            child: SmartContractWidget(this.smartContractBlob),
+          )
+        ],
+      ),
+    );
   }
 }
