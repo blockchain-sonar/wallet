@@ -16,6 +16,7 @@ import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
     show BuildContext, Container, State, StatefulWidget, Widget;
 import "package:freemework/freemework.dart" show FreemeworkException;
+import "package:url_launcher/url_launcher.dart" show launch;
 import "../../misc/ton_decimal.dart" show TonDecimal;
 import "../../services/blockchain/blockchain.dart";
 import "../../services/encrypted_db_service.dart" show DataAccount;
@@ -158,10 +159,27 @@ class _DeployContractState extends State<_DeployContractWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            if (stateData == null) ...<Widget>[
+            if (stateData == null)
               LinearProgressIndicator(
                 semanticsLabel: "Linear progress indicator",
               ),
+            InkWell(
+              onTap: () => launch(
+                smartContractBlob.referenceUri.toString(),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  smartContractBlob.qualifiedName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                    fontSize: 22,
+                  ),
+                ),
+              ),
+            ),
+            if (stateData == null) ...<Widget>[
               Padding(
                 padding: const EdgeInsets.only(
                   top: 20.0,
@@ -172,24 +190,18 @@ class _DeployContractState extends State<_DeployContractWidget> {
             if (stateData != null &&
                 stateData is _StateDataDeployFeeCalculated) ...<Widget>[
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 20,
-                  bottom: 5,
-                ),
+                padding: const EdgeInsets.all(8.0),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      smartContractBlob.name,
+                      "Deployment Fee: ~${stateData.deploymentFeeAmount.value}",
                       style: TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                        fontSize: 22,
                       ),
                     ),
-                    SizedBox(
-                      width: 20,
-                    ),
+                    Spacer(),
                     ElevatedButton.icon(
                       onPressed: this._onDeployClick,
                       icon: Icon(
@@ -203,13 +215,6 @@ class _DeployContractState extends State<_DeployContractWidget> {
                       ),
                     ),
                   ],
-                ),
-              ),
-              Text(
-                "Deployment Fee: ${stateData.deploymentFeeAmount.value}",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],

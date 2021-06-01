@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "dart:typed_data" show Uint8List;
-
 import "abi.dart" show SafeMultisigWalletAbi, SetcodeMultisigWalletAbi, SmartContractAbi;
 
 import "blob.dart" show SmartContractBlob;
@@ -92,17 +90,17 @@ Available actions in TONOS-CLI include the following:
   }
 
   SmartContractBlob register(
-    SmartContractAbi smartContractAbi,
-    String namespace,
-    String name,
-    String version,
-    String descriptionShort,
-    String descriptionLongMarkdown,
-    List<int> tvc, [
-    String? referenceUri = null,
+    final SmartContractAbi smartContractAbi,
+    final String namespace,
+    final String name,
+    final String version,
+    final String descriptionShort,
+    final String descriptionLongMarkdown,
+    final List<int> tvc, [
+    final String? referenceUri = null,
   ]) {
     final String fullQualifiedName =
-        SmartContractBlob.makeFullQualifiedName(namespace, name);
+        SmartContractBlob.makeFullQualifiedName(namespace, name, version);
 
     if (this._blobs.containsKey(fullQualifiedName)) {
       throw StateError(
@@ -126,9 +124,9 @@ Available actions in TONOS-CLI include the following:
   }
 
   SmartContractKeeper._() : this._blobs = Map<String, SmartContractBlob>() {
-    this._blobs[IO_TONLABS_SAFE_MULTISIG_20200501.fullQualifiedName] =
+    this._blobs[IO_TONLABS_SAFE_MULTISIG_20200501.qualifiedName] =
         IO_TONLABS_SAFE_MULTISIG_20200501;
-    this._blobs[IO_TONLABS_SETCODE_MULTISIG_20200506.fullQualifiedName] =
+    this._blobs[IO_TONLABS_SETCODE_MULTISIG_20200506.qualifiedName] =
         IO_TONLABS_SETCODE_MULTISIG_20200506;
   }
 }

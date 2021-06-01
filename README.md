@@ -1,6 +1,6 @@
 # Free TON Wallet
 
-Preconditions: [Flutter SDK](https://flutter.dev/docs) (2.0.2), [Dart](https://dart.dev/) (2.12.1), [NodeJS](https://nodejs.org/en/)
+Preconditions: [Flutter SDK](https://flutter.dev/docs) (2.2.1), [Dart](https://dart.dev/) (2.13.1), [NodeJS](https://nodejs.org/en/)
 
 ```
 git submodule update --init && (cd submodule/ton-client-web-js-umd-facade && npm install && npm run build)

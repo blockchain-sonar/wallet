@@ -17,11 +17,12 @@ import "dart:typed_data" show Uint8List;
 import "abi.dart" show SmartContractAbi;
 
 class SmartContractBlob {
-  static String makeFullQualifiedName(String namespace, String name) =>
-      <String>[
-        namespace,
-        name,
-      ].join(".");
+  static String makeFullQualifiedName(
+    final String namespace,
+    final String name,
+    final String version,
+  ) =>
+      "$namespace.$name:$version";
 
   final SmartContractAbi abi;
   final String namespace;
@@ -30,9 +31,10 @@ class SmartContractBlob {
   final String descriptionShort;
   final String descriptionLongMarkdown;
 
-  String get fullQualifiedName => makeFullQualifiedName(
+  String get qualifiedName => makeFullQualifiedName(
         this.namespace,
         this.name,
+        this.version,
       );
 
   Uint8List get tvc => Uint8List.fromList(this._tvc);

@@ -94,7 +94,7 @@ class AccountsActivationJob extends Job {
       final TonDecimal balance = accountData.balance;
 
       keypairBundle.setAccount(
-        smartContractBlob.fullQualifiedName,
+        smartContractBlob.qualifiedName,
         accountAddress,
         accountType,
         balance,

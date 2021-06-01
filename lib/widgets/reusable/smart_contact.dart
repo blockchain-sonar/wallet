@@ -12,18 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
-    show
-        BuildContext,
-        Column,
-        EdgeInsets,
-        Padding,
-        StatelessWidget,
-        Text,
-        Widget;
+    show BuildContext, StatelessWidget, Widget;
 import "package:flutter_markdown/flutter_markdown.dart" show Markdown;
-import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
+
 import "../../services/blockchain/blockchain.dart" show SmartContractBlob;
 
 class SmartContractWidget extends StatelessWidget {
@@ -31,92 +23,13 @@ class SmartContractWidget extends StatelessWidget {
 
   SmartContractWidget(this.smartContractBlob);
 
-  void _launchURL(String url) async =>
-      await canLaunch(url) ? await launch(url) : throw "Could not launch $url";
-
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 5,
-            horizontal: 15,
-          ),
-          child: Table(
-            border: TableBorder.all(),
-            columnWidths: const <int, TableColumnWidth>{
-              0: IntrinsicColumnWidth(),
-              1: IntrinsicColumnWidth(),
-            },
-            children: <TableRow>[
-              TableRow(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Namespace",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    this.smartContractBlob.name,
-                  ),
-                ),
-              ]),
-              TableRow(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Version",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    this.smartContractBlob.version,
-                  ),
-                ),
-              ]),
-              TableRow(children: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(
-                    "Link",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                InkWell(
-                  onTap: () => this._launchURL(
-                    this.smartContractBlob.referenceUri.toString(),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      this.smartContractBlob.referenceUri.toString(),
-                    ),
-                  ),
-                ),
-              ]),
-            ],
-          ),
-        ),
-        Expanded(
-          child: Markdown(
-              data: "# ABI inforation\n" +
-                  this.smartContractBlob.abi.descriptionLongMarkdown +
-                  "\n# TVC information\n" +
-                  this.smartContractBlob.descriptionLongMarkdown),
-        ),
-      ],
+    return Markdown(
+      data: "# ABI info\n" +
+          this.smartContractBlob.abi.descriptionLongMarkdown +
+          "\n# Blob info\n" +
+          this.smartContractBlob.descriptionLongMarkdown,
     );
   }
 }
