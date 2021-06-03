@@ -15,12 +15,13 @@
 import "package:flutter/material.dart"
     show
         BorderRadius,
-        Card,
+        BoxDecoration,
         CircularProgressIndicator,
+        Colors,
+        Container,
         FloatingActionButton,
-        GridTile,
         Icons,
-        RoundedRectangleBorder;
+        Radius;
 
 import "package:flutter/widgets.dart"
     show
@@ -34,9 +35,7 @@ import "package:flutter/widgets.dart"
         Icon,
         Key,
         MainAxisAlignment,
-        MediaQuery,
         Padding,
-        SliverGridDelegateWithFixedCrossAxisCount,
         State,
         StatefulWidget,
         StatelessWidget,
@@ -46,8 +45,7 @@ import "package:flutter/widgets.dart"
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
-
+import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
     show
@@ -179,27 +177,31 @@ class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
                   "Please copy down the mnemonic for your new account below. You will have to confirm the mnemonic on the next screen"),
             ),
             Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: GridView.builder(
-                  itemBuilder: (BuildContext context, int index) {
-                    final String word =
-                        dataContextInit.mnemonicPhraseWords[index];
-                    return Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ),
-                      child: GridTile(
-                        child: Center(child: Text(word)),
-                      ),
-                    );
-                  },
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: MediaQuery.of(context).size.width /
-                          (MediaQuery.of(context).size.height / 4)),
-                  itemCount: dataContextInit.mnemonicPhraseWords.length,
-                ),
+              child: GridView.count(
+                crossAxisCount: 3,
+                childAspectRatio: (5 / 1),
+                crossAxisSpacing: 5,
+                mainAxisSpacing: 5,
+                padding: EdgeInsets.all(10),
+                children: <Widget>[
+                  ...dataContextInit.mnemonicPhraseWords
+                      .map((String word) => Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(5),
+                              ),
+                              color: Colors.grey[300],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Text(
+                                  word,
+                                ),
+                              ],
+                            ),
+                          ))
+                ],
               ),
             ),
           ],
