@@ -26,7 +26,6 @@ import "package:flutter/material.dart"
         InkWell,
         MediaQuery,
         RoundedRectangleBorder,
-        
         SizedBox,
         SliverGridDelegateWithFixedCrossAxisCount;
 
@@ -218,9 +217,9 @@ class _ConfirmMnemonicActiveWidgetState
                     );
                   },
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: MediaQuery.of(context).size.width /
-                          (MediaQuery.of(context).size.height / 4)),
+                    crossAxisCount: 3,
+                    childAspectRatio: 3.5,
+                  ),
                   itemCount: this._confirmedWords.length,
                 ),
               ),
@@ -233,7 +232,7 @@ class _ConfirmMnemonicActiveWidgetState
             ),
             Expanded(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                padding: EdgeInsets.fromLTRB(20, 5, 20, 80),
                 child: GridView.builder(
                   itemBuilder: (BuildContext context, int index) {
                     final String word =
@@ -258,15 +257,12 @@ class _ConfirmMnemonicActiveWidgetState
                     );
                   },
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 3,
-                      childAspectRatio: MediaQuery.of(context).size.width /
-                          (MediaQuery.of(context).size.height / 4)),
+                    crossAxisCount: 3,
+                    childAspectRatio: 3.5,
+                  ),
                   itemCount: this.widget._shuffledMnemonicsWords.length,
                 ),
               ),
-            ),
-            SizedBox(
-              height: 75,
             ),
           ],
         ),
