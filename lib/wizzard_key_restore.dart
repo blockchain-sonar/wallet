@@ -54,6 +54,9 @@ class _WizzardKeyRestoreWidgeteState extends State<WizzardKeyRestoreWidget> {
   String? _keyName;
   RestoreMode? _restoreMode;
 
+  List<String>? _mnemonicPhraseWords;
+  String? _errorMessageRestoreByMnemonicPhrase;
+
   _WizzardKeyRestoreWidgeteState()
       : this._restoreMode = null,
         this._keyName = null;
@@ -88,14 +91,30 @@ class _WizzardKeyRestoreWidgeteState extends State<WizzardKeyRestoreWidget> {
           return RestoreByMnemonicPhraseWidget(
             onComplete: (ExecutionContext executionContext,
                 RestoreByMnemonicPhraseContext actionContext) async {
-              final MnemonicPhrase mnemonicPhrase =
-                  MnemonicPhrase(actionContext.mnemonicPhraseWords);
+              await Future<void>.delayed(Duration(seconds: 1));
 
-              final WizzardKeyRestoreResult result =
-                  WizzardKeyRestoreMnemonicPhraseResult._(keyName, mnemonicPhrase);
+              try {
+                final MnemonicPhrase mnemonicPhrase =
+                    MnemonicPhrase(actionContext.mnemonicPhraseWords);
 
-              await this.widget.onComplete(result);
+                final WizzardKeyRestoreResult result =
+                    WizzardKeyRestoreMnemonicPhraseResult._(
+                        keyName, mnemonicPhrase);
+
+                await this.widget.onComplete(result);
+              } catch (e) {
+                //
+                this.setState(() {
+                  this._mnemonicPhraseWords = actionContext.mnemonicPhraseWords;
+                  this._errorMessageRestoreByMnemonicPhrase =
+                      "Wrong input. A mnemonic phrase should have exactly 12 words.";
+                });
+              }
             },
+            dataContextInit: RestoreByMnemonicPhraseContext(
+              this._mnemonicPhraseWords ?? <String>[],
+              this._errorMessageRestoreByMnemonicPhrase,
+            ),
           );
         case RestoreMode.PRIVATE_KEY:
           return RestoreByPrivateKeyWidget(

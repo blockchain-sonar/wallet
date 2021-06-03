@@ -39,12 +39,11 @@ import "package:flutter/widgets.dart"
         TextEditingController,
         TextStyle,
         Widget;
-import 'package:freemework/freemework.dart';
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 
+import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
 import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
@@ -56,21 +55,26 @@ import "../toolchain/dialog_widget.dart"
 
 class UnlockContext {
   final String password;
+  final String? errorMessage;
 
-  UnlockContext(this.password);
+  UnlockContext(this.password, this.errorMessage);
 }
 
 class UnlockWidget extends StatelessWidget {
+  final UnlockContext? _dataContextInit;
   final DialogHostCallback<UnlockContext> _onComplete;
 
   UnlockWidget({
     required DialogHostCallback<UnlockContext> onComplete,
-  }) : this._onComplete = onComplete;
+    UnlockContext? dataContextInit,
+  })  : this._onComplete = onComplete,
+        this._dataContextInit = dataContextInit;
 
   @override
   Widget build(BuildContext context) {
     return DialogWidget<UnlockContext>(
       onComplete: this._onComplete,
+      dataContextInit: this._dataContextInit,
       child: _UnlockWidget(),
     );
   }
@@ -158,16 +162,17 @@ class _UnlockActiveWidget extends StatefulWidget {
 class _UnlockActiveWidgetState extends State<_UnlockActiveWidget> {
   final TextEditingController _passwordTextEditingController =
       TextEditingController();
-  String? _errorMessage;
 
   @override
   void initState() {
     final UnlockContext? dataContextInit =
         DialogWidget.of<UnlockContext>(this.context).dataContextInit;
+    print("UnlockContext: $dataContextInit");
     if (dataContextInit != null) {
+      print("UnlockContext.errorMessage: ${dataContextInit.errorMessage}");
       this._passwordTextEditingController.text = dataContextInit.password;
     }
-    this._errorMessage = null;
+
     super.initState();
   }
 
@@ -185,12 +190,14 @@ class _UnlockActiveWidgetState extends State<_UnlockActiveWidget> {
       this._passwordTextEditingController.text = dataContextInit.password;
     }
 
+    final String? errorMessage =
+        dataContextInit != null ? dataContextInit.errorMessage : null;
+
     return _UnlockWidget._buildContainer(
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             children: <Widget>[
-              if (this._errorMessage != null) Text(this._errorMessage!),
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: TextField(
@@ -202,38 +209,24 @@ class _UnlockActiveWidgetState extends State<_UnlockActiveWidget> {
                   obscureText: true,
                 ),
               ),
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-              //   child: SizedBox(
-              //     width: double.infinity,
-              //     child: FWButton(
-              //       "Continue",
-              //       onPressed: () {
-              //         widget.onComplete(UnlockContext(
-              //             this._passwordTextEditingController.text));
-              //       },
-              //     ),
-              //   ),
-              // ),
+              if (errorMessage != null)
+                Text(
+                  errorMessage,
+                  style: TextStyle(
+                    color: Colors.red,
+                  ),
+                ),
             ],
           ),
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            try {
-              widget.onComplete(
-                  UnlockContext(this._passwordTextEditingController.text));
-            } catch (e) {
-              String msg;
-              if (e is FreemeworkException) {
-                msg = e.message ?? "Unknown error";
-              } else {
-                msg = "Unknown error";
-              }
-              setState(() {
-                this._errorMessage = msg;
-              });
-            }
+            widget.onComplete(
+              UnlockContext(
+                this._passwordTextEditingController.text,
+                null,
+              ),
+            );
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

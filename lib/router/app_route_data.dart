@@ -29,7 +29,7 @@ abstract class AppRouteData {
       case AppRouteDataNewbeWizzard.PATH:
         return AppRouteDataNewbeWizzard();
       case AppRouterDataSignin.PATH:
-        return AppRouterDataSignin();
+        return AppRouterDataSignin(routeUri.queryParameters["error"]);
       default:
         return AppRouterDataUnknown();
     }
@@ -156,8 +156,13 @@ class AppRouteDataNewbeWizzard extends AppRouteData {
 class AppRouterDataSignin extends AppRouteData {
   static const String PATH = "/signin";
 
+  final String? errorMessage;
+
+  AppRouterDataSignin(this.errorMessage);
+
   @override
-  String get location => PATH;
+  String get location =>
+      errorMessage == null ? PATH : "$PATH?error=$errorMessage";
 }
 
 class AppRouterDataUnknown extends AppRouteData {

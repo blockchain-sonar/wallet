@@ -61,8 +61,9 @@ import "../toolchain/dialog_widget.dart"
 
 class RestoreByMnemonicPhraseContext {
   final List<String> mnemonicPhraseWords;
+  final String? errorMessage;
 
-  RestoreByMnemonicPhraseContext(this.mnemonicPhraseWords);
+  RestoreByMnemonicPhraseContext(this.mnemonicPhraseWords, this.errorMessage);
 }
 
 class RestoreByMnemonicPhraseWidget extends StatelessWidget {
@@ -167,6 +168,7 @@ class _RestoreByMnemonicPhraseActiveWidgetState
     extends State<_RestoreByMnemonicPhraseActiveWidget> {
   final TextEditingController _actionTextEditingController =
       TextEditingController();
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -176,7 +178,9 @@ class _RestoreByMnemonicPhraseActiveWidgetState
     if (dataContextInit != null) {
       this._actionTextEditingController.text =
           dataContextInit.mnemonicPhraseWords.join(" ");
+      this._errorMessage = dataContextInit.errorMessage;
     }
+
     super.initState();
   }
 
@@ -188,13 +192,15 @@ class _RestoreByMnemonicPhraseActiveWidgetState
 
   @override
   Widget build(BuildContext context) {
+    final String? errorMessage = this._errorMessage;
+
     return _RestoreByMnemonicPhraseWidget._buildContainer(
         Column(
           children: <Widget>[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                  "Please enter your mnemonic phrase below. This will either be 12 or 24 words in length (separated by spaces)"),
+                  "Please enter your mnemonic phrase below. This will either be 12 words in length (separated by spaces)"),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20),
@@ -220,12 +226,19 @@ class _RestoreByMnemonicPhraseActiveWidgetState
                 ),
               ),
             ),
+            if (errorMessage != null)
+              Text(
+                errorMessage,
+                style: TextStyle(color: Colors.red),
+              )
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () {
+          onPressed: () async {
             widget.onComplete(RestoreByMnemonicPhraseContext(
-                this._actionTextEditingController.text.split(" ")));
+              this._actionTextEditingController.text.split(" "),
+              null,
+            ));
           },
           tooltip: "Continue",
           child: Icon(Icons.login),

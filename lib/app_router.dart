@@ -363,8 +363,9 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 
     return <Page<dynamic>>[
       MaterialPage<UnlockWidget>(
-        key: ValueKey<Object>(UnlockWidget),
+        key: ValueKey<Object>(configuration),
         child: UnlockWidget(
+          dataContextInit: UnlockContext("", configuration.errorMessage),
           onComplete: (
             ExecutionContext executionContext,
             UnlockContext ctx,
@@ -387,19 +388,20 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                     }
                   }
                 } else {
-                  this._currentConfiguration = AppRouteDataCrash();
+                  this._currentConfiguration = AppRouterDataSignin("Cannot unlock. Check your password and try again.");
                 }
               } catch (e) {
                 final FreemeworkException err =
                     FreemeworkException.wrapIfNeeded(e);
                 print(err);
-                this._currentConfiguration = AppRouteDataCrash(/* err */);
+                this._currentConfiguration = AppRouterDataSignin("Cannot unlock. Check your password and try again.");
               }
             } else {
-              this._currentConfiguration = AppRouteDataCrash();
+              this._currentConfiguration = AppRouterDataSignin("Cannot unlock. Check your password and try again.");
             }
             this.notifyListeners();
           },
+      
         ),
       )
     ];

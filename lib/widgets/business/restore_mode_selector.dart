@@ -36,8 +36,8 @@ import "package:flutter/widgets.dart"
         Widget;
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 
+import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart"
     show FWButton, FWCancelFloatingActionButton;
 import "../toolchain/dialog_widget.dart"
@@ -161,9 +161,11 @@ class _RestoreModeSelectorWidget
                     padding: const EdgeInsets.all(8.0),
                     child: FWButton(
                       buttonText,
-                      onPressed: () {
-                        onComplete(RestoreModeSelectorContext(mode));
-                      },
+                      onPressed: mode == RestoreMode.MNEMONIC
+                          ? () {
+                              onComplete(RestoreModeSelectorContext(mode));
+                            }
+                          : null,
                     ),
                   ),
                   Padding(

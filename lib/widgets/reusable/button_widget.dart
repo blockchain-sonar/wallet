@@ -31,7 +31,7 @@ class FWButton extends TextButton {
   FWButton(
     String text, {
     Key? key,
-    required VoidCallback onPressed,
+    required VoidCallback? onPressed,
     VoidCallback? onLongPress,
   }) : super(
           key: key,
@@ -52,7 +52,7 @@ class FWButton extends TextButton {
           ),
           style: TextButton.styleFrom(
             primary: Colors.white,
-            backgroundColor: Colors.blue,
+            backgroundColor: onPressed != null ? Colors.blue : Colors.grey,
           ),
         );
 }
