@@ -1,30 +1,35 @@
-import 'dart:collection';
 import "dart:typed_data" show Uint8List;
 import "dart:ui" show FontWeight, TextAlign;
 import "package:flutter/material.dart"
     show
-        AlertDialog,
+        Border,
+        BorderRadius,
+        BoxDecoration,
+        BoxShadow,
         BuildContext,
         Color,
         Colors,
         Column,
+        Container,
         ElevatedButton,
         Expanded,
         ExpansionTile,
         Icon,
         IconButton,
         Icons,
+        InkWell,
         InputDecoration,
         ListTile,
         ListView,
-        Navigator,
+        Offset,
+        Radius,
+        SizedBox,
         State,
         StatefulWidget,
         Text,
         TextFormField,
         UnderlineInputBorder,
-        Widget,
-        showDialog;
+        Widget;
 import "package:flutter/src/widgets/basic.dart"
     show
         Column,
@@ -37,7 +42,6 @@ import "package:flutter/src/widgets/basic.dart"
         Row,
         TextAlign,
         TextStyle;
-import 'package:material_color_picker_wns/material_color_picker_wns.dart';
 import "../layout/my_scaffold.dart" show MyScaffold;
 import "../../services/encrypted_db_service.dart"
     show DataSet, EncryptedDbService, NodeBundle;
@@ -161,13 +165,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
     this.widget._addNode(node);
   }
 
-  void _setColor(Color color) {
-    setState(() {
-      this._stateNode.nodeColor = color;
-    });
-  }
-
-  Widget tileWidget(NodeBundle node) {
+  Widget tileWidget(NodeBundle node, {bool canDelete = true}) {
     return ListTile(
       tileColor: node.color == null ? Colors.white : Color(node.color!),
       title: Row(
@@ -202,14 +200,19 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 ),
                 onPressed: () => this.widget._setActiveNode(node),
               ),
-              IconButton(
-                splashRadius: 20,
-                icon: Icon(
-                  Icons.delete,
-                  color: Colors.red,
+              if (canDelete)
+                IconButton(
+                  splashRadius: 20,
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  ),
+                  onPressed: () => this.widget._deleteNode(node.url),
                 ),
-                onPressed: () => this.widget._deleteNode(node.url),
-              ),
+              if (!canDelete)
+                SizedBox(
+                  width: 40,
+                ),
             ],
           )
         ],
@@ -226,11 +229,24 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
           Expanded(
             child: this.widget._nodes.isNotEmpty
                 ? ListView(
-                    children: ListTile.divideTiles(
-                    context: context,
-                    tiles:
-                        this.widget._nodes.map((NodeBundle e) => tileWidget(e)),
-                  ).toList())
+                    children:
+                        ListTile.divideTiles(context: context, tiles: <Widget>[
+                    this.tileWidget(
+                        NodeBundle(
+                          "Main TON",
+                          "main.ton.dev",
+                          null,
+                        ),
+                        canDelete: false),
+                    this.tileWidget(
+                        NodeBundle(
+                          "Net TON",
+                          "net.ton.dev",
+                          null,
+                        ),
+                        canDelete: false),
+                    ...this.widget._nodes.map((NodeBundle e) => tileWidget(e)),
+                  ]).toList())
                 : Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Text(
@@ -287,26 +303,60 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 padding: const EdgeInsets.symmetric(
                   horizontal: 60,
                 ),
-                child: MaterialColorPicker(
-                  circleSize: 80,
-                  shrinkWrap: true,
-                  onMainColorChange: (Color color) {
-                    setState(() {
-                      this._stateNode.nodeColor = color;
-                    });
-                  },
-                  colors: [
-                    Colors.redAccent,
-                    Colors.deepPurpleAccent,
-                    Colors.blueAccent,
-                    Colors.cyanAccent,
-                    Colors.lightGreenAccent,
-                    Colors.yellowAccent,
-                    Colors.orangeAccent,
-                    Colors.deepOrangeAccent,
-                  ],
-                  allowShades: false,
-                  selectedColor: this._stateNode.nodeColor ?? Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      ...<Color>[
+                        Colors.redAccent,
+                        Colors.deepPurpleAccent,
+                        Colors.blueAccent,
+                        Colors.cyanAccent,
+                        Colors.lightGreenAccent,
+                        Colors.yellowAccent,
+                        Colors.orangeAccent,
+                        Colors.deepOrangeAccent,
+                      ]
+                          .map(
+                            (Color color) => InkWell(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(40),
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  this._stateNode.nodeColor = color;
+                                });
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: color,
+                                    border: Border.all(color: color),
+                                    boxShadow: <BoxShadow>[
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        spreadRadius: 2,
+                                        blurRadius: 2,
+                                        offset: Offset(
+                                            1, 1), // changes position of shadow
+                                      ),
+                                    ],
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(40))),
+                                child: Icon(
+                                  this._stateNode.nodeColor == color
+                                      ? Icons.check
+                                      : null,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList()
+                    ],
+                  ),
                 ),
               ),
               Padding(

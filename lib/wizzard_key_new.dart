@@ -77,10 +77,10 @@ class _WizzardWalletNewState extends State<WizzardWalletNewWidget> {
           ExecutionContext executionContext,
           ShowMnemonicContext actionContext,
         ) {
-          this.widget.onComplete(walletName, mnemonicPhrase); //  TO REMOVE
-          // this.setState(() {
-          //   this._isMnemonicPhraseSeen = true;
-          // });
+          // this.widget.onComplete(walletName, mnemonicPhrase); //  TO REMOVE
+          this.setState(() {
+            this._isMnemonicPhraseSeen = true;
+          });
         },
       );
     } else {

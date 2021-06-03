@@ -15,14 +15,13 @@
 import "package:flutter/material.dart"
     show
         BorderRadius,
-        BoxDecoration,
+        Card,
         CircularProgressIndicator,
-        Colors,
-        Container,
         FloatingActionButton,
+        GridTile,
         Icons,
-        Radius;
-
+        RoundedRectangleBorder,
+        SliverGridDelegateWithFixedCrossAxisCount;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -42,7 +41,6 @@ import "package:flutter/widgets.dart"
         Text,
         TextStyle,
         Widget;
-
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
 import "../layout/my_scaffold.dart" show MyScaffold;
@@ -178,35 +176,26 @@ class _ShowMnemonicActiveWidgetState extends State<_ShowMnemonicActiveWidget> {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                ),
-                child: GridView.count(
-                  crossAxisCount: 3,
-                  childAspectRatio: 3.5,
-                  crossAxisSpacing: 5,
-                  mainAxisSpacing: 5,
-                  padding: EdgeInsets.all(10),
-                  children: dataContextInit.mnemonicPhraseWords
-                      .map(
-                        (String word) => Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(5),
-                            ),
-                            color: Colors.grey[300],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Text(
-                                word,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                      .toList(),
+                padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 5.0),
+                child: GridView.builder(
+                  itemBuilder: (BuildContext context, int index) {
+                    final String word =
+                        dataContextInit.mnemonicPhraseWords[index];
+
+                    return Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15.0),
+                      ),
+                      child: GridTile(
+                        child: Center(child: Text(word)),
+                      ),
+                    );
+                  },
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    childAspectRatio: 3.5,
+                  ),
+                  itemCount: dataContextInit.mnemonicPhraseWords.length,
                 ),
               ),
             ),
