@@ -13,10 +13,12 @@
 // limitations under the License.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:freeton_wallet/misc/void_callback_host.dart';
+import 'package:freeton_wallet/widgets/business/main_settings.dart';
 import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import "main_wallets.dart"
     show DeployContractCallback, MainWalletsWidget, SendMoneyCallback;
@@ -24,31 +26,26 @@ import "main_wallets.dart"
 import "../../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../../services/job.dart" show JobService;
 import "../../states/app_state.dart" show AppState;
-import 'main_home.dart';
+import "main_home.dart" show HomeChartWidget;
 import "main_tab.dart" show MainTab;
 
 class MainWidget extends StatelessWidget {
-  static const TextStyle _tabOptionStyle = TextStyle(
-    fontSize: 30,
-    fontWeight: FontWeight.bold,
-  );
-  static List<_OptionTuple> _tabOptions = <_OptionTuple>[
+  // static const TextStyle _tabOptionStyle = TextStyle(
+  //   fontSize: 30,
+  //   fontWeight: FontWeight.bold,
+  // );
+  static final List<_OptionTuple> _tabOptions = <_OptionTuple>[
     _OptionTuple(
       MainTab.HOME,
       "Home",
-      (BuildContext context) => HomeChartWidget(),
       BottomNavigationBarItem(
         icon: Icon(Icons.home),
-        label: 'Home',
+        label: "Home",
       ),
     ),
     _OptionTuple(
       MainTab.WALLETS,
       "Wallets",
-      (BuildContext context) => Text(
-        'Index 1: Wallets',
-        style: _tabOptionStyle,
-      ),
       BottomNavigationBarItem(
         icon: Icon(Icons.account_balance_wallet),
         label: "Wallets",
@@ -57,13 +54,9 @@ class MainWidget extends StatelessWidget {
     _OptionTuple(
       MainTab.SETTINGS,
       "Settings",
-      (BuildContext context) => Text(
-        'Index 2: Settings',
-        style: _tabOptionStyle,
-      ),
       BottomNavigationBarItem(
         icon: Icon(Icons.settings),
-        label: 'Settings',
+        label: "Settings",
       ),
     ),
   ];
@@ -78,6 +71,7 @@ class MainWidget extends StatelessWidget {
   final void Function() onAddNewKey;
   final DeployContractCallback onDeployContract;
   final SendMoneyCallback onSendMoney;
+  final SelectSettingsNodesCallback onSelectSettingsNodes;
 
   MainWidget(
     this._appState,
@@ -90,6 +84,7 @@ class MainWidget extends StatelessWidget {
     required this.onAddNewKey,
     required this.onDeployContract,
     required this.onSendMoney,
+    required this.onSelectSettingsNodes,
   }) : this._selectedIndex = _tabOptions
             .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab);
 
@@ -108,6 +103,10 @@ class MainWidget extends StatelessWidget {
 
     final _OptionTuple selectedTuple = _tabOptions.elementAt(_selectedIndex);
     switch (selectedTuple.tab) {
+      case MainTab.HOME:
+        return HomeChartWidget(
+          bottomNavigationBar,
+        );
       case MainTab.WALLETS:
         return MainWalletsWidget(
           this._appState,
@@ -117,46 +116,43 @@ class MainWidget extends StatelessWidget {
           onDeployContract: this.onDeployContract,
           onSendMoney: this.onSendMoney,
         );
+      case MainTab.SETTINGS:
+        return SettingsWidget(
+          this._appState,
+          bottomNavigationBar,
+          this._encryptedDbService,
+          onSelectSettingsNodes: this.onSelectSettingsNodes,
+        );
       default:
         break;
     }
 
     return MyScaffold(
-      appBarTitle: appTitle,
-      body: Container(
-        // constraints: BoxConstraints(
-        //   minWidth: 320,
-        //   maxWidth: 800,
-        //   minHeight: 480,
-        //   maxHeight: 1080,
-        // ),
-        alignment: Alignment.topCenter,
-        child: Builder(builder: this._buildContent),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: barItems,
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
-      ),
-      // floatingActionButton: FloatingActionButton(
-      //   child: Icon(Icons.add),
-      //   onPressed: this._onWalletNew,
-      // ),
-    );
+        appBarTitle: appTitle,
+        body: Container(
+          // constraints: BoxConstraints(
+          //   minWidth: 320,
+          //   maxWidth: 800,
+          //   minHeight: 480,
+          //   maxHeight: 1080,
+          // ),
+          alignment: Alignment.topCenter,
+          child: Text("Opppssss..."),
+        ),
+        bottomNavigationBar: bottomNavigationBar);
   }
 
-  Widget _buildContent(BuildContext context) {
-    final _OptionTuple selectedTuple = _tabOptions.elementAt(_selectedIndex);
-    switch (selectedTuple.tab) {
-      case MainTab.HOME:
-        return selectedTuple.optionWidgetBuilder(context);
-      case MainTab.WALLETS:
-        return selectedTuple.optionWidgetBuilder(context);
-      case MainTab.SETTINGS:
-        return selectedTuple.optionWidgetBuilder(context);
-    }
-  }
+  // Widget _buildContent(BuildContext context) {
+  //   final _OptionTuple selectedTuple = _tabOptions.elementAt(_selectedIndex);
+  //   switch (selectedTuple.tab) {
+  //     case MainTab.HOME:
+  //       return selectedTuple.optionWidgetBuilder(context);
+  //     case MainTab.WALLETS:
+  //       return selectedTuple.optionWidgetBuilder(context);
+  //     case MainTab.SETTINGS:
+  //       return selectedTuple.optionWidgetBuilder(context);
+  //   }
+  // }
 
   void _onItemTapped(int index) {
     final _OptionTuple tapTuple = _tabOptions[index];
@@ -177,13 +173,13 @@ class MainWidget extends StatelessWidget {
 class _OptionTuple {
   final MainTab tab;
   final String appTitle;
-  final WidgetBuilder optionWidgetBuilder;
+  //final WidgetBuilder optionWidgetBuilder;
   final BottomNavigationBarItem barItem;
 
   const _OptionTuple(
     this.tab,
     this.appTitle,
-    this.optionWidgetBuilder,
+    //this.optionWidgetBuilder,
     this.barItem,
   );
 }

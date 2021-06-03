@@ -25,47 +25,56 @@ import "package:fl_chart/fl_chart.dart"
         LineChartBarData,
         LineChartData,
         SideTitles;
-import "package:flutter/material.dart"
+import "package:flutter/material.dart" show BottomNavigationBar, Colors;
+import "package:flutter/widgets.dart"
     show
         BuildContext,
         Color,
-        Colors,
         Column,
+        Container,
         EdgeInsets,
         Expanded,
         FontWeight,
-        MainAxisAlignment,
         Padding,
-        Row,
         SizedBox,
         State,
         StatefulWidget,
+        StatelessWidget,
         Text,
-        TextButton,
         TextStyle,
         Widget;
 import "package:http/http.dart" as http;
-import "package:flutter/material.dart"
-    show
-        BuildContext,
-        Colors,
-        Column,
-        EdgeInsets,
-        Padding,
-        Row,
-        SizedBox,
-        State,
-        StatefulWidget,
-        Text,
-        TextButton,
-        Widget;
 
-class HomeChartWidget extends StatefulWidget {
+import "../layout/my_scaffold.dart" show MyScaffold;
+
+class HomeChartWidget extends StatelessWidget {
+  final BottomNavigationBar bottomNavigationBar;
+
+  HomeChartWidget(
+    this.bottomNavigationBar,
+  );
+
   @override
-  _HomeChartWidgetState createState() => _HomeChartWidgetState();
+  Widget build(BuildContext context) {
+    return MyScaffold(
+      appBarTitle: "Home",
+      body: Container(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ChartWidget(),
+        ),
+      ),
+      bottomNavigationBar: this.bottomNavigationBar,
+    );
+  }
 }
 
-class _HomeChartWidgetState extends State<HomeChartWidget> {
+class ChartWidget extends StatefulWidget {
+  @override
+  _ChartWidgetWidgetState createState() => _ChartWidgetWidgetState();
+}
+
+class _ChartWidgetWidgetState extends State<ChartWidget> {
   List<ChartDataRow> chartData = <ChartDataRow>[];
 
   String currentPair = "";

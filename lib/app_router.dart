@@ -37,22 +37,27 @@ import "package:flutter/widgets.dart"
         ValueKey,
         Widget;
 import "package:freemework/freemework.dart";
-import "widgets/business/deploy_contract.dart" show DeployContractWidget, DeployContractWidgetApi;
-import "widgets/business/send_money.dart" show SendMoneyWidget, SendMoneyWidgetApi;
+import "package:provider/provider.dart" show Consumer;
+
+import "adapter/deploy_contract_adapter.dart"
+    show DeployContractWidgetApiAdapter;
+import "widgets/business/main_settings.dart" show SelectSettingsNodesCallback;
+import "widgets/business/deploy_contract.dart"
+    show DeployContractWidget, DeployContractWidgetApi;
+import "widgets/business/send_money.dart"
+    show SendMoneyWidget, SendMoneyWidgetApi;
 import "widgets/layout/my_scaffold.dart" show MyScaffold;
-import "adapter/deploy_contract_adapter.dart" show DeployContractWidgetApiAdapter;
+import "widgets/business/main_tab.dart" show MainTab;
 import "adapter/send_money_adapter.dart" show SendMoneyWidgetApiAdapter;
 import "router/main_page.dart" show MainPage;
 import "router/redirect_page.dart" show RedirectPage;
-import "widgets/business/main_tab.dart" show MainTab;
+import "router/settings_nodes_page.dart";
 import "data/key_pair.dart" show KeyPair;
 import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "router/app_route_data.dart";
 import "router/crash_page.dart" show CrashPage;
-import "services/blockchain/blockchain.dart"
-    show BlockchainService;
+import "services/blockchain/blockchain.dart" show BlockchainService;
 import "states/app_state.dart" show AppState;
-import "package:provider/provider.dart" show Consumer;
 
 import "services/encrypted_db_service.dart"
     show
@@ -202,6 +207,10 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                     is AppRouteDataMainWalletsSendMoney) {
               this._currentConfiguration = AppRouteDataMainWallets();
             }
+
+            if (this._currentConfiguration is AppRouteDataMainSettings && this.currentConfiguration.runtimeType != AppRouteDataMainSettings) {
+              this._currentConfiguration = AppRouteDataMainSettings();
+            }
           } else {
             this._currentConfiguration = AppRouterDataUnknown();
           }
@@ -274,10 +283,6 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainWallets();
       this.notifyListeners();
     };
-    final void Function() onSelectSetting = () {
-      this._currentConfiguration = AppRouteDataMain.settings();
-      this.notifyListeners();
-    };
     final void Function() onWalletNew = () {
       this._currentConfiguration = AppRouteDataMainWalletsNew();
       this.notifyListeners();
@@ -293,6 +298,14 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           AppRouteDataMainWalletsSendMoney(account.blockchainAddress);
       this.notifyListeners();
     };
+    final void Function() onSelectSetting = () {
+      this._currentConfiguration = AppRouteDataMainSettings();
+      this.notifyListeners();
+    };
+    final SelectSettingsNodesCallback onSelectSettingsNodes = () {
+      this._currentConfiguration = AppRouteDataMainSettingsNodes();
+      this.notifyListeners();
+    };
 
     final MainTab selectedTab = configuration.selectedTab;
 
@@ -301,7 +314,6 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       if (selectedTab != MainTab.HOME)
         MainPage(
           AppRouteDataMain.home(),
-          //appState,
           encryptedDbService,
           jobService: this._jobService,
           onSelectHome: onSelectHome,
@@ -310,10 +322,10 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           onWalletNew: onWalletNew,
           onDeployContract: onDeployContract,
           onSendMoney: onSendMoney,
+          onSelectSettingsNodes: onSelectSettingsNodes,
         ),
       MainPage(
         configuration,
-        //appState,
         encryptedDbService,
         jobService: this._jobService,
         onSelectHome: onSelectHome,
@@ -322,6 +334,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         onWalletNew: onWalletNew,
         onDeployContract: onDeployContract,
         onSendMoney: onSendMoney,
+        onSelectSettingsNodes: onSelectSettingsNodes,
       ),
       if (currentConfiguration is AppRouteDataMainWalletsNew)
         _buildWizzardWalletPage(appState)
@@ -339,6 +352,11 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           blockchainService,
           this._jobService,
           currentConfiguration.accountAddress,
+        ),
+      if (currentConfiguration is AppRouteDataMainSettingsNodes)
+        SettingsNodesPage(
+          this._encryptedDbService,
+          appState.encryptionKey,
         )
     ];
   }
@@ -384,24 +402,30 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                     appState.addKeypairBundle(keypairBundle);
                     if (keypairBundle.accounts.length == 0) {
                       this._jobService.registerAccountsActivationJob(
-                          keypairBundle); // push keypairBundle to account activation
+                            keypairBundle,
+                          ); // push keypairBundle to account activation
                     }
                   }
                 } else {
-                  this._currentConfiguration = AppRouterDataSignin("Cannot unlock. Check your password and try again.");
+                  this._currentConfiguration = AppRouterDataSignin(
+                    "Cannot unlock. Check your password and try again.",
+                  );
                 }
               } catch (e) {
                 final FreemeworkException err =
                     FreemeworkException.wrapIfNeeded(e);
                 print(err);
-                this._currentConfiguration = AppRouterDataSignin("Cannot unlock. Check your password and try again.");
+                this._currentConfiguration = AppRouterDataSignin(
+                  "Cannot unlock. Check your password and try again.",
+                );
               }
             } else {
-              this._currentConfiguration = AppRouterDataSignin("Cannot unlock. Check your password and try again.");
+              this._currentConfiguration = AppRouterDataSignin(
+                "Cannot unlock. Check your password and try again.",
+              );
             }
             this.notifyListeners();
           },
-      
         ),
       )
     ];

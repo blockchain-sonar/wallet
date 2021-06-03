@@ -54,6 +54,8 @@ class AppRouteDataMain extends AppRouteData {
   static const String _PATH_WALLET_DEPLOY = "/wallet/deploy";
   static const String _PATH_WALLET_SENDMONEY = "/wallet/send";
   static const String _PATH_WALLET_NEW = "/wallet/new";
+  static const String _PATH_SETTINGS = "/settings";
+  static const String _PATH_SETTINGS_NODES = "/settings/nodes";
 
   static AppRouteDataMain? test(Uri routeUri) {
     if (routeUri.path == PATH) {
@@ -72,6 +74,10 @@ class AppRouteDataMain extends AppRouteData {
         routeUri.pathSegments.length == 3) {
       final String accountAddress = routeUri.pathSegments[2];
       return AppRouteDataMainWalletsSendMoney(accountAddress);
+    } else if (routeUri.path == _PATH_SETTINGS) {
+      return AppRouteDataMainSettings();
+    } else if (routeUri.path == _PATH_SETTINGS_NODES) {
+      return AppRouteDataMainSettingsNodes();
     }
     return null;
   }
@@ -79,7 +85,7 @@ class AppRouteDataMain extends AppRouteData {
   final MainTab selectedTab;
 
   factory AppRouteDataMain.home() => AppRouteDataMain._(MainTab.HOME);
-  factory AppRouteDataMain.settings() => AppRouteDataMain._(MainTab.SETTINGS);
+  //factory AppRouteDataMain.settings() => AppRouteDataMain._(MainTab.SETTINGS);
 
   AppRouteDataMain._(this.selectedTab);
 
@@ -103,7 +109,11 @@ class AppRouteDataMain extends AppRouteData {
         }
         return _PATH_WALLET;
       case MainTab.SETTINGS:
-        return "/settings";
+        final AppRouteDataMain _this = this;
+        if (_this is AppRouteDataMainSettingsNodes) {
+          return _PATH_SETTINGS_NODES;
+        }
+        return _PATH_SETTINGS;
       default:
         throw UnsupportedError("Cannot resolve location.");
     }
@@ -112,9 +122,6 @@ class AppRouteDataMain extends AppRouteData {
 
 class AppRouteDataMainWallets extends AppRouteDataMain {
   AppRouteDataMainWallets() : super._(MainTab.WALLETS);
-
-  // @override
-  // String get location => AppRouteDataMain._PATH_WALLET;
 }
 
 class AppRouteDataMainWalletsDeployContract extends AppRouteDataMain {
@@ -144,6 +151,14 @@ class AppRouteDataMainWalletsNew extends AppRouteDataMainWallets {
 
   @override
   String get location => AppRouteDataMain._PATH_WALLET_NEW;
+}
+
+class AppRouteDataMainSettings extends AppRouteDataMain {
+  AppRouteDataMainSettings() : super._(MainTab.SETTINGS);
+}
+
+class AppRouteDataMainSettingsNodes extends AppRouteDataMainSettings {
+  AppRouteDataMainSettingsNodes() : super();
 }
 
 class AppRouteDataNewbeWizzard extends AppRouteData {
