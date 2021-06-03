@@ -3,7 +3,7 @@
 Preconditions: [Flutter SDK](https://flutter.dev/docs) (2.2.1), [Dart](https://dart.dev/) (2.13.1), [NodeJS](https://nodejs.org/en/)
 
 ```
-git submodule update --init && (cd submodule/ton-client-web-js-umd-facade && npm install && npm run build)
+git submodule update --init && (cd submodule/wallet.platform.web/ && npm install && npm run build)
 ln -sf index-webapp-devel.html web/index.html
 flutter run --device-id chrome
 ```

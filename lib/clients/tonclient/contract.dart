@@ -36,10 +36,10 @@ abstract class AbstractTonClient {
     String smartContractBlobTvcBase64,
   );
   Future<KeyPair> deriveKeys(
-    String mnemonicPhraseSeed,
-    SeedType seedType,
+    List<String> seedMnemonicWords,
+    String hdpath,
   );
-  Future<String> generateMnemonicPhraseSeed(
+  Future<List<String>> generateMnemonicPhraseSeed(
     SeedType seedType,
   );
   Future<String> getDeployData(

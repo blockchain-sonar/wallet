@@ -131,12 +131,14 @@ class BlockchainServiceImpl extends BlockchainService {
     required final String messageSendToken,
     required final String processingStateToken,
   }) async {
-    final TON.Transaction tonTransaction = await this._tonClient.waitForRunTransaction(
-          messageSendToken,
-          processingStateToken,
-        );
+    final TON.Transaction tonTransaction =
+        await this._tonClient.waitForRunTransaction(
+              messageSendToken,
+              processingStateToken,
+            );
 
-    final Transaction firendlyTransaction = Transaction(tonTransaction.transactionId);
+    final Transaction firendlyTransaction =
+        Transaction(tonTransaction.transactionId);
     return firendlyTransaction;
   }
 
@@ -156,20 +158,9 @@ class BlockchainServiceImpl extends BlockchainService {
 
   @override
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase) async {
-    final String seed = mnemonicPhrase.words.join(" ");
-    TON.SeedType seedType;
-    switch (mnemonicPhrase.length) {
-      case MnemonicPhraseLength.LONG:
-        seedType = TON.SeedType.LONG;
-        break;
-      case MnemonicPhraseLength.SHORT:
-        seedType = TON.SeedType.SHORT;
-        break;
-      default:
-        throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
-    }
-    final TON.KeyPair keyPair =
-        await this._tonClient.deriveKeys(seed, seedType);
+    final TON.KeyPair keyPair = await this
+        ._tonClient
+        .deriveKeys(mnemonicPhrase.words, "m/44'/396'/0'/0/0");
     return KeyPair(public: keyPair.public, secret: keyPair.secret);
   }
 
@@ -200,9 +191,9 @@ class BlockchainServiceImpl extends BlockchainService {
       default:
         throw InvalidOperationException("Unsupported MnemonicPhraseLength.");
     }
-    final String mnemonicSentence =
+    final List<String> mnemonicWords =
         await this._tonClient.generateMnemonicPhraseSeed(seedType);
-    return MnemonicPhrase(mnemonicSentence.split(" "), length);
+    return MnemonicPhrase(mnemonicWords, length);
   }
 
   @override

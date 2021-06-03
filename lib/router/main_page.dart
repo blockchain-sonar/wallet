@@ -67,15 +67,6 @@ class MainPage extends Page<AppRouteDataMain> {
       settings: this,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> animation2) {
-        // final tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero);
-        // final curveTween = CurveTween(curve: Curves.easeInOut);
-        // return SlideTransition(
-        //   position: animation.drive(curveTween).drive(tween),
-        //   child: BookDetailsScreen(
-        //     key: ValueKey(book),
-        //     book: book,
-        //   ),
-        // );
         return Consumer<AppState>(
           builder: (BuildContext context, AppState appState, Widget? child) =>
               MainWidget(

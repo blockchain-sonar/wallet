@@ -83,7 +83,7 @@ void mainTestRestoreByPrivateKeyWidget() async {
   final TonClient tonClient = TonClient();
   await tonClient.init(ExecutionContext.EMPTY);
 
-  final String seed =
+  final List<String> seed =
       await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
   runApp(_buildRootWidget(RestoreByPrivateKeyWidget(
     onComplete: (
@@ -93,7 +93,7 @@ void mainTestRestoreByPrivateKeyWidget() async {
       print("Dialog completed with private name: ${ctx.privateKey}");
       await Future<void>.delayed(Duration(seconds: 3));
     },
-    dataContextInit: RestoreByPrivateKeyContext(seed),
+    dataContextInit: RestoreByPrivateKeyContext(seed.join(" ")),
   )));
 }
 
@@ -120,17 +120,13 @@ void mainTestSetupMasterPasswordWidget() async {
 }
 
 void mainTestShowMnemonicWidget() async {
-  String mnemonicPhrase;
+  List<String> mnemonicPhrase;
 
-  try {
-    final TonClient tonClient = TonClient();
-    await tonClient.init(ExecutionContext.EMPTY);
-    mnemonicPhrase = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
-  } catch (e) {
-    mnemonicPhrase = e.toString();
-  }
+  final TonClient tonClient = TonClient();
+  await tonClient.init(ExecutionContext.EMPTY);
+  mnemonicPhrase = await tonClient.generateMnemonicPhraseSeed(SeedType.SHORT);
 
-  final List<String> words = mnemonicPhrase.split(" ");
+  final List<String> words = mnemonicPhrase;
 
   runApp(_buildRootWidget(ShowMnemonicWidget(
     onComplete: (

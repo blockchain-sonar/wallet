@@ -1,1 +1,0 @@
-../submodule/ton-client-web-js-umd-facade/.dist/ton-client-web-js-umd-facade.devel.js

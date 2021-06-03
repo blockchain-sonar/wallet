@@ -307,23 +307,10 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this.notifyListeners();
     };
 
-    final MainTab selectedTab = configuration.selectedTab;
+    //final MainTab selectedTab = configuration.selectedTab;
 
     final AppRouteData currentConfiguration = this._currentConfiguration;
     return <Page<dynamic>>[
-      if (selectedTab != MainTab.HOME)
-        MainPage(
-          AppRouteDataMain.home(),
-          encryptedDbService,
-          jobService: this._jobService,
-          onSelectHome: onSelectHome,
-          onSelectWallets: onSelectWallets,
-          onSelectSetting: onSelectSetting,
-          onWalletNew: onWalletNew,
-          onDeployContract: onDeployContract,
-          onSendMoney: onSendMoney,
-          onSelectSettingsNodes: onSelectSettingsNodes,
-        ),
       MainPage(
         configuration,
         encryptedDbService,

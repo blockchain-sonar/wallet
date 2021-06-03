@@ -1,0 +1,1 @@
+../submodule/wallet.platform.web/.dist/freeton_wallet_platform.devel.js

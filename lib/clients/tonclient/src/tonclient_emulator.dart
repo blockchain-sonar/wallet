@@ -16,57 +16,85 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<Fees> calcDeployFees(KeyPair keypair, String smartContractAbiSpec, String smartContractBlobTvcBase64) {
-      // TODO: implement calcDeployFees
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<RunMessage> createRunMessage(KeyPair keypair, String accountAddress, String smartContractAbiSpec, String methodName, Map<String, dynamic> args) {
-      // TODO: implement createRunMessage
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<void> deployContract(KeyPair keypair, String smartContractAbiSpec, String smartContractBlobTvcBase64) {
-      // TODO: implement deployContract
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<KeyPair> deriveKeys(String mnemonicPhraseSeed, SeedType seedType) {
-      // TODO: implement deriveKeys
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<AccountInfo?> fetchAccountInformation(String accountAddress) {
-      // TODO: implement fetchAccountInformation
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<String> generateMnemonicPhraseSeed(SeedType seedType) {
-      // TODO: implement generateMnemonicPhraseSeed
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<String> getDeployData(String keyPublic, String smartContractAbiSpec, String smartContractBlobTvcBase64) {
-      // TODO: implement getDeployData
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<ProcessingState> sendMessage(String messageSendToken) {
-      // TODO: implement sendMessage
-      throw UnimplementedError();
-    }
-  
-    @override
-    Future<Transaction> waitForRunTransaction(String messageSendToken, String processingStateToken) {
-    // TODO: implement waitForRunTransaction
+  Future<Fees> calcDeployFees(
+    KeyPair keypair,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  ) {
+    // TODO: implement calcDeployFees
     throw UnimplementedError();
   }
 
+  @override
+  Future<RunMessage> createRunMessage(
+      KeyPair keypair,
+      String accountAddress,
+      String smartContractAbiSpec,
+      String methodName,
+      Map<String, dynamic> args) {
+    // TODO: implement createRunMessage
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> deployContract(
+    KeyPair keypair,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  ) {
+    // TODO: implement deployContract
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<KeyPair> deriveKeys(
+    List<String> seedMnemonicWords,
+    String hdpath,
+  ) {
+    // TODO: implement deriveKeys
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<AccountInfo?> fetchAccountInformation(
+    String accountAddress,
+  ) {
+    // TODO: implement fetchAccountInformation
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<String>> generateMnemonicPhraseSeed(
+    SeedType seedType,
+  ) {
+    // TODO: implement generateMnemonicPhraseSeed
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<String> getDeployData(
+    String keyPublic,
+    String smartContractAbiSpec,
+    String smartContractBlobTvcBase64,
+  ) {
+    // TODO: implement getDeployData
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<ProcessingState> sendMessage(
+    String messageSendToken,
+  ) {
+    // TODO: implement sendMessage
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<Transaction> waitForRunTransaction(
+    String messageSendToken,
+    String processingStateToken,
+  ) {
+    // TODO: implement waitForRunTransaction
+    throw UnimplementedError();
+  }
 }

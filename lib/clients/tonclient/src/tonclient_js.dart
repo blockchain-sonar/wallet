@@ -2,7 +2,8 @@
 library tonclient;
 
 import "dart:convert" show jsonDecode, jsonEncode;
-import "dart:js_util" show getProperty, hasProperty, promiseToFuture;
+import "dart:js_util"
+    show getProperty, hasProperty, newObject, promiseToFuture, setProperty;
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException, InvalidOperationException;
 import "package:js/js.dart" show JS;
@@ -23,10 +24,13 @@ import "models/processing_state.dart" show ProcessingState;
 import "models/run_message.dart" show RunMessage;
 import "models/transaction.dart" show Transaction;
 
-// The `TONClientFacade` constructor invokes JavaScript `new window.TONClientFacade()`
-@JS("TONClientFacade")
+// The `TONClientFacade` constructor invokes JavaScript `new window["freeton_wallet_platform"]`
+// @JS("freeton_wallet_platform.TONClientFacade")
+// external _TONClientFacadeInterop tonClientFacadeFactory();
+
+@JS("freeton_wallet_platform.TONClientFacade")
 class _TONClientFacadeInterop {
-  external _TONClientFacadeInterop();
+  external _TONClientFacadeInterop(dynamic opts);
   external dynamic init();
   external dynamic calcDeployFees(
     String keyPublic,
@@ -48,9 +52,11 @@ class _TONClientFacadeInterop {
     String smartContractAbiSpec,
     String smartContractBlobTvcBase64,
   );
+
+  /// "m/44'/396'/0'/0/0"
   external dynamic deriveKeyPair(
-    String seedMnemonicPhrase,
-    int wordsCount,
+    List<String> seedMnemonicWords,
+    String hdpath,
   );
   external dynamic fetchAccountInformation(
     String accountAddress,
@@ -108,7 +114,16 @@ class TonClient extends AbstractTonClient {
 
   static const String _EXCEPTION_MESSAGE_PROPERTY_NAME = "message";
 
-  TonClient() : this._wrap = _TONClientFacadeInterop() {}
+  static _TONClientFacadeInterop _createTONClientFacadeInterop() {
+    dynamic optsJsObject = newObject();
+
+    setProperty(optsJsObject, "logger", "console");
+    setProperty(optsJsObject, "servers", <String>["net.ton.dev"]);
+
+    return _TONClientFacadeInterop(optsJsObject);
+  }
+
+  TonClient() : this._wrap = _createTONClientFacadeInterop() {}
 
   @override
   Future<void> init(ExecutionContext executionContext) async {
@@ -207,10 +222,11 @@ class TonClient extends AbstractTonClient {
 
   @override
   Future<KeyPair> deriveKeys(
-      String seedMnemonicPhraseSeed, SeedType seedType) async {
-    final int wordsCount = _resolveWordsCount(seedType);
-    final dynamic interopData = await TonClient._wrapCall(
-      this._wrap.deriveKeyPair(seedMnemonicPhraseSeed, wordsCount),
+    List<String> seedMnemonicWords,
+    String hdpath,
+  ) async {
+    final dynamic interopData = await TonClient._wrapCall<dynamic>(
+      this._wrap.deriveKeyPair(seedMnemonicWords, hdpath),
     );
     return KeyPair(
       public: _getInteropDataProperty(
@@ -254,7 +270,7 @@ class TonClient extends AbstractTonClient {
     // setProperty(
     //     nativeJsObject, TonClient._KEYPAIR_SECRET_PROPERTY_NAME, keys.secret);
     try {
-      await TonClient._wrapCall(this._wrap.deployContract(
+      await TonClient._wrapCall<dynamic>(this._wrap.deployContract(
             keypair.public,
             keypair.secret,
             smartContractAbiSpec,
@@ -267,15 +283,22 @@ class TonClient extends AbstractTonClient {
   }
 
   @override
-  Future<String> generateMnemonicPhraseSeed(SeedType seedType) {
+  Future<List<String>> generateMnemonicPhraseSeed(SeedType seedType) async {
     final int wordsCount = _resolveWordsCount(seedType);
-    return TonClient._wrapCall(
+    final dynamic jsArray = await TonClient._wrapCall<dynamic>(
         this._wrap.generateMnemonicPhraseSeed(wordsCount));
+
+    final List<String> words = <String>[];
+    for (int i = 0; i < jsArray.length; ++i) {
+      final String word = jsArray[i];
+      words.add(word);
+    }
+    return words;
   }
 
   @override
   Future<AccountInfo?> fetchAccountInformation(String accountAddress) async {
-    final dynamic jsData = await TonClient._wrapCall(
+    final dynamic jsData = await TonClient._wrapCall<dynamic>(
         this._wrap.fetchAccountInformation(accountAddress));
 
     if (jsData == null) {
@@ -320,7 +343,7 @@ class TonClient extends AbstractTonClient {
     final String messageSendToken,
     final String processingStateToken,
   ) async {
-    final dynamic interopData = await TonClient._wrapCall(this
+    final dynamic interopData = await TonClient._wrapCall<dynamic>(this
         ._wrap
         .waitForRunTransaction(messageSendToken, processingStateToken));
 
