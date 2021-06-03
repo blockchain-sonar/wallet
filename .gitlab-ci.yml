@@ -3,7 +3,7 @@ stages:
   - build
   - deploy
 
-ton-client-web-js-umd-facade:
+platfrom:web:
   stage: build-deps
   image: node:14-alpine
   only:
@@ -13,18 +13,18 @@ ton-client-web-js-umd-facade:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
   script:
-    - cd submodule/ton-client-web-js-umd-facade
+    - cd submodule/wallet.platform.web
     - npm install
     - npm run build
   artifacts:
     paths:
-      - submodule/ton-client-web-js-umd-facade/.dist
+      - submodule/wallet.platform.web/.dist
 
 binweb:snapshot:
   stage: build
   image: zxteamorg/devel.flutter
   dependencies:
-    - ton-client-web-js-umd-facade
+    - platfrom:web
   only:
     - branches
   tags:
