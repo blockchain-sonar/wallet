@@ -303,22 +303,6 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
   _SendMoneyWidgetState() : this._stateData = _StateDataAskUser();
 
   @override
-  void initState() {
-    super.initState();
-
-    // this._destinationAddressController.text =
-    //     "0:8776013e6d2d9f93cfc4b9cd93e54002c6129051fd15bdbdb59c150ebf9168e2";
-    // this._amountController.text = "0.1";
-    // this._commentController.text = "test";
-  }
-
-  // @override
-  // void setState(VoidCallback fn) {
-  //   super.setState(fn);
-  //   print(this._stateData);
-  // }
-
-  @override
   Widget build(BuildContext context) {
     final _StateData stateData = this._stateData;
 
@@ -541,7 +525,7 @@ class _SendMoneyWidgetState extends State<SendMoneyWidget> {
                               width: 12.0,
                             ),
                           ),
-                    Text("Transaction presents in blockchain")
+                    Text("Transaction seen in blockchain")
                   ],
                 ),
               ),

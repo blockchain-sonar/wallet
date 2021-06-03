@@ -438,7 +438,6 @@ class LocalStorageEncryptedDbService extends EncryptedDbService {
     final String dataSerialized;
     try {
       dataSerialized = encrypter.decryptStringFromBas64(encryptedData);
-      print(dataSerialized);
     } catch (e) {
       throw WrongMasterPasswordException(
         "Cannot decrypt data.",

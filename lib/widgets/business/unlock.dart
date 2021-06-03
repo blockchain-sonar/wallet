@@ -167,9 +167,7 @@ class _UnlockActiveWidgetState extends State<_UnlockActiveWidget> {
   void initState() {
     final UnlockContext? dataContextInit =
         DialogWidget.of<UnlockContext>(this.context).dataContextInit;
-    print("UnlockContext: $dataContextInit");
     if (dataContextInit != null) {
-      print("UnlockContext.errorMessage: ${dataContextInit.errorMessage}");
       this._passwordTextEditingController.text = dataContextInit.password;
     }
 
