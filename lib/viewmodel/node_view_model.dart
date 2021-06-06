@@ -14,16 +14,18 @@
 // limitations under the License.
 //
 
-import "package:flutter/widgets.dart" show runApp;
+import "package:flutter/widgets.dart" show ChangeNotifier, Color, IconData;
 
-import "services/service_factory.dart"
-    show ServiceFactory, ServiceFactoryProductive;
-import "app.dart" show App;
-import "test_widgets.dart";
+import "../model/node_model.dart" show NodeModel;
 
-void main() {
-  final ServiceFactory serviceFactory = ServiceFactoryProductive();
-  runApp(App(serviceFactory));
+class NodeViewModel extends ChangeNotifier {
+  final NodeModel _nodeModel;
 
-  //mainTestConfirmMnemonicWidget();
+  NodeViewModel(this._nodeModel);
+
+  String get nodeId => this._nodeModel.nodeId;
+  String get name => this._nodeModel.name;
+  List<String> get servers => this._nodeModel.serverHosts;
+  Color get color => this._nodeModel.color;
+  IconData get coinIcon => this._nodeModel.coinIcon;
 }

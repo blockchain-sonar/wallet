@@ -18,14 +18,12 @@ import 'dart:typed_data';
 import "package:flutter/material.dart";
 import "package:flutter/widgets.dart";
 import 'package:freeton_wallet/misc/void_callback_host.dart';
+import 'package:freeton_wallet/viewmodel/app_view_model.dart';
 import 'package:freeton_wallet/widgets/business/main_settings.dart';
 import 'package:freeton_wallet/widgets/layout/my_scaffold.dart';
 import "main_wallets.dart"
     show DeployContractCallback, MainWalletsWidget, SendMoneyCallback;
 
-import "../../services/encrypted_db_service.dart" show EncryptedDbService;
-import "../../services/job.dart" show JobService;
-import "../../states/app_state.dart" show AppState;
 import "main_home.dart" show HomeChartWidget;
 import "main_tab.dart" show MainTab;
 
@@ -61,30 +59,26 @@ class MainWidget extends StatelessWidget {
     ),
   ];
 
-  final AppState _appState;
-  final EncryptedDbService _encryptedDbService;
+  final AppViewModel _appViewModel;
   final int _selectedIndex;
-  final JobService jobService;
+  // final JobService jobService;
   final void Function() onSelectHome;
   final void Function() onSelectWallets;
   final void Function() onSelectSettings;
   final void Function() onAddNewKey;
   final DeployContractCallback onDeployContract;
   final SendMoneyCallback onSendMoney;
-  final SelectSettingsNodesCallback onSelectSettingsNodes;
 
   MainWidget(
-    this._appState,
-    this._encryptedDbService,
+    this._appViewModel,
     MainTab selectedTab, {
-    required this.jobService,
+    // required this.jobService,
     required this.onSelectHome,
     required this.onSelectWallets,
     required this.onSelectSettings,
     required this.onAddNewKey,
     required this.onDeployContract,
     required this.onSendMoney,
-    required this.onSelectSettingsNodes,
   }) : this._selectedIndex = _tabOptions
             .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab);
 
@@ -109,19 +103,17 @@ class MainWidget extends StatelessWidget {
         );
       case MainTab.WALLETS:
         return MainWalletsWidget(
-          this._appState,
+          this._appViewModel,
           bottomNavigationBar,
-          jobService: this.jobService,
+          // jobService: this.jobService,
           onAddNewKey: this.onAddNewKey,
           onDeployContract: this.onDeployContract,
           onSendMoney: this.onSendMoney,
         );
       case MainTab.SETTINGS:
         return SettingsWidget(
-          this._appState,
+          this._appViewModel,
           bottomNavigationBar,
-          this._encryptedDbService,
-          onSelectSettingsNodes: this.onSelectSettingsNodes,
         );
       default:
         break;

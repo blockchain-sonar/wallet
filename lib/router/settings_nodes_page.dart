@@ -17,21 +17,18 @@ import "dart:typed_data" show Uint8List;
 import "package:flutter/src/animation/animation.dart" show Animation;
 import "package:flutter/widgets.dart"
     show BuildContext, ObjectKey, Page, PageRouteBuilder, Route, Widget;
+import 'package:freeton_wallet/viewmodel/app_view_model.dart';
 import "package:provider/provider.dart" show Consumer;
 
 import "../services/encrypted_db_service.dart" show EncryptedDbService;
-import "../states/app_state.dart" show AppState;
 import "../widgets/business/main_settings_nodes.dart" show SettingsNodesWidget;
 import "app_route_data.dart" show AppRouteDataMainSettingsNodes;
 
 class SettingsNodesPage extends Page<AppRouteDataMainSettingsNodes> {
-  final EncryptedDbService _encryptedDbService;
-  final Uint8List _encryptionKey;
+  final AppViewModel _appViewModel;
 
-  SettingsNodesPage(
-    this._encryptedDbService,
-    this._encryptionKey,
-  ) : super(
+  SettingsNodesPage(this._appViewModel)
+      : super(
           key: ObjectKey(SettingsNodesPage),
         );
 
@@ -41,13 +38,7 @@ class SettingsNodesPage extends Page<AppRouteDataMainSettingsNodes> {
       settings: this,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> animation2) {
-        return Consumer<AppState>(
-          builder: (BuildContext context, AppState appState, Widget? child) =>
-              SettingsNodesWidget(
-            this._encryptedDbService,
-            this._encryptionKey,
-          ),
-        );
+        return SettingsNodesWidget(this._appViewModel);
       },
     );
   }

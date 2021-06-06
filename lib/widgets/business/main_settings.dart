@@ -29,27 +29,19 @@ import "package:flutter/widgets.dart"
         StatelessWidget,
         Text,
         Widget;
-import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
 
-import "../../states/app_state.dart";
-import "../../services/encrypted_db_service.dart"
-    show DataSet, EncryptedDbService;
+import "../../viewmodel/app_view_model.dart" show AppViewModel;
+import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
 import "../layout/my_scaffold.dart" show MyScaffold;
 
-typedef SelectSettingsNodesCallback = void Function();
-
 class SettingsWidget extends StatelessWidget {
-  final SelectSettingsNodesCallback onSelectSettingsNodes;
-  final AppState _appState;
-  final EncryptedDbService _encryptedDbService;
+  final AppViewModel _appViewModel;
   final BottomNavigationBar _bottomNavigationBar;
 
   SettingsWidget(
-    this._appState,
+    this._appViewModel,
     this._bottomNavigationBar,
-    this._encryptedDbService, {
-    required this.onSelectSettingsNodes,
-  });
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -58,11 +50,7 @@ class SettingsWidget extends StatelessWidget {
       body: Container(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: _DataSetLoaderWidget(
-            this._encryptedDbService,
-            this._appState.encryptionKey,
-            onSelectSettingsNodes: this.onSelectSettingsNodes,
-          ),
+          child: _SettingsOptionsWidget(this._appViewModel),
         ),
       ),
       bottomNavigationBar: this._bottomNavigationBar,
@@ -70,83 +58,77 @@ class SettingsWidget extends StatelessWidget {
   }
 }
 
-class _DataSetLoaderWidget extends StatefulWidget {
-  final SelectSettingsNodesCallback onSelectSettingsNodes;
-  final EncryptedDbService _encryptedDbService;
-  final Uint8List _encryptionKey;
+// class _DataSetLoaderWidget extends StatefulWidget {
+//   final SelectSettingsNodesCallback onSelectSettingsNodes;
+//   final EncryptedDbService _encryptedDbService;
+//   final Uint8List _encryptionKey;
 
-  _DataSetLoaderWidget(
-    this._encryptedDbService,
-    this._encryptionKey, {
-    required this.onSelectSettingsNodes,
-  });
+//   _DataSetLoaderWidget(
+//     this._encryptedDbService,
+//     this._encryptionKey, {
+//     required this.onSelectSettingsNodes,
+//   });
 
-  @override
-  _DataSetLoaderWidgetState createState() => _DataSetLoaderWidgetState();
-}
+//   @override
+//   _DataSetLoaderWidgetState createState() => _DataSetLoaderWidgetState();
+// }
 
-class _DataSetLoaderWidgetState extends State<_DataSetLoaderWidget> {
-  DataSet? _dataSet;
+// class _DataSetLoaderWidgetState extends State<_DataSetLoaderWidget> {
+//   DataSet? _dataSet;
 
-  _DataSetLoaderWidgetState() : this._dataSet = null;
+//   _DataSetLoaderWidgetState() : this._dataSet = null;
 
-  @override
-  void initState() {
-    super.initState();
-    this._safeLoadDataset();
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     this._safeLoadDataset();
+//   }
 
-  void _safeLoadDataset() async {
-    final DataSet dataSet =
-        await this.widget._encryptedDbService.read(this.widget._encryptionKey);
-    setState(() {
-      this._dataSet = dataSet;
-    });
-  }
+//   void _safeLoadDataset() async {
+//     final DataSet dataSet =
+//         await this.widget._encryptedDbService.read(this.widget._encryptionKey);
+//     setState(() {
+//       this._dataSet = dataSet;
+//     });
+//   }
 
-  DataSet get dataSet {
-    assert(this._dataSet != null);
-    return this._dataSet!;
-  }
+//   DataSet get dataSet {
+//     assert(this._dataSet != null);
+//     return this._dataSet!;
+//   }
 
-  void switchAutoSave(bool value) {
-    this.dataSet.switchAutoLock(value);
-    this.widget._encryptedDbService.write(this.dataSet);
-    this._safeLoadDataset();
-  }
+//   void switchAutoSave(bool value) {
+//     this.dataSet.switchAutoLock(value);
+//     this.widget._encryptedDbService.write(this.dataSet);
+//     this._safeLoadDataset();
+//   }
 
-  Widget _buildDataSetLoader(BuildContext context) {
-    return Text("Loading");
-  }
+//   Widget _buildDataSetLoader(BuildContext context) {
+//     return Text("Loading");
+//   }
 
-  Widget _buildDataSetWorker(BuildContext context) {
-    return _SettingsOptionsWidget(
-      this.dataSet.autoLock,
-      this.switchAutoSave,
-      onSelectSettingsNodes: this.widget.onSelectSettingsNodes,
-    );
-  }
+//   Widget _buildDataSetWorker(BuildContext context) {
+//     return _SettingsOptionsWidget(
+//       this.dataSet.autoLock,
+//       this.switchAutoSave,
+//       onSelectSettingsNodes: this.widget.onSelectSettingsNodes,
+//     );
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (this._dataSet == null) {
-      return this._buildDataSetLoader(context);
-    } else {
-      return this._buildDataSetWorker(context);
-    }
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     if (this._dataSet == null) {
+//       return this._buildDataSetLoader(context);
+//     } else {
+//       return this._buildDataSetWorker(context);
+//     }
+//   }
+// }
 
 class _SettingsOptionsWidget extends StatefulWidget {
-  final SelectSettingsNodesCallback onSelectSettingsNodes;
-  final bool _autoLock;
-  final Function _switchAutoLock;
+  final AppViewModel _appViewModel;
 
-  _SettingsOptionsWidget(
-    this._autoLock,
-    this._switchAutoLock, {
-    required this.onSelectSettingsNodes,
-  });
+  _SettingsOptionsWidget(this._appViewModel);
 
   @override
   _SettingsOptionsWidgetState createState() => _SettingsOptionsWidgetState();
@@ -158,7 +140,7 @@ class _SettingsOptionsWidgetState extends State<_SettingsOptionsWidget> {
   _SettingsOptionsWidgetState() : this._autoLock = false;
 
   void _switchAutoLock(bool value) {
-    this.widget._switchAutoLock(value);
+    //this.widget._switchAutoLock(value);
     this.setState(() {
       this._autoLock = value;
     });
@@ -168,7 +150,7 @@ class _SettingsOptionsWidgetState extends State<_SettingsOptionsWidget> {
   void initState() {
     super.initState();
     this.setState(() {
-      this._autoLock = this.widget._autoLock;
+      this._autoLock = false;
     });
   }
 
@@ -183,7 +165,7 @@ class _SettingsOptionsWidgetState extends State<_SettingsOptionsWidget> {
           leading: Icon(
             Icons.list_alt,
           ),
-          onTap: this.widget.onSelectSettingsNodes,
+          //onTap: this.widget._appViewModel.selectNode(nodeId),
           title: Text(
             "Nodes",
           ),

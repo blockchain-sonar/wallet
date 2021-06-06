@@ -1,16 +1,18 @@
+//
 // Copyright 2021 Free TON Wallet Team
-
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 // 	http://www.apache.org/licenses/LICENSE-2.0
-
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
 import "dart:async" show Future;
 import "dart:typed_data" show Uint8List;
@@ -37,10 +39,14 @@ import "package:flutter/widgets.dart"
         ValueKey,
         Widget;
 import "package:freemework/freemework.dart";
+import 'package:freeton_wallet/services/sensetive_storage_service.dart';
+import 'package:freeton_wallet/services/storage_service.dart';
+import 'package:freeton_wallet/viewmodel/app_view_model.dart';
 import "package:provider/provider.dart" show Consumer;
 
 import "adapter/deploy_contract_adapter.dart"
     show DeployContractWidgetApiAdapter;
+import 'viewmodel/account_view_mode.dart';
 import "widgets/business/main_settings.dart" show SelectSettingsNodesCallback;
 import "widgets/business/deploy_contract.dart"
     show DeployContractWidget, DeployContractWidgetApi;
@@ -56,17 +62,8 @@ import "data/key_pair.dart" show KeyPair;
 import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "router/app_route_data.dart";
 import "router/crash_page.dart" show CrashPage;
-import "services/blockchain/blockchain.dart" show BlockchainService;
-import "states/app_state.dart" show AppState;
+import "services/blockchain/blockchain.dart" show BlockchainServiceFactory;
 
-import "services/encrypted_db_service.dart"
-    show
-        DataAccount,
-        DataSet,
-        EncryptedDbService,
-        KeypairBundle,
-        KeypairBundlePlain;
-import "services/job.dart" show JobService;
 import "widgets/business/main_wallets.dart" show DeployContractCallback;
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
@@ -78,19 +75,24 @@ class AppRouterWidget extends StatelessWidget {
   final _AppRouteInformationParser _routeInformationParser;
 
   AppRouterWidget(
-    final EncryptedDbService encryptedDbService,
-    final BlockchainService blockchainService,
-    final JobService jobService,
+    final BlockchainServiceFactory blockchainServiceFactory,
+    // final JobService jobService,
+    final SensetiveStorageService sensetiveStorageService,
+    final StorageService storageService,
   )   : this._routerDelegate = _AppRouterDelegate(
-            encryptedDbService, blockchainService, jobService),
+          blockchainServiceFactory,
+          // jobService,
+          sensetiveStorageService,
+          storageService,
+        ),
         this._routeInformationParser = _AppRouteInformationParser();
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: "Free TON Wallet (Alpha)",
+      title: "Free TON Wallet (Beta)",
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.lightBlue,
       ),
       routerDelegate: this._routerDelegate,
       routeInformationParser: this._routeInformationParser,
@@ -126,16 +128,22 @@ class _AppRouteInformationParser extends RouteInformationParser<AppRouteData> {
 class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<AppRouteData> {
   final GlobalKey<NavigatorState> _navigatorKey;
-  final EncryptedDbService _encryptedDbService;
-  final JobService _jobService;
-  final BlockchainService _blockchainService;
+  // final JobService _jobService;
+  final BlockchainServiceFactory _blockchainServiceFactory;
+  final SensetiveStorageService _sensetiveStorageService;
+  final StorageService _storageService;
 
+  AppViewModel? _appViewModel;
   AppRouteData _currentConfiguration;
 
   _AppRouterDelegate(
-      this._encryptedDbService, this._blockchainService, this._jobService)
-      : this._navigatorKey = GlobalKey<NavigatorState>(),
-        this._currentConfiguration = AppRouteDataMain.home();
+    this._blockchainServiceFactory,
+    // this._jobService,
+    this._sensetiveStorageService,
+    this._storageService,
+  )   : this._navigatorKey = GlobalKey<NavigatorState>(),
+        this._currentConfiguration = AppRouteDataMain.home(),
+        this._appViewModel = null;
 
   @override
   GlobalKey<NavigatorState> get navigatorKey => this._navigatorKey;
@@ -147,78 +155,81 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppState>(builder: (
-      BuildContext consumerContext,
-      AppState appState,
-      Widget? child,
-    ) {
-      final AppRouteData currentConfiguration = this._currentConfiguration;
+    final AppRouteData currentConfiguration = this._currentConfiguration;
 
-      List<Page<dynamic>> pagesStack;
+    List<Page<dynamic>> pagesStack;
 
-      // print(this._currentConfiguration);
+    print(this._currentConfiguration);
 
+    final AppViewModel? appViewModel = this._appViewModel;
+
+    print(appViewModel);
+
+    final sensetiveStorageService = this._sensetiveStorageService;
+
+    if (appViewModel != null) {
       if (currentConfiguration is AppRouteDataCrash)
         pagesStack = _crashPagesStack(currentConfiguration);
-      else if (currentConfiguration is AppRouteDataNewbeWizzard)
-        pagesStack = _wizzardNewbePagesStack(
-          currentConfiguration,
-          consumerContext,
-          appState,
-          this._encryptedDbService,
-          this._blockchainService,
-        );
       else if (currentConfiguration is AppRouteDataMain)
         pagesStack = _mainPagesStack(
           currentConfiguration,
-          consumerContext,
-          appState,
-          this._encryptedDbService,
-          this._blockchainService,
+          context,
+          appViewModel,
+          appViewModel.encryptionKey,
         );
-      else if (currentConfiguration is AppRouterDataSignin)
-        pagesStack = _signinPagesStack(
-          currentConfiguration,
-          consumerContext,
-          appState,
-          this._encryptedDbService,
-        );
-      else if (currentConfiguration is AppRouterDataUnknown)
-        pagesStack = _unknownPagesStack(currentConfiguration);
       else
         pagesStack = _unknownPagesStack(currentConfiguration);
+    } else {
+      if (sensetiveStorageService.isInitialized) {
+        if (currentConfiguration is AppRouterDataSignin) {
+          pagesStack = _signinPagesStack(
+            currentConfiguration,
+            context,
+            this._sensetiveStorageService,
+          );
+        } else {
+          pagesStack = this._redirectPagesStack(AppRouterDataSignin.PATH);
+        }
+      } else {
+        pagesStack = _wizzardMasterPasswordPagesStack(
+          context,
+          sensetiveStorageService,
+          this._storageService,
+        );
+      }
+    }
 
-      // print(pagesStack);
+    print(pagesStack);
 
-      return Navigator(
-        key: navigatorKey,
-        // transitionDelegate: transitionDelegate,
-        pages: pagesStack,
-        onPopPage: (Route<dynamic> route, dynamic result) {
-          if (!route.didPop(result)) {
-            return false;
+    return Navigator(
+      key: navigatorKey,
+      // transitionDelegate: transitionDelegate,
+      pages: pagesStack,
+      onPopPage: (Route<dynamic> route, dynamic result) {
+        if (!route.didPop(result)) {
+          return false;
+        }
+        // print("onPopPage");
+        if (pagesStack.length > 1) {
+          if (this._currentConfiguration
+                  is AppRouteDataMainWalletsDeployContract ||
+              this._currentConfiguration is AppRouteDataMainWalletsNew ||
+              this._currentConfiguration is AppRouteDataMainWalletsSendMoney) {
+            this._currentConfiguration = AppRouteDataMainWallets();
           }
-          // print("onPopPage");
-          if (pagesStack.length > 1) {
-            if (this._currentConfiguration
-                    is AppRouteDataMainWalletsDeployContract ||
-                this._currentConfiguration is AppRouteDataMainWalletsNew ||
-                this._currentConfiguration
-                    is AppRouteDataMainWalletsSendMoney) {
-              this._currentConfiguration = AppRouteDataMainWallets();
-            }
 
-            if (this._currentConfiguration is AppRouteDataMainSettings && this.currentConfiguration.runtimeType != AppRouteDataMainSettings) {
-              this._currentConfiguration = AppRouteDataMainSettings();
-            }
-          } else {
-            this._currentConfiguration = AppRouterDataUnknown();
+          if (this._currentConfiguration is AppRouteDataMainSettings &&
+              this.currentConfiguration.runtimeType !=
+                  AppRouteDataMainSettings) {
+            this._currentConfiguration = AppRouteDataMainSettings();
           }
-          notifyListeners();
-          return true;
-        },
-      );
-    });
+        } else {
+          this._currentConfiguration = AppRouterDataUnknown();
+        }
+        notifyListeners();
+        return true;
+      },
+    );
   }
 
   @override
@@ -227,27 +238,31 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     this._currentConfiguration = configuration;
   }
 
-  MaterialPage<WizzardWalletWidget> _buildWizzardWalletPage(AppState appState) {
+  MaterialPage<WizzardWalletWidget> _buildWizzardWalletPage(
+    final AppViewModel appViewModel,
+    final Uint8List encryptionKey,
+  ) {
     return MaterialPage<WizzardWalletWidget>(
       key: ValueKey<Object>(WizzardWalletWidget),
       child: WizzardWalletWidget(
-        this._blockchainService,
+        appViewModel.blockchainService,
         onComplete: (
-          String walletName,
+          String keyName,
           KeyPair keyPair,
           MnemonicPhrase? mnemonicPhrase,
         ) async {
-          final DataSet dataSet =
-              await this._encryptedDbService.read(appState.encryptionKey);
-          final KeypairBundlePlain keypairBundle = dataSet
-              .addKeypairBundlePlain(walletName, keyPair, mnemonicPhrase);
+          await appViewModel.addKeyPair(
+            encryptionKey,
+            keyName,
+            keyPair.public,
+            keyPair.secret,
+            mnemonicPhrase?.sentence,
+          );
 
-          await this._encryptedDbService.write(dataSet);
-          appState.addKeypairBundle(keypairBundle);
           this._currentConfiguration = AppRouteDataMainWallets();
           this.notifyListeners();
-          this._jobService.registerAccountsActivationJob(
-              keypairBundle); // push keypairBundle to account activation
+          // this._jobService.registerAccountsActivationJob(
+          //     keypairBundle); // push keypairBundle to account activation
         },
       ),
     );
@@ -259,22 +274,9 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
   List<Page<dynamic>> _mainPagesStack(
     final AppRouteDataMain configuration,
     final BuildContext context,
-    final AppState appState,
-    final EncryptedDbService encryptedDbService,
-    final BlockchainService blockchainService,
+    final AppViewModel appViewModel,
+    final Uint8List encryptionKey,
   ) {
-    if (!encryptedDbService.isInitialized) {
-      return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
-    }
-
-    if (!appState.isLogged) {
-      return this._redirectPagesStack(AppRouterDataSignin.PATH);
-    } else {
-      if (appState.keypairBundles.length == 0) {
-        return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
-      }
-    }
-
     final void Function() onSelectHome = () {
       this._currentConfiguration = AppRouteDataMain.home();
       this.notifyListeners();
@@ -288,12 +290,13 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this.notifyListeners();
     };
     final DeployContractCallback onDeployContract =
-        (final DataAccount account) {
+        (final AccountViewModel account) {
       this._currentConfiguration =
           AppRouteDataMainWalletsDeployContract(account.blockchainAddress);
       this.notifyListeners();
     };
-    final DeployContractCallback onSendMoney = (final DataAccount account) {
+    final DeployContractCallback onSendMoney =
+        (final AccountViewModel account) {
       this._currentConfiguration =
           AppRouteDataMainWalletsSendMoney(account.blockchainAddress);
       this.notifyListeners();
@@ -302,10 +305,10 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainSettings();
       this.notifyListeners();
     };
-    final SelectSettingsNodesCallback onSelectSettingsNodes = () {
-      this._currentConfiguration = AppRouteDataMainSettingsNodes();
-      this.notifyListeners();
-    };
+    // final SelectSettingsNodesCallback onSelectSettingsNodes = () {
+    //   this._currentConfiguration = AppRouteDataMainSettingsNodes();
+    //   this.notifyListeners();
+    // };
 
     //final MainTab selectedTab = configuration.selectedTab;
 
@@ -313,37 +316,35 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     return <Page<dynamic>>[
       MainPage(
         configuration,
-        encryptedDbService,
-        jobService: this._jobService,
+        appViewModel,
+        // this._storageService,
+        // jobService: this._jobService,
         onSelectHome: onSelectHome,
         onSelectWallets: onSelectWallets,
         onSelectSetting: onSelectSetting,
         onWalletNew: onWalletNew,
         onDeployContract: onDeployContract,
         onSendMoney: onSendMoney,
-        onSelectSettingsNodes: onSelectSettingsNodes,
+        // onSelectSettingsNodes: onSelectSettingsNodes,
       ),
       if (currentConfiguration is AppRouteDataMainWalletsNew)
-        _buildWizzardWalletPage(appState)
+        _buildWizzardWalletPage(
+          appViewModel,
+          encryptionKey,
+        )
       else if (currentConfiguration is AppRouteDataMainWalletsDeployContract)
-        ..._wizzardDeployContractPagesStack(
-          appState,
-          encryptedDbService,
-          blockchainService,
+        ..._deployContractPagesStack(
+          appViewModel,
           currentConfiguration.accountAddress,
         )
       else if (currentConfiguration is AppRouteDataMainWalletsSendMoney)
-        ..._wizzardSendMoneyPagesStack(
-          appState,
-          encryptedDbService,
-          blockchainService,
-          this._jobService,
+        ..._sendMoneyPagesStack(
+          appViewModel,
           currentConfiguration.accountAddress,
         ),
       if (currentConfiguration is AppRouteDataMainSettingsNodes)
         SettingsNodesPage(
-          this._encryptedDbService,
-          appState.encryptionKey,
+          appViewModel,
         )
     ];
   }
@@ -351,66 +352,48 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
   List<Page<dynamic>> _signinPagesStack(
     AppRouterDataSignin configuration,
     BuildContext context,
-    AppState appState,
-    EncryptedDbService encryptedDbService,
+    SensetiveStorageService sensetiveStorageService,
   ) {
-    if (!encryptedDbService.isInitialized) {
-      return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
-    }
-
-    if (appState.isLogged) {
-      if (appState.keypairBundles.length == 0) {
-        return this._redirectPagesStack(AppRouteDataNewbeWizzard.PATH);
-      }
-
-      return this._redirectPagesStack(AppRouteDataMain.PATH);
-    }
+    assert(this._appViewModel == null);
+    assert(sensetiveStorageService.isInitialized);
 
     return <Page<dynamic>>[
       MaterialPage<UnlockWidget>(
-        key: ValueKey<Object>(configuration),
+        key: UniqueKey(),
         child: UnlockWidget(
           dataContextInit: UnlockContext("", configuration.errorMessage),
           onComplete: (
             ExecutionContext executionContext,
             UnlockContext ctx,
           ) async {
+            assert(this._appViewModel == null);
+            assert(sensetiveStorageService.isInitialized);
+
             final String masterPassword = ctx.password;
-            if (encryptedDbService.isInitialized && !appState.isLogged) {
-              try {
-                final Uint8List encryptionKey = await encryptedDbService
-                    .derivateEncryptionKey(masterPassword);
-                final DataSet dataSet =
-                    await encryptedDbService.read(encryptionKey);
-                if (!appState.isLogged) {
-                  appState.setLoginEncryptionKey(encryptionKey);
-                  for (final KeypairBundle keypairBundle
-                      in dataSet.keypairBundles) {
-                    appState.addKeypairBundle(keypairBundle);
-                    if (keypairBundle.accounts.length == 0) {
-                      this._jobService.registerAccountsActivationJob(
-                            keypairBundle,
-                          ); // push keypairBundle to account activation
-                    }
-                  }
-                } else {
-                  this._currentConfiguration = AppRouterDataSignin(
-                    "Cannot unlock. Check your password and try again.",
-                  );
-                }
-              } catch (e) {
-                final FreemeworkException err =
-                    FreemeworkException.wrapIfNeeded(e);
-                print(err);
-                this._currentConfiguration = AppRouterDataSignin(
-                  "Cannot unlock. Check your password and try again.",
-                );
-              }
-            } else {
+            try {
+              final Uint8List encryptionKey = await sensetiveStorageService
+                  .derivateEncryptionKey(masterPassword);
+
+              final AppViewModel newAppViewModel = AppViewModel(
+                this._storageService,
+                this._sensetiveStorageService,
+                this._blockchainServiceFactory,
+              );
+
+              await newAppViewModel.initialize(encryptionKey);
+
+              this._appViewModel = newAppViewModel;
+              this._currentConfiguration = AppRouteDataMain.home();
+            } catch (e) {
+              final FreemeworkException err =
+                  FreemeworkException.wrapIfNeeded(e);
+              print(err.message);
+              print(err.stackTrace?.toString());
               this._currentConfiguration = AppRouterDataSignin(
                 "Cannot unlock. Check your password and try again.",
               );
             }
+
             this.notifyListeners();
           },
         ),
@@ -425,66 +408,59 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
         )
       ];
 
-  List<Page<dynamic>> _wizzardNewbePagesStack(
-    final AppRouteDataNewbeWizzard configuration,
+  List<Page<dynamic>> _wizzardMasterPasswordPagesStack(
     final BuildContext context,
-    final AppState appState,
-    final EncryptedDbService encryptedDbService,
-    final BlockchainService blockchainService,
+    final SensetiveStorageService sensetiveStorageService,
+    final StorageService storageService,
   ) {
-    if (encryptedDbService.isInitialized) {
-      if (!appState.isLogged) {
-        return this._redirectPagesStack(AppRouterDataSignin.PATH);
-      }
-      if (appState.keypairBundles.length > 0) {
-        return this._redirectPagesStack(AppRouteDataMain.PATH);
-      }
-    } else {
-      return <Page<dynamic>>[
-        MaterialPage<SetupMasterPasswordWidget>(
-          key: ValueKey<Object>(SetupMasterPasswordWidget),
-          child: SetupMasterPasswordWidget(
-            onComplete: (
-              ExecutionContext executionContext,
-              SetupMasterPasswordContext ctx,
-            ) async {
-              final String masterPassword = ctx.password;
-              if (!encryptedDbService.isInitialized && !appState.isLogged) {
-                try {
-                  final Uint8List encryptionKey =
-                      await encryptedDbService.wipe(masterPassword);
-                  appState.setLoginEncryptionKey(encryptionKey);
-                } catch (e) {
-                  final FreemeworkException err =
-                      FreemeworkException.wrapIfNeeded(e);
-                  print(err);
-                  this._currentConfiguration = AppRouteDataCrash(/* err */);
-                }
-              } else {
-                this._currentConfiguration = AppRouteDataCrash();
-              }
-              this.notifyListeners();
-            },
-          ),
-        )
-      ];
-    }
+    assert(this._appViewModel == null);
+    assert(!sensetiveStorageService.isInitialized);
 
     return <Page<dynamic>>[
-      _buildWizzardWalletPage(appState),
+      MaterialPage<SetupMasterPasswordWidget>(
+        key: ValueKey<Object>(SetupMasterPasswordWidget),
+        child: SetupMasterPasswordWidget(
+          onComplete: (
+            ExecutionContext executionContext,
+            SetupMasterPasswordContext ctx,
+          ) async {
+            assert(this._appViewModel == null);
+            assert(!sensetiveStorageService.isInitialized);
+
+            final String masterPassword = ctx.password;
+
+            try {
+              await storageService.wipe();
+              final Uint8List encryptionKey =
+                  await sensetiveStorageService.wipe(masterPassword);
+
+              final AppViewModel newAppViewModel = AppViewModel(
+                this._storageService,
+                this._sensetiveStorageService,
+                this._blockchainServiceFactory,
+              );
+              await newAppViewModel.initialize(encryptionKey);
+              this._appViewModel = newAppViewModel;
+            } catch (e) {
+              final FreemeworkException err =
+                  FreemeworkException.wrapIfNeeded(e);
+              print(err);
+              this._currentConfiguration = AppRouteDataCrash(/* err */);
+            }
+
+            this.notifyListeners();
+          },
+        ),
+      )
     ];
   }
 
-  List<Page<dynamic>> _wizzardDeployContractPagesStack(
-    final AppState appState,
-    final EncryptedDbService encryptedDbService,
-    final BlockchainService blockchainService,
+  List<Page<dynamic>> _deployContractPagesStack(
+    final AppViewModel appViewModel,
     final String accountAddress,
   ) {
     final DeployContractWidgetApi widgetApi = DeployContractWidgetApiAdapter(
-      appState,
-      blockchainService,
-      encryptedDbService,
+      appViewModel,
       accountAddress,
     );
 
@@ -496,32 +472,31 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     ];
   }
 
-  List<Page<dynamic>> _wizzardSendMoneyPagesStack(
-    final AppState appState,
-    final EncryptedDbService encryptedDbService,
-    final BlockchainService blockchainService,
-    final JobService jobService,
-    final String accountAddress,
+  List<Page<dynamic>> _sendMoneyPagesStack(
+    final AppViewModel appViewModel,
+    final String sourceAccountAddress,
   ) {
-    final List<DataAccount> accounts = appState.keypairBundles
-        .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
-        .toList();
-    final DataAccount account = accounts.singleWhere(
-        (DataAccount account) => account.blockchainAddress == accountAddress);
+    return this._redirectPagesStack(AppRouteDataCrash.PATH);
 
-    final SendMoneyWidgetApi widgetApi = SendMoneyWidgetApiAdapter(
-      account,
-      appState,
-      blockchainService,
-      jobService,
-    );
+    // final List<DataAccount> accounts = appViewModel.keypairBundles
+    //     .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
+    //     .toList();
+    // final DataAccount account = accounts.singleWhere(
+    //     (DataAccount account) => account.blockchainAddress == sourceAccountAddress);
 
-    return <Page<dynamic>>[
-      MaterialPage<SendMoneyWidget>(
-        key: ValueKey<Object>(SendMoneyWidget),
-        child: SendMoneyWidget(widgetApi),
-      )
-    ];
+    // final SendMoneyWidgetApi widgetApi = SendMoneyWidgetApiAdapter(
+    //   account,
+    //   appViewModel,
+    //   blockchainService,
+    //   jobService,
+    // );
+
+    // return <Page<dynamic>>[
+    //   MaterialPage<SendMoneyWidget>(
+    //     key: ValueKey<Object>(SendMoneyWidget),
+    //     child: SendMoneyWidget(widgetApi),
+    //   )
+    // ];
   }
 
   List<Page<dynamic>> _redirectPagesStack(String location, [String? state]) {

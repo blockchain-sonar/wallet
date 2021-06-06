@@ -16,6 +16,8 @@ import "dart:async" show Completer, Future;
 
 import "package:freemework/freemework.dart" show ExecutionContext;
 import 'package:freeton_wallet/services/job.dart';
+import 'package:freeton_wallet/services/sensetive_storage_service.dart';
+import 'package:freeton_wallet/services/storage_service.dart';
 
 import "../clients/tonclient/tonclient.dart" show TonClient;
 
@@ -23,61 +25,56 @@ import "encrypted_db_service.dart"
     show EncryptedDbService, LocalStorageEncryptedDbService;
 import "crypto_service.dart" show CryptoService, PointyCastleCryptoService;
 import "blockchain/blockchain.dart"
-    show BlockchainService, BlockchainServiceImpl;
+    show BlockchainService, BlockchainServiceFactory, BlockchainServiceImpl;
 
 abstract class ServiceFactory {
-  EncryptedDbService createEncryptedDbService(
+  CryptoService createCryptoService();
+  BlockchainServiceFactory createBlockchainServiceFactory();
+  // JobService createJobService(
+  //   BlockchainService blockchainService,
+  //   EncryptedDbService encryptedDbService,
+  // );
+  SensetiveStorageService createSensetiveStorageService(
     CryptoService cryptoService,
   );
-  CryptoService createCryptoService();
-  Future<BlockchainService> createBlockchainService();
-  JobService createJobService(
-    BlockchainService blockchainService,
-    EncryptedDbService encryptedDbService,
-  );
+  StorageService createStorageService();
 }
 
 class ServiceFactoryProductive extends ServiceFactory {
   @override
-  EncryptedDbService createEncryptedDbService(
-    CryptoService cryptoService,
-  ) =>
-      LocalStorageEncryptedDbService(cryptoService);
-
-  @override
   CryptoService createCryptoService() => PointyCastleCryptoService();
 
   @override
-  Future<BlockchainService> createBlockchainService() async {
-    final TonClient tonClient = await this._tonClient;
-    return BlockchainServiceImpl(tonClient);
-  }
-
-  Future<TonClient>? __tonClient;
-  Future<TonClient> get _tonClient async {
-    final Future<TonClient>? tonClientFuture = this.__tonClient;
-    if (tonClientFuture != null) {
-      return tonClientFuture;
-    }
-    Completer<TonClient> tonClientCompleter = Completer<TonClient>();
-
-    final TonClient tonClient = TonClient();
-    tonClient
-        .init(ExecutionContext.EMPTY)
-        .then((_) => tonClientCompleter.complete(tonClient))
-        .catchError((Object error, [StackTrace? stackTrace]) =>
-            tonClientCompleter.completeError(error, stackTrace));
-
-    return this.__tonClient = tonClientCompleter.future;
-  }
+  BlockchainServiceFactory createBlockchainServiceFactory() =>
+      _BlockchainServiceFactory();
 
   @override
-  JobService createJobService(
-    BlockchainService blockchainService,
-    EncryptedDbService encryptedDbService,
-  ) =>
-      JobServiceImpl(
-        blockchainService: blockchainService,
-        encryptedDbService: encryptedDbService,
-      );
+  SensetiveStorageService createSensetiveStorageService(
+          CryptoService cryptoService) =>
+      SensetiveLocalStorageService(cryptoService);
+
+  @override
+  StorageService createStorageService() => LocalStorageService();
+
+  // @override
+  // JobService createJobService(
+  //   BlockchainService blockchainService,
+  //   EncryptedDbService encryptedDbService,
+  // ) =>
+  //     JobServiceImpl(
+  //       blockchainService: blockchainService,
+  //       encryptedDbService: encryptedDbService,
+  //     );
+}
+
+class _BlockchainServiceFactory extends BlockchainServiceFactory {
+  @override
+  Future<BlockchainService> create(List<String> nodeServers) async {
+    final TonClient tonClient = TonClient(nodeServers);
+    await tonClient.init(ExecutionContext.EMPTY);
+    final BlockchainService blockchainService =
+        BlockchainServiceImpl(tonClient);
+
+    return blockchainService;
+  }
 }

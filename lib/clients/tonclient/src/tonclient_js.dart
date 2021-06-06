@@ -32,6 +32,7 @@ import "models/transaction.dart" show Transaction;
 class _TONClientFacadeInterop {
   external _TONClientFacadeInterop(dynamic opts);
   external dynamic init();
+  // external dynamic dispose();
   external dynamic calcDeployFees(
     String keyPublic,
     String keySecret,
@@ -114,21 +115,29 @@ class TonClient extends AbstractTonClient {
 
   static const String _EXCEPTION_MESSAGE_PROPERTY_NAME = "message";
 
-  static _TONClientFacadeInterop _createTONClientFacadeInterop() {
+  static _TONClientFacadeInterop _createTONClientFacadeInterop(
+      final List<String> servers) {
     dynamic optsJsObject = newObject();
 
     setProperty(optsJsObject, "logger", "console");
-    setProperty(optsJsObject, "servers", <String>["net.ton.dev"]);
+    setProperty(optsJsObject, "servers", servers);
 
     return _TONClientFacadeInterop(optsJsObject);
   }
 
-  TonClient() : this._wrap = _createTONClientFacadeInterop() {}
+  TonClient(final List<String> servers)
+      : this._wrap = _createTONClientFacadeInterop(servers) {}
 
   @override
   Future<void> init(ExecutionContext executionContext) async {
     await promiseToFuture(this._wrap.init());
     print("TonClient JS Interop was initalized");
+  }
+
+  @override
+  Future<void> dispose() async {
+    //await promiseToFuture(this._wrap.dispose());
+    print("TonClient JS Interop was disposed");
   }
 
   @override

@@ -15,34 +15,29 @@
 import "dart:convert" show base64Encode;
 
 import "package:freemework/freemework.dart" show FreemeworkException;
+
+import "../viewmodel/account_view_mode.dart" show AccountViewModel;
+import "../viewmodel/app_view_model.dart" show AppViewModel;
+import "../viewmodel/key_pair_view_model.dart" show KeyPairViewModel;
 import "../misc/ton_decimal.dart" show TonDecimal;
-import "../services/blockchain/smart_contract/smart_contract.dart" show SmartContractAbi, SmartContractBlob, SmartContractKeeper;
-
-import "../services/blockchain/blockchain.dart"
-    show BlockchainService, SmartContractKeeper;
-import "../services/encrypted_db_service.dart"
-    show DataAccount, EncryptedDbService, KeypairBundle, KeypairBundlePlain;
-import "../states/app_state.dart" show AppState;
-
+import "../services/blockchain/smart_contract/smart_contract.dart"
+    show SmartContractAbi, SmartContractBlob, SmartContractKeeper;
+import "../services/blockchain/blockchain.dart" show SmartContractKeeper;
 import "../widgets/business/deploy_contract.dart" show DeployContractWidgetApi;
 
 class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
-  final AppState appState;
-  final EncryptedDbService encryptedDbService;
-  final BlockchainService blockchainService;
+  final AppViewModel appState;
   final String accountAddress;
 
-  Future<DataAccount>? _account;
+  Future<AccountViewModel>? _account;
 
   DeployContractWidgetApiAdapter(
     this.appState,
-    this.blockchainService,
-    this.encryptedDbService,
     this.accountAddress,
   ) : this._account = null;
 
   @override
-  Future<DataAccount> get account {
+  Future<AccountViewModel> get account {
     if (this._account == null) {
       this._account = _loadAccount();
     }
@@ -53,7 +48,7 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
   Future<TonDecimal> calculateDeploymentFee() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final DataAccount account = await this.account;
+    final AccountViewModel account = await this.account;
 
     final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
         .getByFullQualifiedName(account.smartContractFullQualifiedName);
@@ -62,30 +57,32 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
 
     String keySecret;
 
-    final KeypairBundle keypairBundle = account.parentKeypairBundle;
-    if (keypairBundle is KeypairBundlePlain) {
-      keySecret = keypairBundle.keySecret;
-    } else {
-      throw FreemeworkException(
-          "${KeypairBundlePlain} only supported right now.");
-    }
+    // final KeyPairViewModel keypairBundle = account.parentKeypairBundle;
+    // if (keypairBundle is KeypairBundlePlain) {
+    //   keySecret = keypairBundle.keySecret;
+    // } else {
+    //   throw FreemeworkException(
+    //       "${KeypairBundlePlain} only supported right now.");
+    // }
 
-    final TonDecimal deploymentFee =
-        await this.blockchainService.calculateDeploymentFee(
-              account.parentKeypairBundle.keyPublic,
-              keySecret,
-              smartContractAbi.spec,
-              tvcBase64,
-            );
+    // final TonDecimal deploymentFee =
+    //     await this.appState.blockchainService.calculateDeploymentFee(
+    //           account.parentKeypairBundle.keyPublic,
+    //           keySecret,
+    //           smartContractAbi.spec,
+    //           tvcBase64,
+    //         );
 
-    return deploymentFee;
+    // return deploymentFee;
+
+    return TonDecimal.zero;
   }
 
   @override
   Future<void> deploy() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final DataAccount account = await this.account;
+    final AccountViewModel account = await this.account;
 
     final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
         .getByFullQualifiedName(account.smartContractFullQualifiedName);
@@ -94,30 +91,31 @@ class DeployContractWidgetApiAdapter extends DeployContractWidgetApi {
 
     String keySecret;
 
-    final KeypairBundle keypairBundle = account.parentKeypairBundle;
-    if (keypairBundle is KeypairBundlePlain) {
-      keySecret = keypairBundle.keySecret;
-    } else {
-      throw FreemeworkException(
-          "${KeypairBundlePlain} only supported right now.");
-    }
+    // final KeyPairViewModel keypairBundle = account.parentKeypairBundle;
+    // if (keypairBundle is KeypairBundlePlain) {
+    //   keySecret = keypairBundle.keySecret;
+    // } else {
+    //   throw FreemeworkException(
+    //       "${KeypairBundlePlain} only supported right now.");
+    // }
 
-    await this.blockchainService.deployContract(
-          account.parentKeypairBundle.keyPublic,
-          keySecret,
-          smartContractAbi.spec,
-          tvcBase64,
-        );
+    // await this.appState.blockchainService.deployContract(
+    //       account.parentKeypairBundle.keyPublic,
+    //       keySecret,
+    //       smartContractAbi.spec,
+    //       tvcBase64,
+    //     );
   }
 
-  Future<DataAccount> _loadAccount() async {
+  Future<AccountViewModel> _loadAccount() async {
     await Future<void>.delayed(Duration(seconds: 1));
 
-    final List<DataAccount> accounts = appState.keypairBundles
-        .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
+    final List<AccountViewModel> accounts = appState.keyPairs
+        .expand((KeyPairViewModel keypair) => keypair.accounts)
         .toList();
-    final DataAccount account = accounts.singleWhere(
-        (DataAccount account) => account.blockchainAddress == accountAddress);
+    final AccountViewModel account = accounts.singleWhere(
+        (AccountViewModel account) =>
+            account.blockchainAddress == accountAddress);
 
     return account;
   }

@@ -10,9 +10,16 @@ import "models/run_message.dart" show RunMessage;
 import "models/transaction.dart" show Transaction;
 
 class TonClient extends AbstractTonClient {
+  TonClient(final List<String> servers) {}
+
   @override
   Future<void> init(ExecutionContext executionContext) async {
     print("Initialize TonClient Emulator");
+  }
+
+  @override
+  Future<void> dispose() async {
+    //
   }
 
   @override

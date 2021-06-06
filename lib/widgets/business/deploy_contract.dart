@@ -16,6 +16,7 @@ import "package:flutter/material.dart";
 import "package:flutter/widgets.dart"
     show BuildContext, Container, State, StatefulWidget, Widget;
 import "package:freemework/freemework.dart" show FreemeworkException;
+import 'package:freeton_wallet/viewmodel/account_view_mode.dart';
 import "package:url_launcher/url_launcher.dart" show launch;
 import "../../misc/ton_decimal.dart" show TonDecimal;
 import "../../services/blockchain/blockchain.dart";
@@ -27,7 +28,7 @@ abstract class DeployContractWidgetApi
     implements _AccountLoader, _BlockchainApi {}
 
 abstract class _AccountLoader {
-  Future<DataAccount> get account;
+  Future<AccountViewModel> get account;
 }
 
 abstract class _BlockchainApi implements _DeployerApi {
@@ -45,7 +46,7 @@ class DeployContractWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<DataAccount>(
+    return FutureBuilder<AccountViewModel>(
       initialData: null,
       future: this.api.account,
       builder: this._buildSnapshotRouter,
@@ -54,7 +55,7 @@ class DeployContractWidget extends StatelessWidget {
 
   Widget _buildSnapshotRouter(
     final BuildContext context,
-    final AsyncSnapshot<DataAccount> snapshot,
+    final AsyncSnapshot<AccountViewModel> snapshot,
   ) {
     if (snapshot.connectionState == ConnectionState.waiting) {
       return _buildLoadingProgress(context);
@@ -62,7 +63,7 @@ class DeployContractWidget extends StatelessWidget {
       return _buildFailure(context, snapshot.error);
     }
     assert(snapshot.data != null);
-    final DataAccount account = snapshot.data!;
+    final AccountViewModel account = snapshot.data!;
 
     return _DeployContractWidget(this.api, account);
   }
@@ -93,7 +94,7 @@ class DeployContractWidget extends StatelessWidget {
 
 class _DeployContractWidget extends StatefulWidget {
   final _BlockchainApi api;
-  final DataAccount account;
+  final AccountViewModel account;
 
   _DeployContractWidget(this.api, this.account);
 

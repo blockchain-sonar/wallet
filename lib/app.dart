@@ -1,3 +1,19 @@
+//
+// Copyright 2021 Free TON Wallet Team
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+// 	http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+
 import "package:flutter/widgets.dart"
     show
         AsyncSnapshot,
@@ -9,21 +25,20 @@ import "package:flutter/widgets.dart"
         StatelessWidget,
         Text,
         Widget;
+import 'package:freeton_wallet/services/sensetive_storage_service.dart';
+import 'package:freeton_wallet/services/storage_service.dart';
 
 import "widgets/business/crash.dart" show CrashStandalone;
 import "widgets/business/splash.dart" show SplashStandalone;
-import "package:provider/provider.dart"
-    show
-        ChangeNotifierProvider,
-        Provider;
+import "package:provider/provider.dart" show ChangeNotifierProvider, Provider;
 
 import "app_router.dart" show AppRouterWidget;
 import "services/crypto_service.dart" show CryptoService;
 import "services/service_factory.dart" show ServiceFactory;
 import "services/encrypted_db_service.dart" show EncryptedDbService;
-import "services/blockchain/blockchain.dart" show BlockchainService;
+import "services/blockchain/blockchain.dart" show BlockchainService, BlockchainServiceFactory;
 import "services/job.dart" show JobService;
-import "states/app_state.dart" show AppState;
+import "viewmodel/app_view_model.dart" show AppViewModel;
 
 class App extends StatelessWidget {
   const App(this.serviceFactory, {Key? key}) : super(key: key);
@@ -50,13 +65,11 @@ class App extends StatelessWidget {
             return Center(child: Text("Error: servicesBundle is null"));
           }
 
-          return ChangeNotifierProvider<AppState>(
-            create: (_) => AppState(),
-            child: AppRouterWidget(
-              servicesBundle.encryptedDbService,
-              servicesBundle.blockchainService,
-              servicesBundle.jobService,
-            ),
+          return AppRouterWidget(
+            servicesBundle.blockchainServiceFactory,
+            // servicesBundle.jobService,
+            servicesBundle.sensetiveStorageService,
+            servicesBundle.storageService,
           );
         },
       ),
@@ -68,29 +81,35 @@ class _ServicesBundle {
   final ServiceFactory _serviceFactory;
   Future<_ServicesBundle>? _initFuture;
   CryptoService? _cryptoService;
-  EncryptedDbService? _encryptedDbService;
-  BlockchainService? _blockchainService;
-  JobService? _jobService;
+  SensetiveStorageService? _sensetiveStorageService;
+  StorageService? _storageService;
+  BlockchainServiceFactory? _blockchainServiceFactory;
+  // JobService? _jobService;
 
   CryptoService get cryptoService {
     assert(this._cryptoService != null);
     return this._cryptoService!;
   }
 
-  EncryptedDbService get encryptedDbService {
-    assert(this._encryptedDbService != null);
-    return this._encryptedDbService!;
+  BlockchainServiceFactory get blockchainServiceFactory {
+    assert(this._blockchainServiceFactory != null);
+    return this._blockchainServiceFactory!;
   }
 
-  BlockchainService get blockchainService {
-    assert(this._blockchainService != null);
-    return this._blockchainService!;
+  SensetiveStorageService get sensetiveStorageService {
+    assert(this._sensetiveStorageService != null);
+    return this._sensetiveStorageService!;
   }
 
-  JobService get jobService {
-    assert(this._jobService != null);
-    return this._jobService!;
+  StorageService get storageService {
+    assert(this._storageService != null);
+    return this._storageService!;
   }
+
+  // JobService get jobService {
+  //   assert(this._jobService != null);
+  //   return this._jobService!;
+  // }
 
   Future<_ServicesBundle> init() {
     final Future<_ServicesBundle>? initFuture = this._initFuture;
@@ -102,24 +121,26 @@ class _ServicesBundle {
 
   _ServicesBundle(this._serviceFactory)
       : this._cryptoService = null,
-        this._encryptedDbService = null,
-        this._blockchainService = null;
+        this._blockchainServiceFactory = null;
 
   Future<_ServicesBundle> _init() async {
     final CryptoService cryptoService =
         await this._serviceFactory.createCryptoService();
-    final EncryptedDbService encryptedDbService =
-        await this._serviceFactory.createEncryptedDbService(cryptoService);
-    final BlockchainService blockchainService =
-        await this._serviceFactory.createBlockchainService();
-    final JobService jobService = await this
-        ._serviceFactory
-        .createJobService(blockchainService, encryptedDbService);
+    final BlockchainServiceFactory blockchainServiceFactory =
+        await this._serviceFactory.createBlockchainServiceFactory();
+    // final JobService jobService = await this
+    //     ._serviceFactory
+    //     .createJobService(blockchainService, encryptedDbService);
+    final SensetiveStorageService sensetiveStorageService =
+        this._serviceFactory.createSensetiveStorageService(cryptoService);
+    final StorageService storageService =
+        this._serviceFactory.createStorageService();
 
     this._cryptoService = cryptoService;
-    this._encryptedDbService = encryptedDbService;
-    this._blockchainService = blockchainService;
-    this._jobService = jobService;
+    this._blockchainServiceFactory = blockchainServiceFactory;
+    // this._jobService = jobService;
+    this._sensetiveStorageService = sensetiveStorageService;
+    this._storageService = storageService;
 
     return this;
   }

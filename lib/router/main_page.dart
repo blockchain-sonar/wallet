@@ -15,12 +15,12 @@
 import "package:flutter/src/animation/animation.dart" show Animation;
 import "package:flutter/widgets.dart"
     show BuildContext, Page, PageRouteBuilder, Route, ValueKey, Widget;
+import 'package:freeton_wallet/viewmodel/app_view_model.dart';
+import 'package:freeton_wallet/widgets/reusable/change_detector.dart';
 import "package:provider/provider.dart" show Consumer;
 
 import "../services/encrypted_db_service.dart" show EncryptedDbService;
 import "../services/job.dart" show JobService;
-import "../states/app_state.dart" show AppState;
-import "../widgets/business/main_settings.dart" show SelectSettingsNodesCallback;
 import "../widgets/business/main_wallets.dart"
     show DeployContractCallback, SendMoneyCallback;
 import "../widgets/business/main_tab.dart" show MainTab;
@@ -28,31 +28,25 @@ import "../widgets/business/main.dart" show MainWidget;
 import "app_route_data.dart" show AppRouteDataMain;
 
 class MainPage extends Page<AppRouteDataMain> {
-  //final AppState _appState;
-  final JobService _jobService;
-  final EncryptedDbService _encryptedDbService;
+  final AppViewModel _appViewModel;
   final void Function() _onSelectHome;
   final void Function() _onSelectWallets;
   final void Function() _onSelectSettings;
   final void Function() _onWalletNew;
   final DeployContractCallback onDeployContract;
   final SendMoneyCallback onSendMoney;
-  final SelectSettingsNodesCallback onSelectSettingsNodes;
   final AppRouteDataMain _routeDataMain;
 
   MainPage(
     this._routeDataMain,
-    //this._appState,
-    this._encryptedDbService, {
-    required JobService jobService,
+    this._appViewModel, {
     required void Function() onSelectHome,
     required void Function() onSelectWallets,
     required void Function() onSelectSetting,
     required void Function() onWalletNew,
     required this.onDeployContract,
     required this.onSendMoney,
-    required this.onSelectSettingsNodes,
-  })  : this._jobService = jobService,
+  })  :
         this._onSelectHome = onSelectHome,
         this._onSelectWallets = onSelectWallets,
         this._onSelectSettings = onSelectSetting,
@@ -67,20 +61,17 @@ class MainPage extends Page<AppRouteDataMain> {
       settings: this,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> animation2) {
-        return Consumer<AppState>(
-          builder: (BuildContext context, AppState appState, Widget? child) =>
-              MainWidget(
-            appState,
-            this._encryptedDbService,
+        return ChangeDetector(
+          this._appViewModel,
+          builder: (BuildContext context) => MainWidget(
+            this._appViewModel,
             this._routeDataMain.selectedTab,
-            jobService: this._jobService,
             onSelectHome: this._onSelectHome,
             onSelectSettings: this._onSelectSettings,
             onSelectWallets: this._onSelectWallets,
             onAddNewKey: this._onWalletNew,
             onDeployContract: this.onDeployContract,
             onSendMoney: this.onSendMoney,
-            onSelectSettingsNodes: this.onSelectSettingsNodes,
           ),
         );
       },

@@ -15,6 +15,7 @@
 import "dart:convert" show base64Encode;
 
 import "package:flutter/widgets.dart" show ChangeNotifier;
+import 'package:freeton_wallet/viewmodel/key_pair_view_model.dart';
 import "../data/account_info.dart" show AccountInfo;
 import "../misc/ton_decimal.dart" show TonDecimal;
 
@@ -24,10 +25,9 @@ import "blockchain/blockchain.dart"
         SmartContractAbi,
         SmartContractBlob,
         SmartContractKeeper;
-import "encrypted_db_service.dart"
-    show AccountType, EncryptedDbService, KeypairBundle;
+import 'encrypted_db_service.dart';
 
-abstract class Job extends ChangeNotifier {
+abstract class Job {
   Future<void>? _future;
   Object? _failureError;
 
@@ -65,7 +65,7 @@ abstract class Job extends ChangeNotifier {
 /// AccountsActivationJob trying to activate(detect) accounts for each known contract
 ///
 class AccountsActivationJob extends Job {
-  final KeypairBundle keypairBundle;
+  final KeyPairViewModel keypairBundle;
   final BlockchainService _blockchainService;
   //final EncryptedDbService _encryptedDbService;
 
@@ -93,19 +93,19 @@ class AccountsActivationJob extends Job {
 
       final TonDecimal balance = accountData.balance;
 
-      keypairBundle.setAccount(
-        smartContractBlob.qualifiedName,
-        accountAddress,
-        accountType,
-        balance,
-      );
+      // keypairBundle.setAccountInfo(
+      //   smartContractBlob.qualifiedName,
+      //   accountAddress,
+      //   accountType,
+      //   balance,
+      // );
     }
   }
 
   AccountsActivationJob._(
     this.keypairBundle, {
     required BlockchainService blockchainService,
-    required EncryptedDbService encryptedDbService,
+    //required EncryptedDbService encryptedDbService,
   })   : this._blockchainService = blockchainService,
         //this._encryptedDbService = encryptedDbService,
         super._();
@@ -116,28 +116,28 @@ class AccountsActivationJob extends Job {
 ///
 abstract class JobService {
   AccountsActivationJob? fetchAccountsActivationJob(
-    KeypairBundle keypairBundle,
+    KeyPairViewModel keypairBundle,
   );
 
   /// Register a new KeypairActivationJob (or fetch is active)
   AccountsActivationJob registerAccountsActivationJob(
-    KeypairBundle keypairBundle,
+    KeyPairViewModel keypairBundle,
   );
 }
 
 class JobServiceImpl extends JobService {
   final BlockchainService blockchainService;
-  final EncryptedDbService encryptedDbService;
+  //final EncryptedDbService encryptedDbService;
 
   JobServiceImpl({
     required this.blockchainService,
-    required this.encryptedDbService,
+   // required this.encryptedDbService,
   }) : this._accountActivationJobs =
-            Map<KeypairBundle, AccountsActivationJob>();
+            Map<KeyPairViewModel, AccountsActivationJob>();
 
   @override
   AccountsActivationJob? fetchAccountsActivationJob(
-    KeypairBundle keypairBundle,
+    KeyPairViewModel keypairBundle,
   ) {
     final AccountsActivationJob? existingJob =
         this._accountActivationJobs[keypairBundle];
@@ -147,17 +147,17 @@ class JobServiceImpl extends JobService {
 
   @override
   AccountsActivationJob registerAccountsActivationJob(
-    KeypairBundle keypairBundle,
+    KeyPairViewModel keypairBundle,
   ) {
     if (this._accountActivationJobs.containsKey(keypairBundle)) {
       throw StateError(
-          "Cannot register AccountsActivationJob for same KeypairBundle twice. Try to fetchAccountsActivationJob instead.");
+          "Cannot register AccountsActivationJob for same KeyPairViewModel twice. Try to fetchAccountsActivationJob instead.");
     }
 
     final AccountsActivationJob job = AccountsActivationJob._(
       keypairBundle,
       blockchainService: this.blockchainService,
-      encryptedDbService: this.encryptedDbService,
+     // encryptedDbService: this.encryptedDbService,
     );
 
     this._accountActivationJobs[keypairBundle] = job;
@@ -170,5 +170,5 @@ class JobServiceImpl extends JobService {
     return job;
   }
 
-  final Map<KeypairBundle, AccountsActivationJob> _accountActivationJobs;
+  final Map<KeyPairViewModel, AccountsActivationJob> _accountActivationJobs;
 }

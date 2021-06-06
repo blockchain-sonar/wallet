@@ -14,16 +14,9 @@
 // limitations under the License.
 //
 
-import "package:flutter/widgets.dart" show runApp;
+import "package:freemework/freemework.dart" show FreemeworkException;
 
-import "services/service_factory.dart"
-    show ServiceFactory, ServiceFactoryProductive;
-import "app.dart" show App;
-import "test_widgets.dart";
-
-void main() {
-  final ServiceFactory serviceFactory = ServiceFactoryProductive();
-  runApp(App(serviceFactory));
-
-  //mainTestConfirmMnemonicWidget();
+class SerializationException extends FreemeworkException {
+  SerializationException(String message, [FreemeworkException? innerException])
+      : super(message, innerException);
 }

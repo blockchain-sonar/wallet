@@ -12,10 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import 'dart:async';
-
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
+
+import "../viewmodel/app_view_model.dart" show AppViewModel;
 
 import "../misc/ton_decimal.dart" show TonDecimal;
 import "../services/job.dart" show AccountsActivationJob, JobService;
@@ -34,11 +34,10 @@ import "../services/blockchain/blockchain.dart"
         WalletAbi;
 import "../services/encrypted_db_service.dart"
     show DataAccount, KeypairBundle, KeypairBundlePlain;
-import "../states/app_state.dart" show AppState;
 import "../widgets/business/send_money.dart" show SendMoneyWidgetApi;
 
 class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
-  final AppState _appState;
+  final AppViewModel _appViewModel;
   //final EncryptedDbService encryptedDbService;
   final BlockchainService _blockchainService;
   final JobService _jobService;
@@ -47,7 +46,7 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
 
   SendMoneyWidgetApiAdapter(
     this._dataAccount,
-    this._appState,
+    this._appViewModel,
     this._blockchainService,
     this._jobService,
     //this.encryptedDbService,

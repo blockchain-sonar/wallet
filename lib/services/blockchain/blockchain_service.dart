@@ -14,16 +14,17 @@
 
 import "package:freemework/errors/InvalidOperationException.dart"
     show InvalidOperationException;
-import 'package:freemework/freemework.dart';
-import 'package:freeton_wallet/data/account.dart';
-import 'package:freeton_wallet/misc/ton_decimal.dart';
+import "package:freemework/freemework.dart"
+    show ExecutionContext, InvalidOperationException;
 
 import "../../clients/tonclient/tonclient.dart" as TON;
-
+import "../../data/account.dart" show Account;
 import "../../data/account_info.dart" show AccountInfo;
 import "../../data/key_pair.dart" show KeyPair;
 import "../../data/mnemonic_phrase.dart"
     show MnemonicPhrase, MnemonicPhraseLength;
+import "../../misc/ton_decimal.dart";
+
 import "smart_contract/abi.dart"
     show ProcessingState, RunMessage, SmartContactRuntime, Transaction;
 
@@ -41,6 +42,7 @@ abstract class BlockchainService implements SmartContactRuntime {
     String smartContractBlobTvcBase64,
   );
   Future<KeyPair> deriveKeyPair(MnemonicPhrase mnemonicPhrase);
+  Future<void> dispose();
   Future<AccountInfo> fetchAccountInformation(String accountAddress);
   Future<MnemonicPhrase> generateMnemonicPhrase(MnemonicPhraseLength length);
   Future<String> resolveAccountAddress(
@@ -50,10 +52,17 @@ abstract class BlockchainService implements SmartContactRuntime {
   );
 }
 
+abstract class BlockchainServiceFactory {
+  Future<BlockchainService> create(List<String> nodeServers);
+}
+
 class BlockchainServiceImpl extends BlockchainService {
   final TON.AbstractTonClient _tonClient;
 
   BlockchainServiceImpl(this._tonClient);
+
+  @override
+  Future<void> dispose() => this._tonClient.dispose();
 
   @override
   Future<TonDecimal> calculateDeploymentFee(

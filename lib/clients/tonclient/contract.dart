@@ -17,6 +17,7 @@ abstract class AbstractTonClient {
   Future<void> init(
     ExecutionContext executionContext,
   );
+  Future<void> dispose();
 
   Future<Fees> calcDeployFees(
     KeyPair keypair,

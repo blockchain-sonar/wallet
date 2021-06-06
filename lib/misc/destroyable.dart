@@ -14,16 +14,6 @@
 // limitations under the License.
 //
 
-import "package:flutter/widgets.dart" show runApp;
-
-import "services/service_factory.dart"
-    show ServiceFactory, ServiceFactoryProductive;
-import "app.dart" show App;
-import "test_widgets.dart";
-
-void main() {
-  final ServiceFactory serviceFactory = ServiceFactoryProductive();
-  runApp(App(serviceFactory));
-
-  //mainTestConfirmMnemonicWidget();
+abstract class Destroyable {
+  void destroy();
 }
