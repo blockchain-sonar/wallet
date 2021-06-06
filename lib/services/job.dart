@@ -1,23 +1,25 @@
+//
 // Copyright 2021 Free TON Wallet Team
-
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 // 	http://www.apache.org/licenses/LICENSE-2.0
-
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
 import "dart:convert" show base64Encode;
 
-import "package:flutter/widgets.dart" show ChangeNotifier;
-import 'package:freeton_wallet/viewmodel/key_pair_view_model.dart';
 import "../data/account_info.dart" show AccountInfo;
+import "../data/account_status.dart" show AccountType;
 import "../misc/ton_decimal.dart" show TonDecimal;
+import "../viewmodel/key_pair_view_model.dart" show KeyPairViewModel;
 
 import "blockchain/blockchain.dart"
     show
@@ -25,7 +27,6 @@ import "blockchain/blockchain.dart"
         SmartContractAbi,
         SmartContractBlob,
         SmartContractKeeper;
-import 'encrypted_db_service.dart';
 
 abstract class Job {
   Future<void>? _future;
@@ -106,7 +107,7 @@ class AccountsActivationJob extends Job {
     this.keypairBundle, {
     required BlockchainService blockchainService,
     //required EncryptedDbService encryptedDbService,
-  })   : this._blockchainService = blockchainService,
+  })  : this._blockchainService = blockchainService,
         //this._encryptedDbService = encryptedDbService,
         super._();
 }
@@ -131,7 +132,7 @@ class JobServiceImpl extends JobService {
 
   JobServiceImpl({
     required this.blockchainService,
-   // required this.encryptedDbService,
+    // required this.encryptedDbService,
   }) : this._accountActivationJobs =
             Map<KeyPairViewModel, AccountsActivationJob>();
 
@@ -157,7 +158,7 @@ class JobServiceImpl extends JobService {
     final AccountsActivationJob job = AccountsActivationJob._(
       keypairBundle,
       blockchainService: this.blockchainService,
-     // encryptedDbService: this.encryptedDbService,
+      // encryptedDbService: this.encryptedDbService,
     );
 
     this._accountActivationJobs[keypairBundle] = job;

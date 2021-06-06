@@ -14,26 +14,10 @@
 // limitations under the License.
 //
 
-import "package:flutter/material.dart" show MaterialApp;
-import "package:flutter/widgets.dart"
-    show BuildContext, Center, StatelessWidget, Text, Widget;
+enum AccountType {
+  /// Account is uninitialized when contract is not deployed yet.
+  UNINITIALIZED,
 
-class CrashWidget extends StatelessWidget {
-  final String? _crashMessage;
-
-  CrashWidget([this._crashMessage]);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Text(this._crashMessage ?? "Crash"),
-    );
-  }
-}
-
-class CrashStandalone extends MaterialApp {
-  CrashStandalone(String? crashMessage)
-      : super(
-          home: CrashWidget(crashMessage),
-        );
+  /// Account is active when contract is deployed.
+  ACTIVE,
 }

@@ -14,26 +14,26 @@
 // limitations under the License.
 //
 
-import 'dart:collection';
-import 'dart:convert';
+import "dart:collection" show UnmodifiableListView;
+import "dart:convert" show base64Encode;
 
 import "package:flutter/widgets.dart" show ChangeNotifier;
-import 'package:freemework/CancellationToken.dart';
+import "package:freemework/freemework.dart" show CancellationToken;
 import "package:freemework/freemework.dart"
-    show Disposable, FreemeworkException;
-import 'package:freemework_cancellation/freemework_cancellation.dart';
-import 'package:freeton_wallet/data/account_info.dart';
-import 'package:freeton_wallet/misc/destroyable.dart';
-import 'package:freeton_wallet/misc/ton_decimal.dart';
-import 'package:freeton_wallet/services/blockchain/blockchain.dart';
-import 'package:freeton_wallet/services/encrypted_db_service.dart';
-import 'package:pedantic/pedantic.dart';
-import "../model/account_model.dart" show AccountModel;
-import 'package:freeton_wallet/model/key_pair_model.dart';
-import 'package:freeton_wallet/services/blockchain/blockchain_service.dart';
-import 'package:freeton_wallet/viewmodel/account_view_mode.dart';
+    show FreemeworkException;
+import "package:freemework_cancellation/freemework_cancellation.dart" show CancellationTokenSource, ManualCancellationTokenSource;
+import "package:pedantic/pedantic.dart" show unawaited;
 
-import 'seed_view_model.dart';
+import "../data/account_info.dart" show AccountInfo;
+import "../data/account_status.dart" show AccountType;
+import "../misc/destroyable.dart" show Destroyable;
+import "../misc/ton_decimal.dart" show TonDecimal;
+import "../model/account_model.dart" show AccountModel;
+import "../model/key_pair_model.dart" show KeyPairModel;
+import "../services/blockchain/blockchain.dart" show BlockchainService, SmartContractAbi, SmartContractBlob, SmartContractKeeper;
+
+import "account_view_mode.dart" show AccountViewModel;
+import "seed_view_model.dart" show SeedViewModel;
 
 class KeyPairViewModel extends ChangeNotifier implements Destroyable {
   final SeedViewModel parentSeed;

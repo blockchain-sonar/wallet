@@ -14,36 +14,33 @@
 // limitations under the License.
 //
 
+
 import "package:flutter/src/animation/animation.dart" show Animation;
 import "package:flutter/widgets.dart"
-    show BuildContext, Page, PageRouteBuilder, Route, ValueKey;
+    show BuildContext, ObjectKey, Page, PageRouteBuilder, Route;
 
-import "../widgets/business/crash.dart" show CrashWidget;
-import "app_route_data.dart" show AppRouteDataCrash;
+import "../viewmodel/app_view_model.dart" show AppViewModel;
+import "../widgets/business/main_settings_wallet_manager.dart" show SettingsWalletManagerWidget;
 
-class CrashPage extends Page<AppRouteDataCrash> {
-  final String? crashMessage;
+import "app_route_data.dart" show AppRouteDataMainSettingsWalletManager;
 
-  CrashPage([
-    this.crashMessage,
-  ]) : super(key: ValueKey<Object>(CrashPage));
+class SettingsWalletManagerPage
+    extends Page<AppRouteDataMainSettingsWalletManager> {
+  final AppViewModel _appViewModel;
+
+  SettingsWalletManagerPage(this._appViewModel)
+      : super(
+          key: ObjectKey(SettingsWalletManagerPage),
+        );
 
   @override
-  Route<AppRouteDataCrash> createRoute(BuildContext context) {
-    return PageRouteBuilder<AppRouteDataCrash>(
+  Route<AppRouteDataMainSettingsWalletManager> createRoute(
+      BuildContext context) {
+    return PageRouteBuilder<AppRouteDataMainSettingsWalletManager>(
       settings: this,
       pageBuilder: (BuildContext context, Animation<double> animation,
           Animation<double> animation2) {
-        // final tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero);
-        // final curveTween = CurveTween(curve: Curves.easeInOut);
-        // return SlideTransition(
-        //   position: animation.drive(curveTween).drive(tween),
-        //   child: BookDetailsScreen(
-        //     key: ValueKey(book),
-        //     book: book,
-        //   ),
-        // );
-        return CrashWidget();
+        return SettingsWalletManagerWidget(this._appViewModel);
       },
     );
   }

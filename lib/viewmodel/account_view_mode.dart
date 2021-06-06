@@ -16,10 +16,11 @@
 
 import "package:flutter/widgets.dart" show ChangeNotifier;
 
+import "../data/account_status.dart" show AccountType;
 import "../misc/ton_decimal.dart" show TonDecimal;
-import "../services/encrypted_db_service.dart" show AccountType;
-import "key_pair_view_model.dart" show KeyPairViewModel;
 import "../model/account_model.dart" show AccountModel;
+
+import "key_pair_view_model.dart" show KeyPairViewModel;
 
 class AccountViewModel extends ChangeNotifier {
   final KeyPairViewModel parentKeyPair;

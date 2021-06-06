@@ -14,26 +14,32 @@
 // limitations under the License.
 //
 
-import "package:flutter/material.dart" show MaterialApp;
 import "package:flutter/widgets.dart"
-    show BuildContext, Center, StatelessWidget, Text, Widget;
+    show BuildContext, Column, StatelessWidget, Text, Widget;
 
-class CrashWidget extends StatelessWidget {
-  final String? _crashMessage;
+import "../../viewmodel/app_view_model.dart" show AppViewModel;
+import "../../viewmodel/seed_view_model.dart" show SeedViewModel;
 
-  CrashWidget([this._crashMessage]);
+import "../layout/my_scaffold.dart" show MyScaffold;
+
+class SettingsWalletManagerWidget extends StatelessWidget {
+  final AppViewModel _appViewModel;
+
+  SettingsWalletManagerWidget(
+    this._appViewModel,
+  );
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Text(this._crashMessage ?? "Crash"),
+    return MyScaffold(
+      appBarTitle: "Wallet Manager",
+      body: Column(children: <Widget>[
+        Text(this
+            ._appViewModel
+            .seeds
+            .map((SeedViewModel seed) => "Seed#${seed.seedId}")
+            .join(", ")),
+      ]),
     );
   }
-}
-
-class CrashStandalone extends MaterialApp {
-  CrashStandalone(String? crashMessage)
-      : super(
-          home: CrashWidget(crashMessage),
-        );
 }

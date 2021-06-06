@@ -1,23 +1,25 @@
+//
 // Copyright 2021 Free TON Wallet Team
-
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 // 	http://www.apache.org/licenses/LICENSE-2.0
-
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
-import "dart:typed_data" show Uint8List;
-
-import "package:flutter/material.dart";
+import "package:flutter/material.dart"
+    show BottomNavigationBar, Icons, ListTile, Switch;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
+        Container,
         EdgeInsets,
         Icon,
         ListView,
@@ -28,18 +30,31 @@ import "package:flutter/widgets.dart"
         StatefulWidget,
         StatelessWidget,
         Text,
+        VoidCallback,
         Widget;
 
 import "../../viewmodel/app_view_model.dart" show AppViewModel;
 import "package:url_launcher/url_launcher.dart" show canLaunch, launch;
 import "../layout/my_scaffold.dart" show MyScaffold;
 
+class SettingsWidgetApi {
+  final AppViewModel appViewModel;
+  final VoidCallback onOpenSettingsNodes;
+  final VoidCallback onOpenSettingsWalletManager;
+
+  SettingsWidgetApi(
+    this.appViewModel, {
+    required this.onOpenSettingsNodes,
+    required this.onOpenSettingsWalletManager,
+  });
+}
+
 class SettingsWidget extends StatelessWidget {
-  final AppViewModel _appViewModel;
+  final SettingsWidgetApi _settingsWidgetApi;
   final BottomNavigationBar _bottomNavigationBar;
 
   SettingsWidget(
-    this._appViewModel,
+    this._settingsWidgetApi,
     this._bottomNavigationBar,
   );
 
@@ -50,7 +65,9 @@ class SettingsWidget extends StatelessWidget {
       body: Container(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: _SettingsOptionsWidget(this._appViewModel),
+          child: _SettingsOptionsWidget(
+            this._settingsWidgetApi,
+          ),
         ),
       ),
       bottomNavigationBar: this._bottomNavigationBar,
@@ -58,77 +75,10 @@ class SettingsWidget extends StatelessWidget {
   }
 }
 
-// class _DataSetLoaderWidget extends StatefulWidget {
-//   final SelectSettingsNodesCallback onSelectSettingsNodes;
-//   final EncryptedDbService _encryptedDbService;
-//   final Uint8List _encryptionKey;
-
-//   _DataSetLoaderWidget(
-//     this._encryptedDbService,
-//     this._encryptionKey, {
-//     required this.onSelectSettingsNodes,
-//   });
-
-//   @override
-//   _DataSetLoaderWidgetState createState() => _DataSetLoaderWidgetState();
-// }
-
-// class _DataSetLoaderWidgetState extends State<_DataSetLoaderWidget> {
-//   DataSet? _dataSet;
-
-//   _DataSetLoaderWidgetState() : this._dataSet = null;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     this._safeLoadDataset();
-//   }
-
-//   void _safeLoadDataset() async {
-//     final DataSet dataSet =
-//         await this.widget._encryptedDbService.read(this.widget._encryptionKey);
-//     setState(() {
-//       this._dataSet = dataSet;
-//     });
-//   }
-
-//   DataSet get dataSet {
-//     assert(this._dataSet != null);
-//     return this._dataSet!;
-//   }
-
-//   void switchAutoSave(bool value) {
-//     this.dataSet.switchAutoLock(value);
-//     this.widget._encryptedDbService.write(this.dataSet);
-//     this._safeLoadDataset();
-//   }
-
-//   Widget _buildDataSetLoader(BuildContext context) {
-//     return Text("Loading");
-//   }
-
-//   Widget _buildDataSetWorker(BuildContext context) {
-//     return _SettingsOptionsWidget(
-//       this.dataSet.autoLock,
-//       this.switchAutoSave,
-//       onSelectSettingsNodes: this.widget.onSelectSettingsNodes,
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (this._dataSet == null) {
-//       return this._buildDataSetLoader(context);
-//     } else {
-//       return this._buildDataSetWorker(context);
-//     }
-//   }
-// }
-
 class _SettingsOptionsWidget extends StatefulWidget {
-  final AppViewModel _appViewModel;
+  final SettingsWidgetApi _settingsWidgetApi;
 
-  _SettingsOptionsWidget(this._appViewModel);
+  _SettingsOptionsWidget(this._settingsWidgetApi);
 
   @override
   _SettingsOptionsWidgetState createState() => _SettingsOptionsWidgetState();
@@ -165,7 +115,7 @@ class _SettingsOptionsWidgetState extends State<_SettingsOptionsWidget> {
           leading: Icon(
             Icons.list_alt,
           ),
-          //onTap: this.widget._appViewModel.selectNode(nodeId),
+          onTap: this.widget._settingsWidgetApi.onOpenSettingsNodes,
           title: Text(
             "Nodes",
           ),
@@ -174,6 +124,7 @@ class _SettingsOptionsWidgetState extends State<_SettingsOptionsWidget> {
           leading: Icon(
             Icons.account_balance_wallet,
           ),
+          onTap: this.widget._settingsWidgetApi.onOpenSettingsWalletManager,
           title: Text(
             "Wallet Manager",
           ),

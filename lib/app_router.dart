@@ -19,8 +19,8 @@ import "dart:typed_data" show Uint8List;
 
 import "package:flutter/material.dart"
     show Colors, MaterialApp, MaterialPage, ThemeData;
-import "package:flutter/src/widgets/framework.dart";
-import "package:flutter/src/widgets/navigator.dart";
+import "package:flutter/src/widgets/navigator.dart"
+    show Navigator, NavigatorState, Page, Route;
 import "package:flutter/widgets.dart"
     show
         BuildContext,
@@ -36,38 +36,36 @@ import "package:flutter/widgets.dart"
         RouterDelegate,
         StatelessWidget,
         Text,
+        UniqueKey,
         ValueKey,
+        VoidCallback,
         Widget;
 import "package:freemework/freemework.dart";
-import 'package:freeton_wallet/services/sensetive_storage_service.dart';
-import 'package:freeton_wallet/services/storage_service.dart';
-import 'package:freeton_wallet/viewmodel/app_view_model.dart';
-import "package:provider/provider.dart" show Consumer;
 
 import "adapter/deploy_contract_adapter.dart"
     show DeployContractWidgetApiAdapter;
-import 'viewmodel/account_view_mode.dart';
-import "widgets/business/main_settings.dart" show SelectSettingsNodesCallback;
-import "widgets/business/deploy_contract.dart"
-    show DeployContractWidget, DeployContractWidgetApi;
-import "widgets/business/send_money.dart"
-    show SendMoneyWidget, SendMoneyWidgetApi;
-import "widgets/layout/my_scaffold.dart" show MyScaffold;
-import "widgets/business/main_tab.dart" show MainTab;
-import "adapter/send_money_adapter.dart" show SendMoneyWidgetApiAdapter;
-import "router/main_page.dart" show MainPage;
-import "router/redirect_page.dart" show RedirectPage;
-import "router/settings_nodes_page.dart";
 import "data/key_pair.dart" show KeyPair;
 import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "router/app_route_data.dart";
 import "router/crash_page.dart" show CrashPage;
+import "router/main_page.dart" show MainPage;
+import "router/redirect_page.dart" show RedirectPage;
+import "router/settings_nodes_page.dart";
+import "router/settings_walletmanager_page.dart" show SettingsWalletManagerPage;
 import "services/blockchain/blockchain.dart" show BlockchainServiceFactory;
-
+import "services/sensetive_storage_service.dart" show SensetiveStorageService;
+import "services/storage_service.dart" show StorageService;
+import "viewmodel/account_view_mode.dart" show AccountViewModel;
+import "viewmodel/app_view_model.dart" show AppViewModel;
+import "widgets/business/deploy_contract.dart"
+    show DeployContractWidget, DeployContractWidgetApi;
+import "widgets/business/main.dart" show MainWidgetApi;
 import "widgets/business/main_wallets.dart" show DeployContractCallback;
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
+import "widgets/layout/my_scaffold.dart" show MyScaffold;
+
 import "wizzard_key.dart" show WizzardWalletWidget;
 
 class AppRouterWidget extends StatelessWidget {
@@ -285,7 +283,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       this._currentConfiguration = AppRouteDataMainWallets();
       this.notifyListeners();
     };
-    final void Function() onWalletNew = () {
+    final void Function() onAddNewKey = () {
       this._currentConfiguration = AppRouteDataMainWalletsNew();
       this.notifyListeners();
     };
@@ -301,14 +299,18 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
           AppRouteDataMainWalletsSendMoney(account.blockchainAddress);
       this.notifyListeners();
     };
-    final void Function() onSelectSetting = () {
+    final void Function() onSelectSettings = () {
       this._currentConfiguration = AppRouteDataMainSettings();
       this.notifyListeners();
     };
-    // final SelectSettingsNodesCallback onSelectSettingsNodes = () {
-    //   this._currentConfiguration = AppRouteDataMainSettingsNodes();
-    //   this.notifyListeners();
-    // };
+    final VoidCallback onOpenSettingsNodes = () {
+      this._currentConfiguration = AppRouteDataMainSettingsNodes();
+      this.notifyListeners();
+    };
+    final VoidCallback onOpenSettingsWalletManager = () {
+      this._currentConfiguration = AppRouteDataMainSettingsWalletManager();
+      this.notifyListeners();
+    };
 
     //final MainTab selectedTab = configuration.selectedTab;
 
@@ -316,16 +318,19 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     return <Page<dynamic>>[
       MainPage(
         configuration,
-        appViewModel,
-        // this._storageService,
-        // jobService: this._jobService,
-        onSelectHome: onSelectHome,
-        onSelectWallets: onSelectWallets,
-        onSelectSetting: onSelectSetting,
-        onWalletNew: onWalletNew,
-        onDeployContract: onDeployContract,
-        onSendMoney: onSendMoney,
-        // onSelectSettingsNodes: onSelectSettingsNodes,
+        MainWidgetApi(
+          appViewModel,
+          // this._storageService,
+          // jobService: this._jobService,
+          onSelectHome: onSelectHome,
+          onSelectWallets: onSelectWallets,
+          onSelectSettings: onSelectSettings,
+          onAddNewKey: onAddNewKey,
+          onDeployContract: onDeployContract,
+          onSendMoney: onSendMoney,
+          onOpenSettingsNodes: onOpenSettingsNodes,
+          onOpenSettingsWalletManager: onOpenSettingsWalletManager,
+        ),
       ),
       if (currentConfiguration is AppRouteDataMainWalletsNew)
         _buildWizzardWalletPage(
@@ -345,7 +350,11 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       if (currentConfiguration is AppRouteDataMainSettingsNodes)
         SettingsNodesPage(
           appViewModel,
-        )
+        ),
+      if (currentConfiguration is AppRouteDataMainSettingsWalletManager)
+        SettingsWalletManagerPage(
+          appViewModel,
+        ),
     ];
   }
 

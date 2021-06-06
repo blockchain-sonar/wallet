@@ -1,16 +1,18 @@
+//
 // Copyright 2021 Free TON Wallet Team
-
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 // 	http://www.apache.org/licenses/LICENSE-2.0
-
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
 import 'dart:async';
 import 'dart:typed_data';
@@ -26,6 +28,32 @@ import "main_wallets.dart"
 
 import "main_home.dart" show HomeChartWidget;
 import "main_tab.dart" show MainTab;
+
+class MainWidgetApi {
+  final AppViewModel appViewModel;
+
+  final VoidCallback onSelectHome;
+  final VoidCallback onSelectWallets;
+  final VoidCallback onSelectSettings;
+  final VoidCallback onAddNewKey;
+  final DeployContractCallback onDeployContract;
+  final SendMoneyCallback onSendMoney;
+  final VoidCallback onOpenSettingsNodes;
+  final VoidCallback onOpenSettingsWalletManager;
+
+  MainWidgetApi(
+    this.appViewModel, {
+    // required this.jobService,
+    required this.onSelectHome,
+    required this.onSelectWallets,
+    required this.onSelectSettings,
+    required this.onAddNewKey,
+    required this.onDeployContract,
+    required this.onSendMoney,
+    required this.onOpenSettingsNodes,
+    required this.onOpenSettingsWalletManager,
+  });
+}
 
 class MainWidget extends StatelessWidget {
   // static const TextStyle _tabOptionStyle = TextStyle(
@@ -59,27 +87,14 @@ class MainWidget extends StatelessWidget {
     ),
   ];
 
-  final AppViewModel _appViewModel;
+  final MainWidgetApi _mainWidgetApi;
   final int _selectedIndex;
   // final JobService jobService;
-  final void Function() onSelectHome;
-  final void Function() onSelectWallets;
-  final void Function() onSelectSettings;
-  final void Function() onAddNewKey;
-  final DeployContractCallback onDeployContract;
-  final SendMoneyCallback onSendMoney;
 
   MainWidget(
-    this._appViewModel,
-    MainTab selectedTab, {
-    // required this.jobService,
-    required this.onSelectHome,
-    required this.onSelectWallets,
-    required this.onSelectSettings,
-    required this.onAddNewKey,
-    required this.onDeployContract,
-    required this.onSendMoney,
-  }) : this._selectedIndex = _tabOptions
+    this._mainWidgetApi,
+    MainTab selectedTab,
+  ) : this._selectedIndex = _tabOptions
             .indexWhere((_OptionTuple tuple) => tuple.tab == selectedTab);
 
   @override
@@ -103,16 +118,21 @@ class MainWidget extends StatelessWidget {
         );
       case MainTab.WALLETS:
         return MainWalletsWidget(
-          this._appViewModel,
+          this._mainWidgetApi.appViewModel,
           bottomNavigationBar,
           // jobService: this.jobService,
-          onAddNewKey: this.onAddNewKey,
-          onDeployContract: this.onDeployContract,
-          onSendMoney: this.onSendMoney,
+          onAddNewKey: this._mainWidgetApi.onAddNewKey,
+          onDeployContract: this._mainWidgetApi.onDeployContract,
+          onSendMoney: this._mainWidgetApi.onSendMoney,
         );
       case MainTab.SETTINGS:
         return SettingsWidget(
-          this._appViewModel,
+          SettingsWidgetApi(
+            this._mainWidgetApi.appViewModel,
+            onOpenSettingsNodes: this._mainWidgetApi.onOpenSettingsNodes,
+            onOpenSettingsWalletManager:
+                this._mainWidgetApi.onOpenSettingsWalletManager,
+          ),
           bottomNavigationBar,
         );
       default:
@@ -150,13 +170,13 @@ class MainWidget extends StatelessWidget {
     final _OptionTuple tapTuple = _tabOptions[index];
     switch (tapTuple.tab) {
       case MainTab.HOME:
-        this.onSelectHome();
+        this._mainWidgetApi.onSelectHome();
         break;
       case MainTab.WALLETS:
-        this.onSelectWallets();
+        this._mainWidgetApi.onSelectWallets();
         break;
       case MainTab.SETTINGS:
-        this.onSelectSettings();
+        this._mainWidgetApi.onSelectSettings();
         break;
     }
   }

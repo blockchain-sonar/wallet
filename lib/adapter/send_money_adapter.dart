@@ -1,19 +1,23 @@
+//
 // Copyright 2021 Free TON Wallet Team
-
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
+//
 // 	http://www.apache.org/licenses/LICENSE-2.0
-
+//
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
 
 import "package:freemework/freemework.dart"
     show ExecutionContext, FreemeworkException;
+import 'package:freeton_wallet/viewmodel/account_view_mode.dart';
+import 'package:freeton_wallet/viewmodel/key_pair_view_model.dart';
 
 import "../viewmodel/app_view_model.dart" show AppViewModel;
 
@@ -32,23 +36,22 @@ import "../services/blockchain/blockchain.dart"
         SmartContractKeeper,
         Transaction,
         WalletAbi;
-import "../services/encrypted_db_service.dart"
-    show DataAccount, KeypairBundle, KeypairBundlePlain;
+
 import "../widgets/business/send_money.dart" show SendMoneyWidgetApi;
 
 class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
   final AppViewModel _appViewModel;
   //final EncryptedDbService encryptedDbService;
-  final BlockchainService _blockchainService;
-  final JobService _jobService;
-  final DataAccount _dataAccount;
+  // final BlockchainService _blockchainService;
+  // final JobService _jobService;
+  final AccountViewModel _dataAccount;
   // final String accountAddress;
 
   SendMoneyWidgetApiAdapter(
     this._dataAccount,
     this._appViewModel,
-    this._blockchainService,
-    this._jobService,
+    // this._blockchainService,
+    // this._jobService,
     //this.encryptedDbService,
     //this.accountAddress,
   );
@@ -71,19 +74,20 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
       throw StateError("Cannot send money. Unsupported contract ABI.");
     }
 
-    String keySecret;
+    String keySecret = ""; // TODO
 
-    final KeypairBundle keypairBundle = this._dataAccount.parentKeypairBundle;
-    if (keypairBundle is KeypairBundlePlain) {
-      keySecret = keypairBundle.keySecret;
-    } else {
-      throw FreemeworkException(
-          "${KeypairBundlePlain} only supported right now.");
-    }
+    final KeyPairViewModel keyPair = this._dataAccount.parentKeyPair;
+    // if (keypairBundle is KeypairBundlePlain) {
+    //   keySecret = keypairBundle.keySecret;
+    // } else {
+    //   throw FreemeworkException(
+    //       "${KeypairBundlePlain} only supported right now.");
+    // }
 
-    final SmartContactRuntime contactRuntime = this._blockchainService;
+    final SmartContactRuntime contactRuntime =
+        this._appViewModel.blockchainService;
     final Account account = Account(
-      KeyPair(public: keypairBundle.keyPublic, secret: keySecret),
+      KeyPair(public: keyPair.keyPublic, secret: keySecret),
       this._dataAccount.blockchainAddress,
       smartContractAbi,
     );
@@ -108,7 +112,8 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
     ExecutionContext ectx,
     String transactionToken,
   ) async {
-    final SmartContactRuntime contactRuntime = this._blockchainService;
+    final SmartContactRuntime contactRuntime =
+        this._appViewModel.blockchainService;
 
     final ProcessingState processingState = await contactRuntime.sendMessage(
       ectx,
@@ -124,7 +129,8 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
     String transactionToken,
     String submitToken,
   ) async {
-    final SmartContactRuntime contactRuntime = this._blockchainService;
+    final SmartContactRuntime contactRuntime =
+        this._appViewModel.blockchainService;
 
     final Transaction transaction = await contactRuntime.waitForRunTransaction(
       ectx,
