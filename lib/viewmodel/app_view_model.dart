@@ -212,7 +212,7 @@ class AppViewModel extends ChangeNotifier {
   }
 
   Future<void> selectNode(String nodeId) async {
-    final AppModel updatedAppModel = await this._storageService.read();
+    final AppModel updatedAppModel = this._appModel;
 
     assert(updatedAppModel.nodes
         .where((NodeModel node) => node.nodeId == nodeId)
@@ -220,7 +220,7 @@ class AppViewModel extends ChangeNotifier {
 
     updatedAppModel.selectedNodeId = nodeId;
 
-    await this._storageService.write(updatedAppModel);
+    await this._storageService.write(updatedAppModel.clone());
 
     this._rebuildViewModels(updatedAppModel);
 

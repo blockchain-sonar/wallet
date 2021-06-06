@@ -16,7 +16,36 @@
 
 import "dart:ui" show FontWeight, TextAlign;
 import "package:flutter/material.dart"
-    show Border, BorderRadius, BoxDecoration, BoxShadow, BuildContext, Color, Colors, Column, Container, ElevatedButton, Expanded, ExpansionTile, Icon, IconButton, Icons, InkWell, InputDecoration, ListTile, ListView, Offset, Radius, SizedBox, State, StatefulWidget, StatelessWidget, Text, TextFormField, UnderlineInputBorder, Widget;
+    show
+        Border,
+        BorderRadius,
+        BoxDecoration,
+        BoxShadow,
+        BuildContext,
+        Color,
+        Colors,
+        Column,
+        Container,
+        ElevatedButton,
+        Expanded,
+        ExpansionTile,
+        Icon,
+        IconButton,
+        Icons,
+        InkWell,
+        InputDecoration,
+        ListTile,
+        ListView,
+        Offset,
+        Radius,
+        SizedBox,
+        State,
+        StatefulWidget,
+        StatelessWidget,
+        Text,
+        TextFormField,
+        UnderlineInputBorder,
+        Widget;
 import "package:flutter/src/widgets/basic.dart"
     show
         Column,
@@ -31,6 +60,7 @@ import "package:flutter/src/widgets/basic.dart"
         TextStyle;
 import 'package:freeton_wallet/viewmodel/app_view_model.dart';
 import 'package:freeton_wallet/viewmodel/node_view_model.dart';
+import 'package:freeton_wallet/widgets/reusable/change_detector.dart';
 import "../layout/my_scaffold.dart" show MyScaffold;
 
 class SettingsNodesWidget extends StatelessWidget {
@@ -153,6 +183,17 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
     // this.widget._addNode(node);
   }
 
+  void _setActiveNode(NodeViewModel node) {
+    this.widget._appViewModel.selectNode(node.nodeId);
+  }
+
+  void _deleteNode(NodeViewModel node) {
+    print(node.name);
+  }
+
+  bool _canDelete(NodeViewModel node) =>
+      !<String>["Mainnet", "Testnet"].contains(node.name);
+
   Widget tileWidget(NodeViewModel node, {bool canDelete = true}) {
     return ListTile(
       tileColor: node.color,
@@ -178,26 +219,26 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
           ),
           Row(
             children: <Widget>[
-              // IconButton(
-              //   splashRadius: 20,
-              //   icon: Icon(
-              //     Icons.star,
-              //     color: this.widget._appViewModel.selectedNode == node
-              //         ? Colors.blue
-              //         : Colors.grey,
-              //   ),
-              //   onPressed: () => this.widget._setActiveNode(node),
-              // ),
-              // if (canDelete)
-              //   IconButton(
-              //     splashRadius: 20,
-              //     icon: Icon(
-              //       Icons.delete,
-              //       color: Colors.red,
-              //     ),
-              //     onPressed: () => this.widget._deleteNode(node),
-              //   ),
-              if (!canDelete)
+              IconButton(
+                splashRadius: 20,
+                icon: Icon(
+                  Icons.star,
+                  color: this.widget._appViewModel.selectedNode == node
+                      ? Colors.blue
+                      : Colors.grey,
+                ),
+                onPressed: () => this._setActiveNode(node),
+              ),
+              if (this._canDelete(node))
+                IconButton(
+                  splashRadius: 20,
+                  icon: Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                  ),
+                  onPressed: () => this._deleteNode(node),
+                ),
+              if (!this._canDelete(node))
                 SizedBox(
                   width: 40,
                 ),
@@ -214,38 +255,24 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
       appBarTitle: "Nodes",
       body: Column(
         children: <Widget>[
-          // Expanded(
-          //   child: this.widget._nodes.isNotEmpty
-          //       ? ListView(
-          //           children:
-          //               ListTile.divideTiles(context: context, tiles: <Widget>[
-          //           this.tileWidget(
-          //               NodeBundle(
-          //                 "Main TON",
-          //                 "main.ton.dev",
-          //                 null,
-          //               ),
-          //               canDelete: false),
-          //           this.tileWidget(
-          //               NodeBundle(
-          //                 "Net TON",
-          //                 "net.ton.dev",
-          //                 null,
-          //               ),
-          //               canDelete: false),
-          //           ...this.widget._nodes.map((NodeBundle e) => tileWidget(e)),
-          //         ]).toList())
-          //       : Padding(
-          //           padding: const EdgeInsets.all(20.0),
-          //           child: Text(
-          //             "No active nodes",
-          //             style: TextStyle(
-          //               fontWeight: FontWeight.bold,
-          //               fontSize: 24,
-          //             ),
-          //           ),
-          //         ),
-          // ),
+          Expanded(
+            child: ChangeDetector(
+              this.widget._appViewModel,
+              builder: (_) {
+                print("Update nodes");
+                print(this.widget._appViewModel.selectedNode.nodeId);
+                return ListView(
+                    children:
+                        ListTile.divideTiles(context: context, tiles: <Widget>[
+                  ...this
+                      .widget
+                      ._appViewModel
+                      .nodes
+                      .map((NodeViewModel node) => tileWidget(node)),
+                ]).toList());
+              },
+            ),
+          ),
           // ExpansionTile(
           //   title: Text(
           //     "Add node",
@@ -347,21 +374,21 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
           //         ),
           //       ),
           //     ),
-          //     Padding(
+          // Padding(
+          //   padding: const EdgeInsets.symmetric(
+          //     vertical: 10,
+          //   ),
+          //   child: ElevatedButton(
+          //     onPressed: this.newNodeDataIsEntered ? this._addNode : null,
+          //     child: Padding(
           //       padding: const EdgeInsets.symmetric(
+          //         horizontal: 20,
           //         vertical: 10,
           //       ),
-          //       child: ElevatedButton(
-          //         onPressed: this.newNodeDataIsEntered ? this._addNode : null,
-          //         child: Padding(
-          //           padding: const EdgeInsets.symmetric(
-          //             horizontal: 20,
-          //             vertical: 10,
-          //           ),
-          //           child: Text("Add"),
-          //         ),
-          //       ),
+          //       child: Text("Add"),
           //     ),
+          //   ),
+          // ),
           //   ],
           // )
         ],
