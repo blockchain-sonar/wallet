@@ -23,9 +23,11 @@ import "dart:html"
         ServiceWorkerRegistration,
         window;
 
-import 'package:freemework/freemework.dart';
+import "package:freemework/freemework.dart" show FreemeworkException;
 
 abstract class SessionService {
+  static const String KEY__ENCRYPTION_KEY = "encryptionKey";
+
   Future<void> deleteValue(String key);
   Future<bool> hasValue(String key);
   Future<String> getValue(String key);
@@ -140,6 +142,7 @@ class WorkerSessionService extends SessionService {
 
   @override
   Future<void> setValue(String key, String value) async {
+    print("setValue to worker: $key = $value");
     _SetDataSetValue param = _SetDataSetValue(key, value);
     this._serviceWorker.postMessage(param.toJson());
   }

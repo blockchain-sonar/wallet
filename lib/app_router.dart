@@ -15,6 +15,7 @@
 //
 
 import "dart:async" show Future;
+import "dart:convert" show base64Encode;
 import "dart:typed_data" show Uint8List;
 
 import "package:flutter/material.dart"
@@ -65,7 +66,8 @@ import "widgets/business/main.dart" show MainWidgetApi;
 import "widgets/business/main_wallets.dart" show DeployContractCallback;
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
-import "widgets/business/unlock.dart" show UnlockContext, UnlockWidget;
+import "widgets/business/unlock.dart"
+    show UnlockContext, UnlockSuccessContext, UnlockWidget;
 import "widgets/layout/my_scaffold.dart" show MyScaffold;
 
 import "wizzard_key.dart" show WizzardWalletWidget;
@@ -377,6 +379,9 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       MaterialPage<UnlockWidget>(
         key: UniqueKey(),
         child: UnlockWidget(
+          this._blockchainServiceFactory,
+          this._sensetiveStorageService,
+          this._storageService,
           this._sessionService,
           dataContextInit: UnlockContext("", configuration.errorMessage),
           onComplete: (
@@ -386,21 +391,32 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
             assert(this._appViewModel == null);
             assert(sensetiveStorageService.isInitialized);
 
-            final String masterPassword = ctx.password;
             try {
-              final Uint8List encryptionKey = await sensetiveStorageService
-                  .derivateEncryptionKey(masterPassword);
+              if (ctx is UnlockSuccessContext) {
+                this._appViewModel = ctx.appViewModel;
+                this._currentConfiguration = AppRouteDataMain.home();
+              } else {
+                final String masterPassword = ctx.password;
+                final Uint8List encryptionKey = await sensetiveStorageService
+                    .derivateEncryptionKey(masterPassword);
 
-              final AppViewModel newAppViewModel = AppViewModel(
-                this._storageService,
-                this._sensetiveStorageService,
-                this._blockchainServiceFactory,
-              );
+                final AppViewModel newAppViewModel = AppViewModel(
+                  this._storageService,
+                  this._sensetiveStorageService,
+                  this._blockchainServiceFactory,
+                );
 
-              await newAppViewModel.initialize(encryptionKey);
+                await newAppViewModel.initialize(encryptionKey);
 
-              this._appViewModel = newAppViewModel;
-              this._currentConfiguration = AppRouteDataMain.home();
+                final String encryptionKeyStr = base64Encode(encryptionKey);
+                await this._sessionService.setValue(
+                      SessionService.KEY__ENCRYPTION_KEY,
+                      encryptionKeyStr,
+                    );
+
+                this._appViewModel = newAppViewModel;
+                this._currentConfiguration = AppRouteDataMain.home();
+              }
             } catch (e) {
               final FreemeworkException err =
                   FreemeworkException.wrapIfNeeded(e);

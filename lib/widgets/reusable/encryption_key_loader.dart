@@ -45,7 +45,7 @@ class EncryptionKeyLoader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<String>(
-      future: this._sessionService.getValue("encryptionKey"),
+      future: this._sessionService.getValue(SessionService.KEY__ENCRYPTION_KEY),
       builder: this._buildSnapshotRouter,
     );
   }

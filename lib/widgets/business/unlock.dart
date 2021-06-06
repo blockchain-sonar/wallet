@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-import 'dart:typed_data';
+import "dart:typed_data" show Uint8List;
 
 import "package:flutter/material.dart"
     show
@@ -42,15 +42,23 @@ import "package:flutter/widgets.dart"
         Text,
         TextEditingController,
         TextStyle,
-        Widget;
+        Widget,
+        WidgetBuilder;
+import 'package:freemework/ExecutionContext.dart';
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
-import 'package:freeton_wallet/services/session.dart';
-import 'package:freeton_wallet/widgets/reusable/encryption_key_loader.dart';
+import 'package:freeton_wallet/services/blockchain/blockchain.dart';
+import '../../services/sensetive_storage_service.dart';
+import '../../services/storage_service.dart';
+import '../reusable/app_view_model_initializer.dart';
+
+import "../../services/session.dart" show SessionService;
+import "../../viewmodel/app_view_model.dart" show AppViewModel;
 
 import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
+import "../reusable/encryption_key_loader.dart" show EncryptionKeyLoader;
 import "../reusable/logo_widget.dart" show FWLogo128Widget;
 import "../toolchain/dialog_widget.dart"
     show
@@ -66,31 +74,79 @@ class UnlockContext {
   UnlockContext(this.password, this.errorMessage);
 }
 
+class UnlockSuccessContext implements UnlockContext {
+  final AppViewModel appViewModel;
+
+  UnlockSuccessContext(this.appViewModel);
+
+  @override
+  String get password => throw StateError("Use appViewModel instead");
+
+  @override
+  String? get errorMessage => null;
+}
+
 class UnlockWidget extends StatelessWidget {
+  final BlockchainServiceFactory _blockchainServiceFactory;
+  final SensetiveStorageService _sensetiveStorageService;
+  final StorageService _storageService;
   final SessionService _sessionService;
   final UnlockContext? _dataContextInit;
   final DialogHostCallback<UnlockContext> _onComplete;
 
   UnlockWidget(
+    this._blockchainServiceFactory,
+    this._sensetiveStorageService,
+    this._storageService,
     this._sessionService, {
     required DialogHostCallback<UnlockContext> onComplete,
     UnlockContext? dataContextInit,
   })  : this._onComplete = onComplete,
         this._dataContextInit = dataContextInit;
 
+  Widget unlockWidgetBuilder(BuildContext context) =>
+      DialogWidget<UnlockContext>(
+        onComplete: this._onComplete,
+        dataContextInit: this._dataContextInit,
+        child: _UnlockWidget(),
+      );
+
   @override
   Widget build(BuildContext context) {
+    final UnlockContext? dataContextInit = this._dataContextInit;
+    if (dataContextInit != null && dataContextInit.errorMessage != null) {
+      return unlockWidgetBuilder(context);
+    }
+
     return EncryptionKeyLoader(
       this._sessionService,
       builder: (
         _, [
         Uint8List? sessionEncryptionKey,
-      ]) =>
-          DialogWidget<UnlockContext>(
-        onComplete: this._onComplete,
-        dataContextInit: this._dataContextInit,
-        child: _UnlockWidget(),
-      ),
+      ]) {
+        if (sessionEncryptionKey != null) {
+          final AppViewModel newAppViewModel = AppViewModel(
+            this._storageService,
+            this._sensetiveStorageService,
+            this._blockchainServiceFactory,
+          );
+
+          return AppViewModelInitializer(
+            newAppViewModel,
+            sessionEncryptionKey,
+            onSuccess: () {
+              //
+              this._onComplete(
+                ExecutionContext.EMPTY,
+                UnlockSuccessContext(newAppViewModel),
+              );
+            },
+            failureBuilder: unlockWidgetBuilder,
+          );
+        }
+
+        return unlockWidgetBuilder(context);
+      },
     );
   }
 }
