@@ -38,7 +38,6 @@ import "package:flutter/material.dart"
         ListView,
         Offset,
         Radius,
-        SizedBox,
         State,
         StatefulWidget,
         StatelessWidget,
@@ -58,9 +57,9 @@ import "package:flutter/src/widgets/basic.dart"
         Row,
         TextAlign,
         TextStyle;
-import 'package:freeton_wallet/viewmodel/app_view_model.dart';
-import 'package:freeton_wallet/viewmodel/node_view_model.dart';
-import 'package:freeton_wallet/widgets/reusable/change_detector.dart';
+import "../../viewmodel/app_view_model.dart" show AppViewModel;
+import "../../viewmodel/node_view_model.dart" show NodeViewModel;
+import "../reusable/change_detector.dart" show ChangeDetector;
 import "../layout/my_scaffold.dart" show MyScaffold;
 
 class SettingsNodesWidget extends StatelessWidget {

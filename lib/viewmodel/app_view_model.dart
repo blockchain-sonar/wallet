@@ -24,6 +24,7 @@ import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show ChangeNotifier;
 import 'package:freemework/freemework.dart';
 import 'package:freeton_wallet/data/key_pair.dart';
+import 'package:freeton_wallet/model/account_model.dart';
 import 'package:freeton_wallet/model/key_pair_sensetive_model.dart';
 
 import "../model/app_model.dart" show AppModel;
@@ -179,6 +180,23 @@ class AppViewModel extends ChangeNotifier {
     this.notifyListeners();
   }
 
+  Future<void> setKeyPairHidden(int seedId, int keyPairId, bool state) async {
+    final AppModel updatedAppModel = this._appModel;
+
+    KeyPairModel keyPair = updatedAppModel.seeds
+        .firstWhere((SeedModel seed) => seed.seedId == seedId)
+        .keyPairs
+        .firstWhere((KeyPairModel keyPair) => keyPair.keyPairId == keyPairId);
+
+    keyPair.isHidden = state;
+
+    await this._storageService.write(updatedAppModel.clone());
+
+    this._rebuildViewModels(updatedAppModel);
+
+    this.notifyListeners();
+  }
+
   Future<void> addSeed(
     final Uint8List encryptionKey,
     final String mnemonicPhrase,
@@ -261,6 +279,26 @@ class AppViewModel extends ChangeNotifier {
         .isNotEmpty);
 
     updatedAppModel.selectedNodeId = nodeId;
+
+    await this._storageService.write(updatedAppModel.clone());
+
+    this._rebuildViewModels(updatedAppModel);
+
+    this.notifyListeners();
+  }
+
+  Future<void> setAccountHidden(
+      int seedId, int keyPairId, String address, bool state) async {
+    final AppModel updatedAppModel = this._appModel;
+
+    AccountModel account = updatedAppModel.seeds
+        .firstWhere((SeedModel seed) => seed.seedId == seedId)
+        .keyPairs
+        .firstWhere((KeyPairModel keyPair) => keyPair.keyPairId == keyPairId)
+        .accounts
+        .firstWhere((AccountModel account) => account.address == address);
+
+    account.isHidden = state;
 
     await this._storageService.write(updatedAppModel.clone());
 
