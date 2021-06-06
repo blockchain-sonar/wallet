@@ -125,50 +125,46 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Text(
-                node.name,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                node.servers.join(", "),
-                style: TextStyle(
-                  fontSize: 12,
-                ),
-              )
-            ],
-          ),
           Row(
             children: <Widget>[
               IconButton(
                 splashRadius: 20,
                 icon: Icon(
-                  Icons.star,
+                  Icons.check,
                   color: this.widget._appViewModel.selectedNode == node
                       ? Colors.blue[900]
                       : Colors.grey,
                 ),
                 onPressed: () => this._setActiveNode(node),
               ),
-              if (this._canDelete(node))
-                IconButton(
-                  splashRadius: 20,
-                  icon: Icon(
-                    Icons.delete,
-                    color: Colors.red[900],
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    node.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  onPressed: () => this._deleteNode(node),
-                ),
-              if (!this._canDelete(node))
-                SizedBox(
-                  width: 40,
-                ),
+                  Text(
+                    node.servers.join(", "),
+                    style: TextStyle(
+                      fontSize: 12,
+                    ),
+                  )
+                ],
+              ),
             ],
-          )
+          ),
+          if (this._canDelete(node))
+            IconButton(
+              splashRadius: 20,
+              icon: Icon(
+                Icons.delete,
+                color: Colors.red[900],
+              ),
+              onPressed: () => this._deleteNode(node),
+            ),
         ],
       ),
     );
