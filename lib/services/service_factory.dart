@@ -59,8 +59,10 @@ class ServiceFactoryProductive extends ServiceFactory {
 
   @override
   Future<SessionService> createSessionService() async {
-    final WorkerSessionService sessionService = WorkerSessionService();
-    await sessionService.init();
+    // final WorkerSessionService sessionService = WorkerSessionService();
+    // await sessionService.init();
+    final LocalStorageSessionService sessionService =
+        LocalStorageSessionService();
     return sessionService;
   }
 

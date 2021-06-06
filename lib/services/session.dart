@@ -5,7 +5,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-// 	http://www.apache.org/licenses/LICENSE-2.0
+//  http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
 // limitations under the License.
 //
 
-import "dart:async" show Completer, Future;
+import "dart:async" show Completer, Future, Timer;
 import "dart:html"
     show
         MessageEvent,
@@ -45,12 +45,14 @@ abstract class SessionService {
 class WorkerSessionService extends SessionService {
   static final WorkerSessionService? _instanse = WorkerSessionService._();
 
+  static const int _DELAY_TIMEOUT = 3;
+
   bool _isInit;
   ServiceWorkerRegistration? _serviceWorkerRegistration;
-  Map<int, Completer<dynamic>> _completers;
+  Map<int, _CompleterEntry> _completers;
 
   WorkerSessionService._()
-      : this._completers = <int, Completer<dynamic>>{},
+      : this._completers = <int, _CompleterEntry>{},
         this._isInit = false;
 
   factory WorkerSessionService() => WorkerSessionService._instanse!;
@@ -71,12 +73,22 @@ class WorkerSessionService extends SessionService {
     return serviceWorker;
   }
 
+  void close() {
+    final ServiceWorkerRegistration? serviceWorkerRegistration =
+        this._serviceWorkerRegistration;
+    if (serviceWorkerRegistration == null) {
+      throw StateError(
+          "Service worker didn't init. Try to call init() before use this.");
+    }
+    serviceWorkerRegistration.unregister();
+  }
+
   Future<void> init() async {
+    print("SW Init!");
     if (this._isInit) {
       throw StateError(
           "Can not init 'ServiceWorkerKeyValueService' class twice.");
     }
-
     final ServiceWorkerContainer? serviceWorkerContainer =
         window.navigator.serviceWorker;
 
@@ -88,63 +100,168 @@ class WorkerSessionService extends SessionService {
 
     final ServiceWorkerRegistration serviceWorkerRegistration =
         await serviceWorkerContainer.register("session_service_worker.js");
+    final ServiceWorkerRegistration serviceWorkerRegistration2 =
+        await serviceWorkerContainer.ready;
+    this._serviceWorkerRegistration = serviceWorkerRegistration2;
 
-    this._serviceWorkerRegistration = serviceWorkerRegistration;
-
+    print(serviceWorkerRegistration == serviceWorkerRegistration2);
     serviceWorkerContainer.onMessage.listen(this._onMessageHandler);
   }
 
   dynamic _onMessageHandler(MessageEvent event) {
-    if (event.data["id"] == null) {
+    int? completerId = event.data["id"];
+    if (completerId == null) {
       return;
     }
-    if (event.data["result"] == null) {
-      return;
-    }
-    if (event.data["result"]["value"] == null) {
+    final _CompleterEntry? completerEnrty = this._completers[completerId];
+    if (completerEnrty == null) {
       return;
     }
 
-    int completerId = event.data["id"];
-    final Completer<dynamic>? completer = this._completers[completerId];
-    if (completer == null) {
-      return;
+    if (event.data["result"] == null) {
+      completerEnrty.completer.completeError("Error, no result in response");
     }
+    if (event.data["result"]["value"] == null) {
+      completerEnrty.completer
+          .completeError("Error, no result value in response");
+    }
+    completerEnrty.timer.cancel();
     this._completers.remove(completerId);
-    completer.complete(event.data["result"]["value"]);
+    completerEnrty.completer.complete(event.data["result"]["value"]);
+  }
+
+  Timer _setCompleterTimeout(Completer<dynamic> completer) {
+    return Timer(Duration(seconds: WorkerSessionService._DELAY_TIMEOUT), () {
+      this._completers.removeWhere((_, _CompleterEntry completerEntry) =>
+          completerEntry.completer == completer);
+      completer.completeError("Completer timeout");
+    });
   }
 
   @override
   Future<void> deleteValue(String key) async {
+    final Completer<void> completer = Completer<void>();
+    Timer timer = this._setCompleterTimeout(completer);
     _DeleteDataSetValue param = _DeleteDataSetValue(key);
     this._serviceWorker.postMessage(param.toJson());
+    this._completers[param.id] = _CompleterEntry(completer, timer);
+    return completer.future;
   }
 
   @override
   Future<String> getValue(String key) {
-    return Future<void>.delayed(Duration(seconds: 3)).then(
-        (value) => Future.error(FreemeworkException("Not implemented yet")));
-    // final Completer<String> completer = Completer<String>();
-    // _GetDataSetValue param = _GetDataSetValue(key);
-    // this._serviceWorker.postMessage(param.toJson());
-    // this._completers[param.id] = completer;
-    // return completer.future;
+    final Completer<String> completer = Completer<String>();
+    Timer timer = this._setCompleterTimeout(completer);
+    _GetDataSetValue param = _GetDataSetValue(key);
+    this._serviceWorker.postMessage(param.toJson());
+    this._completers[param.id] = _CompleterEntry(completer, timer);
+    return completer.future;
   }
 
   @override
   Future<bool> hasValue(String key) {
     final Completer<bool> completer = Completer<bool>();
+    Timer timer = this._setCompleterTimeout(completer);
     _HasDataSetValue param = _HasDataSetValue(key);
     this._serviceWorker.postMessage(param.toJson());
-    this._completers[param.id] = completer;
+    this._completers[param.id] = _CompleterEntry(completer, timer);
     return completer.future;
   }
 
   @override
   Future<void> setValue(String key, String value) async {
-    print("setValue to worker: $key = $value");
+    // print("setValue to worker: $key = $value");
+    final Completer<void> completer = Completer<void>();
+    Timer timer = this._setCompleterTimeout(completer);
     _SetDataSetValue param = _SetDataSetValue(key, value);
     this._serviceWorker.postMessage(param.toJson());
+    this._completers[param.id] = _CompleterEntry(completer, timer);
+    return completer.future;
+  }
+}
+
+class LocalStorageSessionService extends SessionService {
+  int _timeout = 900;
+  static const String _PREFIX = "LOCAL_DATASET";
+
+  void _refreshExpTimestaml(String key, _LocalStorageSessionEntity entity) {
+    this.setValue(key, entity.value);
+  }
+
+  @override
+  Future<void> deleteValue(String key) async {
+    window.localStorage.remove("${LocalStorageSessionService._PREFIX}:${key}");
+  }
+
+  @override
+  Future<String> getValue(String key) async {
+    final String? valueRaw =
+        window.localStorage["${LocalStorageSessionService._PREFIX}:${key}"];
+    if (valueRaw == null) {
+      throw StateError(
+          "No value for key: ${LocalStorageSessionService._PREFIX}:${key}");
+    }
+    try {
+      _LocalStorageSessionEntity localEntity =
+          _LocalStorageSessionEntity.parse(valueRaw);
+      this._refreshExpTimestaml(key, localEntity);
+      return localEntity.value;
+    } catch (e) {
+      this.deleteValue(key);
+      throw e;
+    }
+  }
+
+  @override
+  Future<bool> hasValue(String key) async {
+    if (!window.localStorage.containsKey(key)) {
+      return false;
+    }
+    final String? valueRaw =
+        window.localStorage["${LocalStorageSessionService._PREFIX}:${key}"];
+    if (valueRaw == null) {
+      throw StateError(
+          "No value for key: ${LocalStorageSessionService._PREFIX}:${key}");
+    }
+    try {
+      _LocalStorageSessionEntity localEntity =
+          _LocalStorageSessionEntity.parse(valueRaw);
+      this._refreshExpTimestaml(key, localEntity);
+      return true;
+    } catch (e) {
+      this.deleteValue(key);
+      throw e;
+    }
+  }
+
+  @override
+  Future<void> setValue(String key, String value) async {
+    int exp_timestamp =
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000) + this._timeout;
+    window.localStorage["${LocalStorageSessionService._PREFIX}:${key}"] =
+        "${value}:${exp_timestamp}";
+  }
+}
+
+class _LocalStorageSessionEntity {
+  final String value;
+  final int timestamp;
+  _LocalStorageSessionEntity._(this.value, this.timestamp);
+
+  factory _LocalStorageSessionEntity.parse(String valueRaw) {
+    RegExp exp = RegExp(r"^(.+):(\d+)$");
+    RegExpMatch matches = exp.allMatches(valueRaw).first;
+    String? value = matches[1];
+    String? timestampRaw = matches[2];
+    if (value == null || timestampRaw == null) {
+      throw StateError("Wrong raw value");
+    }
+    int timestamp = int.parse(timestampRaw);
+    int currentTimestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    if (currentTimestamp > timestamp) {
+      throw StateError("Value time expired");
+    }
+    return _LocalStorageSessionEntity._(value, timestamp);
   }
 }
 
@@ -205,4 +322,10 @@ class _DeleteDataSetValue extends _OutputDataSetSWMessage {
         "params": <String, String>{"key": this.paramName},
         "id": this.id,
       };
+}
+
+class _CompleterEntry {
+  final Completer<dynamic> completer;
+  final Timer timer;
+  _CompleterEntry(this.completer, this.timer);
 }
