@@ -22,10 +22,13 @@ import "package:flutter/widgets.dart"
         ConnectionState,
         FutureBuilder,
         Key,
+        ObjectKey,
         StatelessWidget,
         Text,
+        ValueKey,
         Widget;
 import 'package:freeton_wallet/services/sensetive_storage_service.dart';
+import 'package:freeton_wallet/services/session.dart';
 import 'package:freeton_wallet/services/storage_service.dart';
 
 import "widgets/business/crash.dart" show CrashStandalone;
@@ -36,21 +39,29 @@ import "app_router.dart" show AppRouterWidget;
 import "services/crypto_service.dart" show CryptoService;
 import "services/service_factory.dart" show ServiceFactory;
 import "services/encrypted_db_service.dart" show EncryptedDbService;
-import "services/blockchain/blockchain.dart" show BlockchainService, BlockchainServiceFactory;
+import "services/blockchain/blockchain.dart"
+    show BlockchainService, BlockchainServiceFactory;
 import "services/job.dart" show JobService;
 import "viewmodel/app_view_model.dart" show AppViewModel;
 
 class App extends StatelessWidget {
-  const App(this.serviceFactory, {Key? key}) : super(key: key);
+  App(this.serviceFactory)
+      : this._serviceBundle = _ServicesBundle(serviceFactory) {
+    print("Create App root widget");
+  }
 
   final ServiceFactory serviceFactory;
+  final _ServicesBundle _serviceBundle;
 
   @override
   Widget build(BuildContext context) {
+    print("Build App root widget");
+
     return Provider<ServiceFactory>.value(
       value: serviceFactory,
       child: FutureBuilder<_ServicesBundle>(
-        future: _ServicesBundle(serviceFactory).init(),
+        key: ValueKey<App>(this),
+        future: this._serviceBundle.init(),
         builder: (
           BuildContext context,
           AsyncSnapshot<_ServicesBundle?> snapshot,
@@ -70,6 +81,7 @@ class App extends StatelessWidget {
             // servicesBundle.jobService,
             servicesBundle.sensetiveStorageService,
             servicesBundle.storageService,
+            servicesBundle.sessionService,
           );
         },
       ),
@@ -83,6 +95,7 @@ class _ServicesBundle {
   CryptoService? _cryptoService;
   SensetiveStorageService? _sensetiveStorageService;
   StorageService? _storageService;
+  SessionService? _sessionService;
   BlockchainServiceFactory? _blockchainServiceFactory;
   // JobService? _jobService;
 
@@ -106,6 +119,11 @@ class _ServicesBundle {
     return this._storageService!;
   }
 
+  SessionService get sessionService {
+    assert(this._sessionService != null);
+    return this._sessionService!;
+  }
+
   // JobService get jobService {
   //   assert(this._jobService != null);
   //   return this._jobService!;
@@ -121,9 +139,19 @@ class _ServicesBundle {
 
   _ServicesBundle(this._serviceFactory)
       : this._cryptoService = null,
-        this._blockchainServiceFactory = null;
+        this._blockchainServiceFactory = null {
+    print("Create _ServicesBundle");
+  }
 
   Future<_ServicesBundle> _init() async {
+    if (this.__initializer == null) {
+      this.__initializer = this.__init();
+    }
+    return this.__initializer!;
+  }
+
+  Future<_ServicesBundle>? __initializer;
+  Future<_ServicesBundle> __init() async {
     final CryptoService cryptoService =
         await this._serviceFactory.createCryptoService();
     final BlockchainServiceFactory blockchainServiceFactory =
@@ -135,12 +163,15 @@ class _ServicesBundle {
         this._serviceFactory.createSensetiveStorageService(cryptoService);
     final StorageService storageService =
         this._serviceFactory.createStorageService();
+    final SessionService sessionService =
+        await this._serviceFactory.createSessionService();
 
     this._cryptoService = cryptoService;
     this._blockchainServiceFactory = blockchainServiceFactory;
     // this._jobService = jobService;
     this._sensetiveStorageService = sensetiveStorageService;
     this._storageService = storageService;
+    this._sessionService = sessionService;
 
     return this;
   }

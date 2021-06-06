@@ -39,8 +39,10 @@ import "package:flutter/widgets.dart"
         UniqueKey,
         ValueKey,
         VoidCallback,
-        Widget;
+        Widget,
+        WidgetBuilder;
 import "package:freemework/freemework.dart";
+import 'package:freeton_wallet/services/session.dart';
 
 import "adapter/deploy_contract_adapter.dart"
     show DeployContractWidgetApiAdapter;
@@ -77,11 +79,13 @@ class AppRouterWidget extends StatelessWidget {
     // final JobService jobService,
     final SensetiveStorageService sensetiveStorageService,
     final StorageService storageService,
+    final SessionService sessionService,
   )   : this._routerDelegate = _AppRouterDelegate(
           blockchainServiceFactory,
           // jobService,
           sensetiveStorageService,
           storageService,
+          sessionService,
         ),
         this._routeInformationParser = _AppRouteInformationParser();
 
@@ -130,6 +134,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
   final BlockchainServiceFactory _blockchainServiceFactory;
   final SensetiveStorageService _sensetiveStorageService;
   final StorageService _storageService;
+  final SessionService _sessionService;
 
   AppViewModel? _appViewModel;
   AppRouteData _currentConfiguration;
@@ -139,6 +144,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     // this._jobService,
     this._sensetiveStorageService,
     this._storageService,
+    this._sessionService,
   )   : this._navigatorKey = GlobalKey<NavigatorState>(),
         this._currentConfiguration = AppRouteDataMain.home(),
         this._appViewModel = null;
@@ -163,7 +169,8 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
 
     print(appViewModel);
 
-    final sensetiveStorageService = this._sensetiveStorageService;
+    final SensetiveStorageService sensetiveStorageService =
+        this._sensetiveStorageService;
 
     if (appViewModel != null) {
       if (currentConfiguration is AppRouteDataCrash)
@@ -370,6 +377,7 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
       MaterialPage<UnlockWidget>(
         key: UniqueKey(),
         child: UnlockWidget(
+          this._sessionService,
           dataContextInit: UnlockContext("", configuration.errorMessage),
           onComplete: (
             ExecutionContext executionContext,

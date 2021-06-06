@@ -22,6 +22,8 @@ import "app.dart" show App;
 import "test_widgets.dart";
 
 void main() {
+  print("Run main()");
+
   final ServiceFactory serviceFactory = ServiceFactoryProductive();
   runApp(App(serviceFactory));
 

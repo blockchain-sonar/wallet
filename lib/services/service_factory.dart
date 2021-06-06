@@ -14,17 +14,15 @@
 // limitations under the License.
 //
 
-import "dart:async" show Completer, Future;
-
 import "package:freemework/freemework.dart" show ExecutionContext;
-import 'package:freeton_wallet/services/job.dart';
-import 'package:freeton_wallet/services/sensetive_storage_service.dart';
-import 'package:freeton_wallet/services/storage_service.dart';
+import 'package:freeton_wallet/services/session.dart';
+// import 'job.dart';
+import "sensetive_storage_service.dart"
+    show SensetiveLocalStorageService, SensetiveStorageService;
+import "storage_service.dart" show LocalStorageService, StorageService;
 
 import "../clients/tonclient/tonclient.dart" show TonClient;
 
-import "encrypted_db_service.dart"
-    show EncryptedDbService, LocalStorageEncryptedDbService;
 import "crypto_service.dart" show CryptoService, PointyCastleCryptoService;
 import "blockchain/blockchain.dart"
     show BlockchainService, BlockchainServiceFactory, BlockchainServiceImpl;
@@ -36,6 +34,7 @@ abstract class ServiceFactory {
   //   BlockchainService blockchainService,
   //   EncryptedDbService encryptedDbService,
   // );
+  Future<SessionService> createSessionService();
   SensetiveStorageService createSensetiveStorageService(
     CryptoService cryptoService,
   );
@@ -57,6 +56,13 @@ class ServiceFactoryProductive extends ServiceFactory {
 
   @override
   StorageService createStorageService() => LocalStorageService();
+
+  @override
+  Future<SessionService> createSessionService() async {
+    final WorkerSessionService sessionService = WorkerSessionService();
+    await sessionService.init();
+    return sessionService;
+  }
 
   // @override
   // JobService createJobService(

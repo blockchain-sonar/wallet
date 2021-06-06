@@ -14,6 +14,8 @@
 // limitations under the License.
 //
 
+import 'dart:typed_data';
+
 import "package:flutter/material.dart"
     show
         Colors,
@@ -44,6 +46,8 @@ import "package:flutter/widgets.dart"
 
 import "package:freemework_cancellation/freemework_cancellation.dart"
     show CancellationTokenSource;
+import 'package:freeton_wallet/services/session.dart';
+import 'package:freeton_wallet/widgets/reusable/encryption_key_loader.dart';
 
 import "../layout/my_scaffold.dart" show MyScaffold;
 import "../reusable/button_widget.dart" show FWCancelFloatingActionButton;
@@ -63,10 +67,12 @@ class UnlockContext {
 }
 
 class UnlockWidget extends StatelessWidget {
+  final SessionService _sessionService;
   final UnlockContext? _dataContextInit;
   final DialogHostCallback<UnlockContext> _onComplete;
 
-  UnlockWidget({
+  UnlockWidget(
+    this._sessionService, {
     required DialogHostCallback<UnlockContext> onComplete,
     UnlockContext? dataContextInit,
   })  : this._onComplete = onComplete,
@@ -74,10 +80,17 @@ class UnlockWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DialogWidget<UnlockContext>(
-      onComplete: this._onComplete,
-      dataContextInit: this._dataContextInit,
-      child: _UnlockWidget(),
+    return EncryptionKeyLoader(
+      this._sessionService,
+      builder: (
+        _, [
+        Uint8List? sessionEncryptionKey,
+      ]) =>
+          DialogWidget<UnlockContext>(
+        onComplete: this._onComplete,
+        dataContextInit: this._dataContextInit,
+        child: _UnlockWidget(),
+      ),
     );
   }
 }

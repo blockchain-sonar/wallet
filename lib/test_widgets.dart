@@ -32,18 +32,6 @@ import 'widgets/business/unlock.dart' show UnlockContext, UnlockWidget;
 
 import 'clients/tonclient/tonclient.dart' show TonClient;
 
-void mainTestUnlockWidget() async {
-  runApp(UnlockWidget(
-    onComplete: (
-      ExecutionContext executionContext,
-      UnlockContext ctx,
-    ) async {
-      print("Dialog completed with password: ${ctx.password}");
-      await Future<void>.delayed(Duration(seconds: 3));
-    },
-  ));
-}
-
 void mainTestImportModeSelector() async {
   runApp(_buildRootWidget(ImportModeSelectorWidget(
     onComplete: (
