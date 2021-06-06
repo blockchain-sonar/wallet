@@ -16,9 +16,11 @@
 
 import 'dart:async';
 import "dart:collection" show UnmodifiableListView;
+import 'dart:html';
 import "dart:math" show max;
 import "dart:typed_data" show Uint8List;
 
+import 'package:flutter/material.dart';
 import "package:flutter/widgets.dart" show ChangeNotifier;
 import 'package:freemework/freemework.dart';
 import 'package:freeton_wallet/data/key_pair.dart';
@@ -209,6 +211,46 @@ class AppViewModel extends ChangeNotifier {
     final AppModel cloneAppModel = this._appModel.clone();
     await this._storageService.write(cloneAppModel);
     print("AppViewModel was persisted");
+  }
+
+  Future<void> addNode(String nodeName, String nodeHost, Color color) async {
+    final AppModel updatedAppModel = this._appModel;
+
+    // NodeModel node = updatedAppModel.nodes
+    //     .firstWhere((NodeModel node) => node.nodeId == nodeName.toLowerCase());
+
+    updatedAppModel.nodes.add(
+      NodeModel(
+        nodeName.toLowerCase(),
+        nodeName,
+        <String>[nodeHost],
+        color,
+        NodeModel.COIN_ICON__UNKNOWN,
+      ),
+    );
+
+    await this._storageService.write(updatedAppModel.clone());
+
+    this._rebuildViewModels(updatedAppModel);
+
+    this.notifyListeners();
+  }
+
+  Future<void> deleteNode(String nodeId) async {
+    final AppModel updatedAppModel = this._appModel;
+
+    if (this._appModel.selectedNodeId == nodeId) {
+      throw Exception("Can not delete active node");
+    }
+
+    updatedAppModel.nodes
+        .removeWhere((NodeModel node) => node.nodeId == nodeId);
+
+    await this._storageService.write(updatedAppModel.clone());
+
+    this._rebuildViewModels(updatedAppModel);
+
+    this.notifyListeners();
   }
 
   Future<void> selectNode(String nodeId) async {

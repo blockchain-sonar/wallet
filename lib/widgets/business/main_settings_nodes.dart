@@ -75,82 +75,6 @@ class SettingsNodesWidget extends StatelessWidget {
   }
 }
 
-// class SettingsNodesWidget extends StatefulWidget {
-//   final AppViewModel _appViewModel;
-
-//   SettingsNodesWidget(
-//     this._appViewModel,
-//   );
-
-//   @override
-//   _SettingsNodesWidgetState createState() => _SettingsNodesWidgetState();
-// }
-
-// class _SettingsNodesWidgetState extends State<SettingsNodesWidget> {
-//   // DataSet? _dataSet;
-
-//   _SettingsNodesWidgetState(); // : this._dataSet = null;
-
-//   // DataSet get dataSet {
-//   //   assert(this._dataSet != null);
-//   //   return this._dataSet!;
-//   // }
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     this._safeLoadDataset();
-//   }
-
-//   void _safeLoadDataset() async {
-//     // final DataSet dataSet =
-//     //     await this.widget._encryptedDbService.read(this.widget._encryptionKey);
-//     setState(() {
-//       // this._dataSet = dataSet;
-//     });
-//   }
-
-//   void addNode(NodeBundle nodeBundle) {
-//     // this.dataSet.addNode(nodeBundle);
-//     // this.widget._encryptedDbService.write(this.dataSet);
-//     this._safeLoadDataset();
-//   }
-
-//   void deleteNode(String nodeUrl) {
-//     // this.dataSet.deleteNodeByUrl(nodeUrl);
-//     // this.widget._encryptedDbService.write(this.dataSet);
-//     this._safeLoadDataset();
-//   }
-
-//   void setActiveNode(NodeBundle nodeBundle) {
-//     // this.dataSet.setActiveNode(nodeBundle);
-//     // this.widget._encryptedDbService.write(this.dataSet);
-//     this._safeLoadDataset();
-//   }
-
-//   Widget _buildDataSetLoader(BuildContext context) {
-//     return Text("Loading");
-//   }
-
-//   Widget _buildDataSetWorker(BuildContext context) {
-//     return NodesManagerSettings(
-//       this.widget._appViewModel,
-//       this.addNode,
-//       this.deleteNode,
-//       this.setActiveNode,
-//     );
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     if (this._dataSet == null) {
-//       return this._buildDataSetLoader(context);
-//     } else {
-//       return this._buildDataSetWorker(context);
-//     }
-//   }
-// }
-
 class NodesManagerSettings extends StatefulWidget {
   final AppViewModel _appViewModel;
 
@@ -166,21 +90,22 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
   _StateSettingsNode _stateNode;
   _NodesManagerSettingsState() : this._stateNode = _StateSettingsNode("", "");
 
-  bool get newNodeDataIsEntered => false;
-  // this
-  //     .widget
-  //     ._appViewModel.nodes
-  //     .where((NodeViewModel node) => node.servers == this._stateNode.nodeUrl)
-  //     .isEmpty &&
-  // this._stateNode.isDataEntered;
+  bool get newNodeDataIsEntered =>
+      this
+          .widget
+          ._appViewModel
+          .nodes
+          .where((NodeViewModel node) =>
+              node.nodeId == this._stateNode.nodeName.toLowerCase())
+          .isEmpty &&
+      this._stateNode.isDataEntered;
 
   void _addNode() {
-    // NodeModel node = NodeModel(
-    //   this._stateNode.nodeName,
-    //   this._stateNode.nodeUrl,
-    //   this._stateNode.nodeColor?.value,
-    // );
-    // this.widget._addNode(node);
+    this.widget._appViewModel.addNode(
+          this._stateNode.nodeName,
+          this._stateNode.nodeUrl,
+          this._stateNode.nodeColor ?? Colors.white,
+        );
   }
 
   void _setActiveNode(NodeViewModel node) {
@@ -188,7 +113,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
   }
 
   void _deleteNode(NodeViewModel node) {
-    print(node.name);
+    this.widget._appViewModel.deleteNode(node.nodeId);
   }
 
   bool _canDelete(NodeViewModel node) =>
@@ -224,7 +149,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 icon: Icon(
                   Icons.star,
                   color: this.widget._appViewModel.selectedNode == node
-                      ? Colors.blue
+                      ? Colors.blue[900]
                       : Colors.grey,
                 ),
                 onPressed: () => this._setActiveNode(node),
@@ -234,7 +159,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                   splashRadius: 20,
                   icon: Icon(
                     Icons.delete,
-                    color: Colors.red,
+                    color: Colors.red[900],
                   ),
                   onPressed: () => this._deleteNode(node),
                 ),
@@ -259,8 +184,6 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
             child: ChangeDetector(
               this.widget._appViewModel,
               builder: (_) {
-                print("Update nodes");
-                print(this.widget._appViewModel.selectedNode.nodeId);
                 return ListView(
                     children:
                         ListTile.divideTiles(context: context, tiles: <Widget>[
@@ -273,124 +196,130 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
               },
             ),
           ),
-          // ExpansionTile(
-          //   title: Text(
-          //     "Add node",
-          //     style: TextStyle(
-          //       fontWeight: FontWeight.bold,
-          //     ),
-          //     textAlign: TextAlign.center,
-          //   ),
-          //   children: <Widget>[
-          //     Padding(
-          //       padding: const EdgeInsets.symmetric(
-          //         horizontal: 50,
-          //       ),
-          //       child: TextFormField(
-          //         onChanged: (String val) {
-          //           setState(() {
-          //             this._stateNode.nodeName = val;
-          //           });
-          //         },
-          //         decoration: InputDecoration(
-          //           border: UnderlineInputBorder(),
-          //           labelText: "Node name",
-          //         ),
-          //       ),
-          //     ),
-          //     Padding(
-          //       padding: const EdgeInsets.symmetric(
-          //         horizontal: 50,
-          //       ),
-          //       child: TextFormField(
-          //         onChanged: (String val) {
-          //           setState(() {
-          //             this._stateNode.nodeUrl = val;
-          //           });
-          //         },
-          //         decoration: InputDecoration(
-          //           border: UnderlineInputBorder(),
-          //           labelText: "Node url",
-          //         ),
-          //       ),
-          //     ),
-          //     Padding(
-          //       padding: const EdgeInsets.symmetric(
-          //         horizontal: 60,
-          //       ),
-          //       child: Padding(
-          //         padding: const EdgeInsets.symmetric(vertical: 10),
-          //         child: Row(
-          //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //           children: <Widget>[
-          //             ...<Color>[
-          //               Colors.redAccent,
-          //               Colors.deepPurpleAccent,
-          //               Colors.blueAccent,
-          //               Colors.cyanAccent,
-          //               Colors.lightGreenAccent,
-          //               Colors.yellowAccent,
-          //               Colors.orangeAccent,
-          //               Colors.deepOrangeAccent,
-          //             ]
-          //                 .map(
-          //                   (Color color) => InkWell(
-          //                     borderRadius: BorderRadius.all(
-          //                       Radius.circular(40),
-          //                     ),
-          //                     onTap: () {
-          //                       setState(() {
-          //                         this._stateNode.nodeColor = color;
-          //                       });
-          //                     },
-          //                     child: Container(
-          //                       width: 40,
-          //                       height: 40,
-          //                       decoration: BoxDecoration(
-          //                           color: color,
-          //                           border: Border.all(color: color),
-          //                           boxShadow: <BoxShadow>[
-          //                             BoxShadow(
-          //                               color: Colors.grey.withOpacity(0.3),
-          //                               spreadRadius: 2,
-          //                               blurRadius: 2,
-          //                               offset: Offset(
-          //                                   1, 1), // changes position of shadow
-          //                             ),
-          //                           ],
-          //                           borderRadius:
-          //                               BorderRadius.all(Radius.circular(40))),
-          //                       child: Icon(
-          //                         this._stateNode.nodeColor == color
-          //                             ? Icons.check
-          //                             : null,
-          //                         color: Colors.grey[800],
-          //                       ),
-          //                     ),
-          //                   ),
-          //                 )
-          //                 .toList()
-          //           ],
-          //         ),
-          //       ),
-          //     ),
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(
-          //     vertical: 10,
-          //   ),
-          //   child: ElevatedButton(
-          //     onPressed: this.newNodeDataIsEntered ? this._addNode : null,
-          //     child: Padding(
-          //       padding: const EdgeInsets.symmetric(
-          //         horizontal: 20,
-          //         vertical: 10,
-          //       ),
-          //       child: Text("Add"),
-          //     ),
-          //   ),
-          // ),
-          //   ],
-          // )
+          ExpansionTile(
+            title: Text(
+              "Add node",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 50,
+                ),
+                child: TextFormField(
+                  onChanged: (String val) {
+                    setState(() {
+                      this._stateNode.nodeName = val;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    border: UnderlineInputBorder(),
+                    labelText: "Node name",
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 50,
+                ),
+                child: TextFormField(
+                  onChanged: (String val) {
+                    setState(() {
+                      this._stateNode.nodeUrl = val;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    border: UnderlineInputBorder(),
+                    labelText: "Node url",
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 60,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      ...<Color>[
+                        Colors.redAccent,
+                        Colors.deepPurpleAccent,
+                        Colors.blueAccent,
+                        Colors.cyanAccent,
+                        Colors.lightGreenAccent,
+                        Colors.yellowAccent,
+                        Colors.orangeAccent,
+                        Colors.deepOrangeAccent,
+                      ]
+                          .map(
+                            (Color color) => InkWell(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(40),
+                              ),
+                              onTap: () {
+                                setState(() {
+                                  this._stateNode.nodeColor = color;
+                                });
+                              },
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                    color: color,
+                                    border: Border.all(color: color),
+                                    boxShadow: <BoxShadow>[
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        spreadRadius: 2,
+                                        blurRadius: 2,
+                                        offset: Offset(
+                                            1, 1), // changes position of shadow
+                                      ),
+                                    ],
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(40))),
+                                child: Icon(
+                                  this._stateNode.nodeColor == color
+                                      ? Icons.check
+                                      : null,
+                                  color: Colors.grey[800],
+                                ),
+                              ),
+                            ),
+                          )
+                          .toList()
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                ),
+                child: ChangeDetector(
+                  this.widget._appViewModel,
+                  builder: (_) {
+                    return ElevatedButton(
+                      onPressed:
+                          this.newNodeDataIsEntered ? this._addNode : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        child: Text("Add"),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
