@@ -230,7 +230,7 @@ class LocalStorageSessionService extends SessionService {
       return true;
     } catch (e) {
       this.deleteValue(key);
-      throw e;
+      return false;
     }
   }
 
