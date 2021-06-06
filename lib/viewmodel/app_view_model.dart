@@ -181,7 +181,7 @@ class AppViewModel extends ChangeNotifier {
     final Uint8List encryptionKey,
     final String mnemonicPhrase,
   ) async {
-    final AppModel updatedAppModel = await this._storageService.read();
+    final AppModel updatedAppModel = this._appModel;
     final AppSensetiveModel updatedAppSensetiveModel =
         await this._sensetiveStorageService.read(encryptionKey);
 
@@ -198,7 +198,7 @@ class AppViewModel extends ChangeNotifier {
     updatedAppModel.seeds.add(newSeedModel);
 
     await this._sensetiveStorageService.write(updatedAppSensetiveModel);
-    await this._storageService.write(updatedAppModel);
+    await this._storageService.write(updatedAppModel.clone());
 
     this._rebuildViewModels(updatedAppModel, updatedAppSensetiveModel);
 
