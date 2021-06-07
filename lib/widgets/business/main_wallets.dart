@@ -123,7 +123,7 @@ class _MainWalletsState extends State<MainWalletsWidget> {
         .widget
         ._appState
         .keyPairs
-        .skipWhile((KeyPairViewModel keyPair) => keyPair.isHidden)
+        .where((KeyPairViewModel keyPair) => !keyPair.isHidden)
         .toList();
 
     return Column(
@@ -273,29 +273,6 @@ class _KeyPairContentWidgetState extends State<_KeyPairContentWidget> {
   @override
   void initState() {
     super.initState();
-
-    final KeyPairViewModel keypairBundle = this.widget.data;
-    // final JobService jobService = this.widget.jobService;
-
-    // final AccountsActivationJob? accountsActivationJob =
-    //     jobService.fetchAccountsActivationJob(keypairBundle);
-
-    // if (accountsActivationJob != null) {
-    //   this._accountsActivationInProgress = true;
-    //   accountsActivationJob.future.then((_) {
-    //     this.setState(() {
-    //       this._accountsActivationInProgress = false;
-    //     });
-    //   }).onError((Object error, StackTrace stackTrace) {
-    //     this.setState(() {
-    //       this._accountsActivationInProgress = false;
-    //       this._accountsActivationFailureMessage =
-    //           error is FreemeworkException ? error.message : "$error";
-    //     });
-    //   });
-    // } else {
-    //   this._accountsActivationInProgress = false;
-    // }
   }
 
   @override
@@ -355,22 +332,13 @@ class _AccountsWidget extends StatefulWidget {
 }
 
 class _AccountsWidgetState extends State<_AccountsWidget> {
-  // List<_AccountExpansionPanelViewModel>? _accountViewModels;
-
   @override
   void initState() {
     super.initState();
-    // _accountViewModels = this
-    //     .widget
-    //     .accounts
-    //     .map((AccountViewModel account) =>
-    //         _AccountExpansionPanelViewModel(account))
-    //     .toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    // assert(this._accountViewModels != null);
     List<AccountViewModel> accountViewModels = this
         .widget
         .accounts
@@ -431,23 +399,6 @@ class _AccountsWidgetState extends State<_AccountsWidget> {
     );
   }
 }
-
-///
-/// stores ExpansionPanel state information
-///
-// class _AccountExpansionPanelViewModel {
-//   final AccountViewModel account;
-
-//   _AccountExpansionPanelViewModel(this.account) : this.isExpanded = false {
-//     // if (account.accountType == AccountType.ACTIVE ||
-//     //     account.balance != TonDecimal.zero) {
-//     //   this.isExpanded = true;
-//     // }
-//     this.isExpanded = !this.account.isCollapsed;
-//   }
-
-//   bool isExpanded;
-// }
 
 class _AccountWidget extends StatelessWidget {
   final AccountViewModel account;

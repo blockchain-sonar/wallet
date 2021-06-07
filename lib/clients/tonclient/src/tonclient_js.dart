@@ -50,11 +50,10 @@ class _TONClientFacadeInterop {
     String smartContractBlobTvcBase64,
   );
 
-  /// "m/44'/396'/0'/0/0"
-  external dynamic deriveKeyPair(
-    List<String> seedMnemonicWords,
-    String hdpath,
-  );
+  ///
+  /// { seedMnemonicWords: ["one","two",....], hdpath: "m/44'/396'/0'/0/0" }
+  ///
+  external String deriveKeyPair(String opts);
   external dynamic fetchAccountInformation(
     String accountAddress,
   );
@@ -221,13 +220,19 @@ class TonClient extends AbstractTonClient {
     List<String> seedMnemonicWords,
     String hdpath,
   ) async {
-    final dynamic interopData = await TonClient._wrapCall<dynamic>(
-      this._wrap.deriveKeyPair(seedMnemonicWords, hdpath),
+    final Map<String, dynamic> opts = <String, dynamic>{
+      "seedMnemonicWords": seedMnemonicWords,
+      "hdpath": hdpath,
+    };
+    final String optsJson = jsonEncode(opts);
+    final String interopDataJson = await TonClient._wrapCall<dynamic>(
+      this._wrap.deriveKeyPair(optsJson),
     );
+    final Map<String, String> interopData = jsonDecode(interopDataJson);
     return KeyPair(
-      public: _getInteropDataProperty(
+      public: _getInteropJsonProperty(
           interopData, TonClient._KEYPAIR_PUBLIC_PROPERTY_NAME),
-      secret: _getInteropDataProperty(
+      secret: _getInteropJsonProperty(
           interopData, TonClient._KEYPAIR_SECRET_PROPERTY_NAME),
     );
   }
@@ -281,14 +286,12 @@ class TonClient extends AbstractTonClient {
   @override
   Future<List<String>> generateMnemonicPhraseSeed(SeedType seedType) async {
     final int wordsCount = _resolveWordsCount(seedType);
-    final dynamic jsArray = await TonClient._wrapCall<dynamic>(
+
+    final String wordsJson = await TonClient._wrapCall<dynamic>(
         this._wrap.generateMnemonicPhraseSeed(wordsCount));
 
-    final List<String> words = <String>[];
-    for (int i = 0; i < jsArray.length; ++i) {
-      final String word = jsArray[i];
-      words.add(word);
-    }
+    final List<String> words = jsonDecode(wordsJson);
+
     return words;
   }
 

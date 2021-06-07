@@ -198,7 +198,7 @@ class SensetiveLocalStorageService extends SensetiveStorageService {
     final String dataSetEncryptedBase64 =
         encrypter.encryptStringToBas64(dataSetSerialized);
 
-    window.localStorage[_LocalStorageDataKey + "__debug"] = dataSetSerialized;
+    //window.localStorage[_LocalStorageDataKey + "__debug"] = dataSetSerialized;
 
     window.localStorage[_LocalStorageDataKey] = dataSetEncryptedBase64;
   }

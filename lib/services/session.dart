@@ -236,10 +236,10 @@ class LocalStorageSessionService extends SessionService {
 
   @override
   Future<void> setValue(String key, String value) async {
-    int exp_timestamp =
-        (DateTime.now().millisecondsSinceEpoch ~/ 1000) + this._timeout;
-    window.localStorage["${LocalStorageSessionService._PREFIX}:${key}"] =
-        "${value}:${exp_timestamp}";
+    // int exp_timestamp =
+    //     (DateTime.now().millisecondsSinceEpoch ~/ 1000) + this._timeout;
+    // window.localStorage["${LocalStorageSessionService._PREFIX}:${key}"] =
+    //     "${value}:${exp_timestamp}";
   }
 }
 
