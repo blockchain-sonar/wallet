@@ -14,20 +14,22 @@
 // limitations under the License.
 //
 
-import "package:freemework/freemework.dart"
-    show ExecutionContext, FreemeworkException;
-import 'package:freeton_wallet/viewmodel/account_view_mode.dart';
-import 'package:freeton_wallet/viewmodel/key_pair_view_model.dart';
+import "dart:typed_data" show Uint8List;
 
-import "../viewmodel/app_view_model.dart" show AppViewModel;
+import "package:freemework/freemework.dart" show ExecutionContext;
 
-import "../misc/ton_decimal.dart" show TonDecimal;
-import "../services/job.dart" show AccountsActivationJob, JobService;
 import "../data/account.dart" show Account;
 import "../data/key_pair.dart" show KeyPair;
+import "../misc/ton_decimal.dart" show TonDecimal;
+import "../model/app_sensetive_model.dart";
+import "../model/key_pair_sensetive_model.dart";
+import "../model/seed_sensetive_model.dart";
+import "../services/sensetive_storage_service.dart";
+import "../viewmodel/account_view_mode.dart";
+import "../viewmodel/app_view_model.dart" show AppViewModel;
+
 import "../services/blockchain/blockchain.dart"
     show
-        BlockchainService,
         ProcessingState,
         RunMessage,
         SmartContactRuntime,
@@ -41,19 +43,13 @@ import "../widgets/business/send_money.dart" show SendMoneyWidgetApi;
 
 class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
   final AppViewModel _appViewModel;
-  //final EncryptedDbService encryptedDbService;
-  // final BlockchainService _blockchainService;
-  // final JobService _jobService;
-  final AccountViewModel _dataAccount;
-  // final String accountAddress;
+  final SensetiveStorageService _sensetiveStorageService;
+  final AccountViewModel _accountViewModel;
 
   SendMoneyWidgetApiAdapter(
-    this._dataAccount,
+    this._sensetiveStorageService,
     this._appViewModel,
-    // this._blockchainService,
-    // this._jobService,
-    //this.encryptedDbService,
-    //this.accountAddress,
+    this._accountViewModel,
   );
 
   @override
@@ -67,28 +63,35 @@ class SendMoneyWidgetApiAdapter extends SendMoneyWidgetApi {
 
     final SmartContractBlob smartContractBlob = SmartContractKeeper.instance
         .getByFullQualifiedName(
-            this._dataAccount.smartContractFullQualifiedName);
+            this._accountViewModel.smartContractFullQualifiedName);
     final SmartContractAbi smartContractAbi = smartContractBlob.abi;
 
     if (!(smartContractAbi is WalletAbi)) {
       throw StateError("Cannot send money. Unsupported contract ABI.");
     }
 
-    String keySecret = ""; // TODO
+    final Uint8List encryptionKey = this._appViewModel.encryptionKey;
+    final AppSensetiveModel appSensetiveModel =
+        await this._sensetiveStorageService.read(encryptionKey);
 
-    final KeyPairViewModel keyPair = this._dataAccount.parentKeyPair;
-    // if (keypairBundle is KeypairBundlePlain) {
-    //   keySecret = keypairBundle.keySecret;
-    // } else {
-    //   throw FreemeworkException(
-    //       "${KeypairBundlePlain} only supported right now.");
-    // }
+    final SeedSensetiveModel sensetiveSeedModel = appSensetiveModel.seeds
+        .singleWhere((SeedSensetiveModel seed) =>
+            seed.seedId ==
+            this._accountViewModel.parentKeyPair.parentSeed.seedId);
+    final KeyPairSensetiveModel keyPairSensetiveModel = sensetiveSeedModel
+        .keyPairs
+        .singleWhere((KeyPairSensetiveModel keyPair) =>
+            keyPair.keyPairId ==
+            this._accountViewModel.parentKeyPair.keyPairId);
 
     final SmartContactRuntime contactRuntime =
         this._appViewModel.blockchainService;
     final Account account = Account(
-      KeyPair(public: keyPair.keyPublic, secret: keySecret),
-      this._dataAccount.blockchainAddress,
+      KeyPair(
+        public: keyPairSensetiveModel.keyPublic,
+        secret: keyPairSensetiveModel.keyPrivate,
+      ),
+      this._accountViewModel.blockchainAddress,
       smartContractAbi,
     );
 

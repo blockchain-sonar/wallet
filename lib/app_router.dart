@@ -40,13 +40,12 @@ import "package:flutter/widgets.dart"
         UniqueKey,
         ValueKey,
         VoidCallback,
-        Widget,
-        WidgetBuilder;
+        Widget;
 import "package:freemework/freemework.dart";
-import 'package:freeton_wallet/services/session.dart';
 
 import "adapter/deploy_contract_adapter.dart"
     show DeployContractWidgetApiAdapter;
+import "adapter/send_money_adapter.dart" show SendMoneyWidgetApiAdapter;
 import "data/key_pair.dart" show KeyPair;
 import "data/mnemonic_phrase.dart" show MnemonicPhrase;
 import "router/app_route_data.dart";
@@ -57,6 +56,7 @@ import "router/settings_nodes_page.dart";
 import "router/settings_walletmanager_page.dart" show SettingsWalletManagerPage;
 import "services/blockchain/blockchain.dart" show BlockchainServiceFactory;
 import "services/sensetive_storage_service.dart" show SensetiveStorageService;
+import "services/session.dart" show SessionService;
 import "services/storage_service.dart" show StorageService;
 import "viewmodel/account_view_mode.dart" show AccountViewModel;
 import "viewmodel/app_view_model.dart" show AppViewModel;
@@ -64,6 +64,8 @@ import "widgets/business/deploy_contract.dart"
     show DeployContractWidget, DeployContractWidgetApi;
 import "widgets/business/main.dart" show MainWidgetApi;
 import "widgets/business/main_wallets.dart" show DeployContractCallback;
+import "widgets/business/send_money.dart"
+    show SendMoneyWidget, SendMoneyWidgetApi;
 import "widgets/business/setup_master_password.dart"
     show SetupMasterPasswordContext, SetupMasterPasswordWidget;
 import "widgets/business/unlock.dart"
@@ -499,9 +501,15 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     final AppViewModel appViewModel,
     final String accountAddress,
   ) {
+    final List<AccountViewModel> accounts = appViewModel.accounts;
+    final AccountViewModel account = accounts.singleWhere(
+        (AccountViewModel account) =>
+            account.blockchainAddress == accountAddress);
+
     final DeployContractWidgetApi widgetApi = DeployContractWidgetApiAdapter(
+      this._sensetiveStorageService,
       appViewModel,
-      accountAddress,
+      account,
     );
 
     return <Page<dynamic>>[
@@ -516,27 +524,23 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
     final AppViewModel appViewModel,
     final String sourceAccountAddress,
   ) {
-    return this._redirectPagesStack(AppRouteDataCrash.PATH);
+    final List<AccountViewModel> accounts = appViewModel.accounts;
+    final AccountViewModel account = accounts.singleWhere(
+        (AccountViewModel account) =>
+            account.blockchainAddress == sourceAccountAddress);
 
-    // final List<DataAccount> accounts = appViewModel.keypairBundles
-    //     .expand((KeypairBundle keypairBundle) => keypairBundle.accounts.values)
-    //     .toList();
-    // final DataAccount account = accounts.singleWhere(
-    //     (DataAccount account) => account.blockchainAddress == sourceAccountAddress);
+    final SendMoneyWidgetApi widgetApi = SendMoneyWidgetApiAdapter(
+      this._sensetiveStorageService,
+      appViewModel,
+      account,
+    );
 
-    // final SendMoneyWidgetApi widgetApi = SendMoneyWidgetApiAdapter(
-    //   account,
-    //   appViewModel,
-    //   blockchainService,
-    //   jobService,
-    // );
-
-    // return <Page<dynamic>>[
-    //   MaterialPage<SendMoneyWidget>(
-    //     key: ValueKey<Object>(SendMoneyWidget),
-    //     child: SendMoneyWidget(widgetApi),
-    //   )
-    // ];
+    return <Page<dynamic>>[
+      MaterialPage<SendMoneyWidget>(
+        key: ValueKey<Object>(SendMoneyWidget),
+        child: SendMoneyWidget(widgetApi),
+      )
+    ];
   }
 
   List<Page<dynamic>> _redirectPagesStack(String location, [String? state]) {

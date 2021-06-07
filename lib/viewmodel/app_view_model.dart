@@ -21,6 +21,7 @@ import "dart:typed_data" show Uint8List;
 
 import "package:flutter/widgets.dart" show ChangeNotifier, Color;
 import "package:freemework/freemework.dart" show FreemeworkException;
+import 'package:freeton_wallet/viewmodel/account_view_mode.dart';
 
 import "../model/account_model.dart" show AccountModel;
 import "../model/app_model.dart" show AppModel;
@@ -87,6 +88,9 @@ class AppViewModel extends ChangeNotifier {
   UnmodifiableListView<KeyPairViewModel> get keyPairs =>
       UnmodifiableListView<KeyPairViewModel>(
           this.seeds.expand((SeedViewModel seed) => seed.keyPairs));
+  UnmodifiableListView<AccountViewModel> get accounts =>
+      UnmodifiableListView<AccountViewModel>(
+          this.keyPairs.expand((KeyPairViewModel keyPair) => keyPair.accounts));
   UnmodifiableListView<SeedViewModel> get seeds =>
       UnmodifiableListView<SeedViewModel>(this._seedViewModels.values);
   UnmodifiableListView<NodeViewModel> get nodes =>
@@ -269,17 +273,20 @@ class AppViewModel extends ChangeNotifier {
   }
 
   Future<void> selectNode(String nodeId) async {
-    final AppModel updatedAppModel = this._appModel;
+    final AppModel appModel = this._appModel;
 
-    assert(updatedAppModel.nodes
+    assert(appModel.nodes
         .where((NodeModel node) => node.nodeId == nodeId)
         .isNotEmpty);
+
+    NodeModel selectNodeModel =
+        appModel.nodes.singleWhere((NodeModel node) => node.nodeId == nodeId);
 
     final BlockchainService? prevBlockchainService = this.__blockchainService;
 
     final BlockchainService selectedBlockchainService = await this
         ._blockchainServiceFactory
-        .create(updatedAppModel.selectedNode.serverHosts);
+        .create(selectNodeModel.serverHosts);
 
     this.__blockchainService = selectedBlockchainService;
 
@@ -287,11 +294,11 @@ class AppViewModel extends ChangeNotifier {
       await prevBlockchainService.dispose();
     }
 
-    updatedAppModel.selectedNodeId = nodeId;
+    // Save selectedNodeId only if we successfully create new blockchainService
+    appModel.selectedNodeId = nodeId;
+    await this._storageService.write(appModel.clone());
 
-    await this._storageService.write(updatedAppModel.clone());
-
-    this._rebuildViewModels(updatedAppModel);
+    this._rebuildViewModels(appModel);
 
     this.notifyListeners();
   }

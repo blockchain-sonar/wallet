@@ -14,14 +14,11 @@
 // limitations under the License.
 //
 
-//import "package:decimal/decimal.dart";
-import 'dart:convert';
-
 import "package:freemework/ExecutionContext.dart";
 import "package:freemework/freemework.dart";
-import 'package:freeton_wallet/misc/ton_decimal.dart';
 
 import "../../../data/account.dart" show Account;
+import "../../../misc/ton_decimal.dart";
 
 import "abi/safemultisigwallet_20200501.dart" show ABI__SAFE_MULTISIG_20200501;
 import "abi/setcodemultisigwallet_20200506.dart"
