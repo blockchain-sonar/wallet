@@ -24,15 +24,11 @@ import "models/processing_state.dart" show ProcessingState;
 import "models/run_message.dart" show RunMessage;
 import "models/transaction.dart" show Transaction;
 
-// The `TONClientFacade` constructor invokes JavaScript `new window["freeton_wallet_platform"]`
-// @JS("freeton_wallet_platform.TONClientFacade")
-// external _TONClientFacadeInterop tonClientFacadeFactory();
-
 @JS("freeton_wallet_platform.TONClientFacade")
 class _TONClientFacadeInterop {
   external _TONClientFacadeInterop(dynamic opts);
   external dynamic init();
-  // external dynamic dispose();
+  external dynamic dispose();
   external dynamic calcDeployFees(
     String keyPublic,
     String keySecret,
@@ -70,15 +66,6 @@ class _TONClientFacadeInterop {
   external dynamic generateMnemonicPhraseSeed(
     int wordsCount,
   );
-  // external dynamic sendTransaction(
-  //   String keyPublic,
-  //   String keySecret,
-  //   String smartContractABI,
-  //   String accountAddress,
-  //   String destinationAddress,
-  //   String amount,
-  //   String comment,
-  // );
   external dynamic sendMessage(
     String messageSendToken,
   );
@@ -136,7 +123,7 @@ class TonClient extends AbstractTonClient {
 
   @override
   Future<void> dispose() async {
-    //await promiseToFuture(this._wrap.dispose());
+    await promiseToFuture(this._wrap.dispose());
     print("TonClient JS Interop was disposed");
   }
 

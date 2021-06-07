@@ -87,23 +87,29 @@ class NodesManagerSettings extends StatefulWidget {
 
 class _NodesManagerSettingsState extends State<NodesManagerSettings> {
   _StateSettingsNode _stateNode;
-  _NodesManagerSettingsState() : this._stateNode = _StateSettingsNode("", "");
+  _NodesManagerSettingsState() : this._stateNode = _StateSettingsNode.EMPTY();
 
-  bool get newNodeDataIsEntered =>
-      this
-          .widget
-          ._appViewModel
-          .nodes
-          .where((NodeViewModel node) =>
-              node.nodeId == this._stateNode.nodeName.toLowerCase())
-          .isEmpty &&
-      this._stateNode.isDataEntered;
+  bool get newNodeDataIsEntered {
+    final _StateSettingsNode? stateNode = this._stateNode;
+    if (stateNode == null) {
+      return false;
+    }
+    return this
+            .widget
+            ._appViewModel
+            .nodes
+            .where((NodeViewModel node) =>
+                node.nodeId == stateNode.nodeName.toLowerCase())
+            .isEmpty &&
+        stateNode.isDataEntered;
+  }
 
   void _addNode() {
+    final _StateSettingsNode stateNode = this._stateNode;
     this.widget._appViewModel.addNode(
-          this._stateNode.nodeName,
-          this._stateNode.nodeUrl,
-          this._stateNode.nodeColor ?? Colors.white,
+          stateNode.nodeName,
+          stateNode.nodeUrl,
+          stateNode.nodeColor,
         );
   }
 
@@ -116,55 +122,59 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
   }
 
   bool _canDelete(NodeViewModel node) =>
-      !<String>["Mainnet", "Testnet"].contains(node.name);
+      !<String>["mainnet", "testnet"].contains(node.nodeId);
 
-  Widget tileWidget(NodeViewModel node, {bool canDelete = true}) {
+  Widget _buildNodeTileWidget(NodeViewModel node) {
     return ListTile(
-      tileColor: node.color,
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
+      onTap: () => this._setActiveNode(node),
+      title: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: _buildNodeColorWidget(node.color,
+                      this.widget._appViewModel.selectedNode == node),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        node.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        node.servers.join(", "),
+                        style: TextStyle(
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ],
+            ),
+            if (this._canDelete(node))
               IconButton(
                 splashRadius: 20,
                 icon: Icon(
-                  Icons.check,
-                  color: this.widget._appViewModel.selectedNode == node
-                      ? Colors.blue[900]
-                      : Colors.grey,
+                  Icons.delete,
+                  color: Colors.red[900],
                 ),
-                onPressed: () => this._setActiveNode(node),
+                onPressed: () => this._deleteNode(node),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    node.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    node.servers.join(", "),
-                    style: TextStyle(
-                      fontSize: 12,
-                    ),
-                  )
-                ],
-              ),
-            ],
-          ),
-          if (this._canDelete(node))
-            IconButton(
-              splashRadius: 20,
-              icon: Icon(
-                Icons.delete,
-                color: Colors.red[900],
-              ),
-              onPressed: () => this._deleteNode(node),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -186,7 +196,7 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                       .widget
                       ._appViewModel
                       .nodes
-                      .map((NodeViewModel node) => tileWidget(node)),
+                      .map((NodeViewModel node) => _buildNodeTileWidget(node)),
                 ]).toList());
               },
             ),
@@ -207,7 +217,8 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 child: TextFormField(
                   onChanged: (String val) {
                     setState(() {
-                      this._stateNode.nodeName = val;
+                      final _StateSettingsNode stateNode = this._stateNode;
+                      stateNode.nodeName = val;
                     });
                   },
                   decoration: InputDecoration(
@@ -223,7 +234,8 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                 child: TextFormField(
                   onChanged: (String val) {
                     setState(() {
-                      this._stateNode.nodeUrl = val;
+                      final _StateSettingsNode stateNode = this._stateNode;
+                      stateNode.nodeUrl = val;
                     });
                   },
                   decoration: InputDecoration(
@@ -243,51 +255,32 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
                     children: <Widget>[
                       ...<Color>[
                         Colors.redAccent,
-                        Colors.deepPurpleAccent,
-                        Colors.blueAccent,
                         Colors.cyanAccent,
-                        Colors.lightGreenAccent,
+                        Colors.greenAccent,
                         Colors.yellowAccent,
                         Colors.orangeAccent,
-                        Colors.deepOrangeAccent,
-                      ]
-                          .map(
-                            (Color color) => InkWell(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(40),
-                              ),
-                              onTap: () {
-                                setState(() {
-                                  this._stateNode.nodeColor = color;
-                                });
-                              },
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                    color: color,
-                                    border: Border.all(color: color),
-                                    boxShadow: <BoxShadow>[
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        spreadRadius: 2,
-                                        blurRadius: 2,
-                                        offset: Offset(
-                                            1, 1), // changes position of shadow
-                                      ),
-                                    ],
-                                    borderRadius:
-                                        BorderRadius.all(Radius.circular(40))),
-                                child: Icon(
-                                  this._stateNode.nodeColor == color
-                                      ? Icons.check
-                                      : null,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
+                        Colors.indigoAccent,
+                      ].map(
+                        (Color color) {
+                          final _StateSettingsNode stateNode = this._stateNode;
+                          final bool isChecked = stateNode.nodeColor == color;
+
+                          return InkWell(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(40),
                             ),
-                          )
-                          .toList()
+                            onTap: () {
+                              setState(() {
+                                stateNode.nodeColor = color;
+                              });
+                            },
+                            child: _buildNodeColorWidget(
+                              color,
+                              isChecked,
+                            ),
+                          );
+                        },
+                      ).toList()
                     ],
                   ),
                 ),
@@ -319,14 +312,41 @@ class _NodesManagerSettingsState extends State<NodesManagerSettings> {
       ),
     );
   }
+
+  Widget _buildNodeColorWidget(Color color, bool isCheck) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+          color: color,
+          border: Border.all(color: color),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 2,
+              offset: Offset(1, 1), // changes position of shadow
+            ),
+          ],
+          borderRadius: BorderRadius.all(Radius.circular(40))),
+      child: Icon(
+        isCheck ? Icons.check : null,
+        color: Colors.grey[800],
+      ),
+    );
+  }
 }
 
 class _StateSettingsNode {
   String nodeName;
   String nodeUrl;
-  Color? nodeColor;
+  Color nodeColor;
+
+  factory _StateSettingsNode.EMPTY() {
+    return _StateSettingsNode("", "", nodeColor: Colors.white);
+  }
 
   bool get isDataEntered => this.nodeName.isNotEmpty && this.nodeUrl.isNotEmpty;
 
-  _StateSettingsNode(this.nodeName, this.nodeUrl, {this.nodeColor});
+  _StateSettingsNode(this.nodeName, this.nodeUrl, {required this.nodeColor});
 }

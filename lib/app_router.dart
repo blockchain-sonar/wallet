@@ -473,6 +473,13 @@ class _AppRouterDelegate extends RouterDelegate<AppRouteData>
                 this._blockchainServiceFactory,
               );
               await newAppViewModel.initialize(encryptionKey);
+
+              final String encryptionKeyStr = base64Encode(encryptionKey);
+              await this._sessionService.setValue(
+                    SessionService.KEY__ENCRYPTION_KEY,
+                    encryptionKeyStr,
+                  );
+
               this._appViewModel = newAppViewModel;
             } catch (e) {
               final FreemeworkException err =

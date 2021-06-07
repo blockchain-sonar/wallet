@@ -14,23 +14,20 @@
 // limitations under the License.
 //
 
-import 'dart:async';
+import "dart:async" show Future, Timer;
 import "dart:collection" show UnmodifiableListView;
-import 'dart:html';
 import "dart:math" show max;
 import "dart:typed_data" show Uint8List;
 
-import 'package:flutter/material.dart';
-import "package:flutter/widgets.dart" show ChangeNotifier;
-import 'package:freemework/freemework.dart';
-import 'package:freeton_wallet/data/key_pair.dart';
-import 'package:freeton_wallet/model/account_model.dart';
-import 'package:freeton_wallet/model/key_pair_sensetive_model.dart';
+import "package:flutter/widgets.dart" show ChangeNotifier, Color;
+import "package:freemework/freemework.dart" show FreemeworkException;
 
+import "../model/account_model.dart" show AccountModel;
 import "../model/app_model.dart" show AppModel;
 import "../model/app_sensetive_model.dart" show AppSensetiveModel;
 import "../model/auto_lock_delay.dart" show AutoLockDelay;
 import "../model/key_pair_model.dart" show KeyPairModel;
+import "../model/key_pair_sensetive_model.dart" show KeyPairSensetiveModel;
 import "../model/node_model.dart" show NodeModel;
 import "../model/seed_model.dart" show SeedModel;
 import "../model/seed_sensetive_model.dart" show SeedSensetiveModel;
@@ -42,7 +39,7 @@ import "../services/storage_service.dart" show StorageService;
 
 import "key_pair_view_model.dart" show KeyPairViewModel;
 import "node_view_model.dart" show NodeViewModel;
-import 'seed_view_model.dart';
+import "seed_view_model.dart" show SeedViewModel;
 
 class AppViewModel extends ChangeNotifier {
   AppViewModel(
@@ -278,6 +275,18 @@ class AppViewModel extends ChangeNotifier {
         .where((NodeModel node) => node.nodeId == nodeId)
         .isNotEmpty);
 
+    final BlockchainService? prevBlockchainService = this.__blockchainService;
+
+    final BlockchainService selectedBlockchainService = await this
+        ._blockchainServiceFactory
+        .create(updatedAppModel.selectedNode.serverHosts);
+
+    this.__blockchainService = selectedBlockchainService;
+
+    if (prevBlockchainService != null) {
+      await prevBlockchainService.dispose();
+    }
+
     updatedAppModel.selectedNodeId = nodeId;
 
     await this._storageService.write(updatedAppModel.clone());
@@ -310,8 +319,6 @@ class AppViewModel extends ChangeNotifier {
   /// UI changes (like isCollapsed/isHidden flags) does not need to save syncrously
   /// Instead it schedule save operation to save all changes by once.
   void scheduleSaveUiData() {
-    // TODO
-    print("scheduleSaveUiData");
     if (this._saveUiDataTimer != null) {
       this._saveUiDataTimer!.cancel();
       this._saveUiDataTimer = null;
