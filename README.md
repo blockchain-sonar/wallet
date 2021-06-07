@@ -14,7 +14,7 @@ flutter run --device-id chrome
 ### Chrome Extenstion
 
 ```
-ln -sf index-extension.html web/index.html
+ln -sf index-extenstion.html web/index.html
 flutter build web --web-renderer html --release
 ```
 
