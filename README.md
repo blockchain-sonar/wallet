@@ -14,8 +14,14 @@ flutter run --device-id chrome
 ### Chrome Extenstion
 
 ```
-ln -sf index-extenstion.html web/index.html
+rm -rf .dart_tool/ build/
+git submodule update --init && (cd submodule/wallet.platform.web/ && npm install && npm run build)
+rm web/index.html web/index-webapp.html web/index-webapp-devel.html web/freeton_wallet_platform.devel.js web/manifest-webapp.json
+mv web/index-extenstion.html web/index.html
+mv web/manifest-extension.json web/manifest.json
 flutter build web --web-renderer html --release
+cd build/web
+zip ../../freeton-wallet-chrome-extenstion.zip *
 ```
 
 
