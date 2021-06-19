@@ -156,10 +156,10 @@ class _MainWalletsState extends State<MainWalletsWidget> {
                       String? assetName = null;
                       switch (this.widget._appState.selectedNode.nodeId) {
                         case "mainnet":
-                          assetName = "assets/ton-crystal.png";
+                          assetName = "resources/ton-crystal.png";
                           break;
                         case "testnet":
-                          assetName = "assets/ton-rubie.png";
+                          assetName = "resources/ton-rubie.png";
                           break;
                       }
 

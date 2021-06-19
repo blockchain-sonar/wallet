@@ -36,7 +36,7 @@ class FWLogo128Widget extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Column(
         children: [
-          Image(image: AssetImage('assets/freeton-128.png')),
+          Image(image: AssetImage('resources/freeton-128.png')),
           Text(
             "Free TON Wallet",
             style: TextStyle(

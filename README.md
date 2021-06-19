@@ -21,7 +21,7 @@ mv web/index-extenstion.html web/index.html
 mv web/manifest-extension.json web/manifest.json
 flutter build web --web-renderer html --release
 cd build/web
-zip ../../freeton-wallet-chrome-extenstion.zip *
+zip -r ../../freeton-wallet-chrome-extenstion.zip *
 ```
 
 
